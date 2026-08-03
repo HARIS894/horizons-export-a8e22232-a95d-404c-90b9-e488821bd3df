@@ -1,0 +1,2 @@
+// This file is deprecated. The chatbot logic has been moved entirely to the client-side component at src/components/HealthAIChatBot.jsx.
+// Error handling for API quotas (429) and rate limits is now implemented directly in the component.

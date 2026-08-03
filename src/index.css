@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  
+  --color-primary: #7C3AED;
+  --color-primary-light: #9F7AEA;
+  --color-secondary: #06B6D4;
+  --color-background: #FFFFFF;
+  --color-background-alt: #F8FAFB;
+  --color-text: #1F2937;
+  --color-text-light: #6B7280;
+  --color-light: #F3F4F6;
+  --color-success: #10B981;
+  --color-error: #EF4444;
+  --color-warning: #F59E0B;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background-color: var(--color-background);
+  @apply antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  @apply font-bold tracking-tight text-gray-900;
+}
+
+.btn-primary {
+  @apply bg-[#7C3AED] text-white hover:bg-[#6D28D9] transition-all duration-200 font-semibold py-3 px-6 rounded-xl shadow-sm hover:shadow-md active:scale-95 disabled:opacity-70 disabled:pointer-events-none;
+}
+
+.btn-secondary {
+  @apply bg-[#06B6D4] text-white hover:bg-[#0891B2] transition-all duration-200 font-semibold py-3 px-6 rounded-xl shadow-sm hover:shadow-md active:scale-95;
+}
+
+.btn-outline {
+  @apply bg-white border border-[#7C3AED] text-[#7C3AED] hover:bg-purple-50 transition-all duration-200 font-semibold py-3 px-6 rounded-xl shadow-sm hover:shadow-md active:scale-95;
+}
+
+.card {
+  @apply bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.1)] border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-[0_4px_6px_rgba(0,0,0,0.1)] hover:-translate-y-1;
+}
+
+.input-field {
+  @apply w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#7C3AED] focus:border-transparent transition-all duration-200 bg-white text-gray-900 placeholder:text-gray-400;
+}
+
+.container-custom {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f9fafb; 
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af; 
+}
