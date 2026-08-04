@@ -14,6 +14,7 @@ export const RESOURCE_DEFINITIONS = [
     tableName: 'enquiries',
     entityName: 'enquiry',
     searchFields: ['full_name', 'email', 'service_required'],
+    publicCreate: true,
     readRoles: ['admin', 'coordinator'],
     writeRoles: ['admin', 'coordinator'],
   },

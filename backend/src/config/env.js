@@ -7,6 +7,18 @@ const toNumber = (value, fallback) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+const normalizeSupabaseUrl = (value) => {
+  if (!value) {
+    return '';
+  }
+
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    return value;
+  }
+
+  return `https://${value}.supabase.co`;
+};
+
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: toNumber(process.env.PORT, 4000),
@@ -18,7 +30,7 @@ export const env = {
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'change-this-refresh-secret-in-production',
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   passwordResetOtpExpiresMinutes: toNumber(process.env.PASSWORD_RESET_OTP_EXPIRES_MINUTES, 15),
-  supabaseUrl: process.env.SUPABASE_URL || '',
+  supabaseUrl: normalizeSupabaseUrl(process.env.SUPABASE_URL || ''),
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   supabaseStorageBucket: process.env.SUPABASE_STORAGE_BUCKET || 'instantcare-media',

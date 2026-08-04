@@ -21,7 +21,11 @@ RESOURCE_DEFINITIONS.forEach((definition) => {
     resourceRouter.get('/:id', authenticate, authorize(...(definition.readRoles || ['admin'])), idParamValidator, validateRequest, controller.getById);
   }
 
-  resourceRouter.post('/', authenticate, authorize(...(definition.writeRoles || ['admin'])), validators.create, validateRequest, controller.create);
+  if (definition.publicCreate) {
+    resourceRouter.post('/', validators.create, validateRequest, controller.create);
+  } else {
+    resourceRouter.post('/', authenticate, authorize(...(definition.writeRoles || ['admin'])), validators.create, validateRequest, controller.create);
+  }
   resourceRouter.patch('/:id', authenticate, authorize(...(definition.writeRoles || ['admin'])), [...idParamValidator, ...validators.update], validateRequest, controller.update);
   resourceRouter.delete('/:id', authenticate, authorize(...(definition.writeRoles || ['admin'])), idParamValidator, validateRequest, controller.remove);
 

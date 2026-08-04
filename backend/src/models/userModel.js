@@ -89,11 +89,20 @@ class UserModel extends BaseModel {
       if (roleError) {
         throw new ApiError(500, 'Failed to resolve role.', roleError);
       }
-      if (!role) {
-        throw new ApiError(404, `Role not found: ${roleSlug}`);
+      let resolvedRole = role;
+      if (!resolvedRole) {
+        const { data: createdRole, error: createRoleError } = await supabaseAdmin
+          .from('roles')
+          .insert({ name: roleSlug.replace(/-/g, ' '), slug: roleSlug, description: `${roleSlug} role` })
+          .select('id, slug')
+          .single();
+        if (createRoleError) {
+          throw new ApiError(500, 'Failed to auto-create role.', createRoleError);
+        }
+        resolvedRole = createdRole;
       }
 
-      const { error } = await supabaseAdmin.from('user_roles').upsert({ user_id: userId, role_id: role.id }, { onConflict: 'user_id,role_id' });
+      const { error } = await supabaseAdmin.from('user_roles').upsert({ user_id: userId, role_id: resolvedRole.id }, { onConflict: 'user_id,role_id' });
       if (error) {
         throw new ApiError(500, 'Failed to assign role.', error);
       }

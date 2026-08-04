@@ -5,6 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "vite --host :: --port 3000",
+    "backend": "npm --prefix backend start",
+    "backend:dev": "npm --prefix backend run dev",
     "build": "node tools/generate-llms.js || true && vite build",
     "preview": "vite preview --host :: --port 3000",
     "lint": "eslint . --quiet",
