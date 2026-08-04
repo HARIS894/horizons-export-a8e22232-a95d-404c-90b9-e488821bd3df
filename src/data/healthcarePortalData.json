@@ -1,0 +1,409 @@
+{
+  "organization": {
+    "brand": "InstantCare Global Family Desk",
+    "region": "India Operations",
+    "timezone": "IST",
+    "commandLead": "Anika Rao",
+    "careAdvisor": "Dr. Kavya Menon",
+    "supportEmail": "support@instantcare.in",
+    "emergencyPhone": "+91 80456 99887"
+  },
+  "patientProfiles": [
+    {
+      "id": "ICP-1001",
+      "personalDetails": {
+        "fullName": "Shanta Rao",
+        "age": 74,
+        "gender": "Female",
+        "bloodGroup": "B+",
+        "dob": "1952-03-14",
+        "phone": "+91 9988001122",
+        "city": "Bengaluru",
+        "address": "Indiranagar, Bengaluru, Karnataka"
+      },
+      "emergencyContact": {
+        "name": "Rahul Rao",
+        "relationship": "Son",
+        "phone": "+1 408 555 1200",
+        "country": "USA"
+      },
+      "medicalHistory": ["Ischemic heart disease", "Type 2 diabetes", "Hypertension"],
+      "allergies": ["Penicillin", "Dust sensitivity"],
+      "insurance": {
+        "provider": "Star Health",
+        "policyNumber": "SH-9087811",
+        "coverageType": "Cashless",
+        "claimStatus": "Approval in progress"
+      },
+      "hospital": {
+        "name": "Fortis South Care",
+        "department": "Cardiology",
+        "room": "CCU-204"
+      },
+      "doctor": {
+        "name": "Dr. Arjun Menon",
+        "speciality": "Cardiology"
+      },
+      "healthcareCoordinator": {
+        "name": "Ayesha Nair",
+        "phone": "+91 9900112233"
+      },
+      "assignedNurse": {
+        "name": "Meera Joshi",
+        "shift": "Day ICU"
+      },
+      "assignedCaregiver": {
+        "name": "Priyanka Das",
+        "shift": "Night support"
+      },
+      "assignedDriver": {
+        "name": "Rakesh Pawar",
+        "availability": "Standby for hospital transfer"
+      },
+      "familyMembers": [
+        { "name": "Rahul Rao", "relationship": "Son", "location": "San Jose", "preferredChannel": "Video Call" },
+        { "name": "Madhavi Rao", "relationship": "Daughter", "location": "Singapore", "preferredChannel": "WhatsApp" }
+      ],
+      "medicalReports": ["Cardiac Panel.pdf", "Discharge Planning.pdf", "Medication Reconciliation.jpg"],
+      "photos": ["Recovery Room Photo.jpg", "Vitals Monitor Snapshot.png"],
+      "consentForms": ["Treatment Consent.pdf", "Insurance Authorization.pdf"],
+      "healthScore": 86,
+      "status": "Stable with supervised recovery"
+    },
+    {
+      "id": "ICP-1002",
+      "personalDetails": {
+        "fullName": "Imran Sheikh",
+        "age": 67,
+        "gender": "Male",
+        "bloodGroup": "O-",
+        "dob": "1959-11-22",
+        "phone": "+91 9898982121",
+        "city": "Hyderabad",
+        "address": "Banjara Hills, Hyderabad, Telangana"
+      },
+      "emergencyContact": {
+        "name": "Nazia Sheikh",
+        "relationship": "Daughter",
+        "phone": "+44 20 5555 8800",
+        "country": "UK"
+      },
+      "medicalHistory": ["Stroke rehabilitation", "Atrial fibrillation"],
+      "allergies": ["No known drug allergies"],
+      "insurance": {
+        "provider": "HDFC ERGO",
+        "policyNumber": "HE-8891002",
+        "coverageType": "Reimbursement",
+        "claimStatus": "Documents submitted"
+      },
+      "hospital": {
+        "name": "Apollo City Hospital",
+        "department": "Neurology",
+        "room": "Neuro Rehab 12"
+      },
+      "doctor": {
+        "name": "Dr. Sana Qureshi",
+        "speciality": "Neurology"
+      },
+      "healthcareCoordinator": {
+        "name": "Neha Bhasin",
+        "phone": "+91 8877665544"
+      },
+      "assignedNurse": {
+        "name": "Farah Khan",
+        "shift": "Morning Rehab"
+      },
+      "assignedCaregiver": {
+        "name": "Suresh Patil",
+        "shift": "24x7 attendant"
+      },
+      "assignedDriver": {
+        "name": "Aslam Pasha",
+        "availability": "Morning transport"
+      },
+      "familyMembers": [
+        { "name": "Nazia Sheikh", "relationship": "Daughter", "location": "London", "preferredChannel": "Email" },
+        { "name": "Yusuf Sheikh", "relationship": "Son", "location": "Dubai", "preferredChannel": "WhatsApp" }
+      ],
+      "medicalReports": ["Neuro Rehab Review.pdf", "Speech Therapy Notes.pdf"],
+      "photos": ["Therapy Session.jpg"],
+      "consentForms": ["Rehab Consent.pdf"],
+      "healthScore": 73,
+      "status": "Progressing under rehab plan"
+    }
+  ],
+  "timelineEvents": [
+    {
+      "id": "TL-001",
+      "patientId": "ICP-1001",
+      "type": "Admission",
+      "title": "Cardiac admission initiated",
+      "time": "2026-08-04T08:10:00+05:30",
+      "summary": "Patient admitted for post-discharge cardiac monitoring.",
+      "owner": "Ayesha Nair"
+    },
+    {
+      "id": "TL-002",
+      "patientId": "ICP-1001",
+      "type": "Doctor Visit",
+      "title": "Consultant review completed",
+      "time": "2026-08-04T10:45:00+05:30",
+      "summary": "Medication timing adjusted after morning assessment.",
+      "owner": "Dr. Arjun Menon"
+    },
+    {
+      "id": "TL-003",
+      "patientId": "ICP-1001",
+      "type": "Medicine Given",
+      "title": "Morning medications administered",
+      "time": "2026-08-04T11:05:00+05:30",
+      "summary": "Cardiac, diabetic and BP medicines documented.",
+      "owner": "Meera Joshi"
+    },
+    {
+      "id": "TL-004",
+      "patientId": "ICP-1001",
+      "type": "Vitals Updated",
+      "title": "Vitals logged",
+      "time": "2026-08-04T12:00:00+05:30",
+      "summary": "BP and oxygen stable with no acute concern.",
+      "owner": "Meera Joshi"
+    },
+    {
+      "id": "TL-005",
+      "patientId": "ICP-1001",
+      "type": "Insurance",
+      "title": "Cashless approval follow-up",
+      "time": "2026-08-04T13:15:00+05:30",
+      "summary": "Star Health desk requested one additional discharge document.",
+      "owner": "Ayesha Nair"
+    },
+    {
+      "id": "TL-006",
+      "patientId": "ICP-1001",
+      "type": "Home Visit",
+      "title": "Home nursing setup confirmed",
+      "time": "2026-08-04T18:30:00+05:30",
+      "summary": "Equipment and night caregiver assigned for home continuity.",
+      "owner": "InstantCare Ops"
+    },
+    {
+      "id": "TL-007",
+      "patientId": "ICP-1002",
+      "type": "Physiotherapy",
+      "title": "Guided gait session",
+      "time": "2026-08-04T09:25:00+05:30",
+      "summary": "Patient completed 15-minute supported walk.",
+      "owner": "Farah Khan"
+    },
+    {
+      "id": "TL-008",
+      "patientId": "ICP-1002",
+      "type": "Lab Reports",
+      "title": "New rehab lab report uploaded",
+      "time": "2026-08-04T14:05:00+05:30",
+      "summary": "Inflammatory marker trends attached to case file.",
+      "owner": "Lab Desk"
+    },
+    {
+      "id": "TL-009",
+      "patientId": "ICP-1002",
+      "type": "Billing",
+      "title": "Weekly rehab invoice generated",
+      "time": "2026-08-04T16:20:00+05:30",
+      "summary": "Shared with daughter and finance team for reimbursement tracking.",
+      "owner": "Finance Desk"
+    },
+    {
+      "id": "TL-010",
+      "patientId": "ICP-1002",
+      "type": "Emergency",
+      "title": "Mild dizziness incident monitored",
+      "time": "2026-08-04T19:00:00+05:30",
+      "summary": "Escalated to neurologist; no transfer required.",
+      "owner": "Neha Bhasin"
+    }
+  ],
+  "dailyCareReports": [
+    {
+      "id": "DCR-2001",
+      "patientId": "ICP-1001",
+      "date": "2026-08-04",
+      "temperature": "98.4 F",
+      "bp": "128/84",
+      "sugar": "146 mg/dL",
+      "pulse": "76 bpm",
+      "oxygen": "97%",
+      "weight": "62 kg",
+      "food": "Low sodium breakfast and lunch completed",
+      "waterIntake": "1.8 L",
+      "medicine": "All prescribed doses given on time",
+      "exercise": "10-minute assisted mobility",
+      "sleep": "6.5 hours",
+      "painScale": "2/10",
+      "mood": "Calm and cooperative",
+      "notes": "No chest discomfort. Family requested evening video update.",
+      "images": ["morning-wound-check.jpg"],
+      "videos": ["guided-walk.mp4"]
+    },
+    {
+      "id": "DCR-2002",
+      "patientId": "ICP-1002",
+      "date": "2026-08-04",
+      "temperature": "98.1 F",
+      "bp": "134/86",
+      "sugar": "118 mg/dL",
+      "pulse": "82 bpm",
+      "oxygen": "98%",
+      "weight": "71 kg",
+      "food": "Protein-rich meals tolerated",
+      "waterIntake": "2.1 L",
+      "medicine": "Morning anti-coagulant and rehab support medicines completed",
+      "exercise": "20-minute physio session",
+      "sleep": "7 hours",
+      "painScale": "3/10",
+      "mood": "Motivated",
+      "notes": "Speech clarity improved during evening exercises.",
+      "images": ["therapy-progress.jpg"],
+      "videos": ["speech-practice.mp4"]
+    }
+  ],
+  "familyUpdates": [
+    {
+      "id": "FUP-01",
+      "patientId": "ICP-1001",
+      "channel": "WhatsApp",
+      "type": "Daily Summary",
+      "title": "Daily recovery summary shared",
+      "sentAt": "2026-08-04T19:15:00+05:30",
+      "recipient": "Rahul Rao",
+      "content": "Vitals stable, doctor review complete, home nursing setup confirmed for tonight."
+    },
+    {
+      "id": "FUP-02",
+      "patientId": "ICP-1001",
+      "channel": "Video Update",
+      "type": "Video Update",
+      "title": "Evening bedside video update",
+      "sentAt": "2026-08-04T20:00:00+05:30",
+      "recipient": "Madhavi Rao",
+      "content": "Short video clip captured to show walking tolerance and wound dressing status."
+    },
+    {
+      "id": "FUP-03",
+      "patientId": "ICP-1002",
+      "channel": "Email",
+      "type": "Weekly Summary",
+      "title": "Weekly rehab summary emailed",
+      "sentAt": "2026-08-04T18:00:00+05:30",
+      "recipient": "Nazia Sheikh",
+      "content": "Progress update, invoice, and attached therapy notes delivered by email."
+    },
+    {
+      "id": "FUP-04",
+      "patientId": "ICP-1002",
+      "channel": "Voice Note",
+      "type": "Voice Note",
+      "title": "Coordinator voice reassurance",
+      "sentAt": "2026-08-04T20:10:00+05:30",
+      "recipient": "Yusuf Sheikh",
+      "content": "Voice update explaining dizziness event and current stable status."
+    },
+    {
+      "id": "FUP-05",
+      "patientId": "ICP-1002",
+      "channel": "PDF Report",
+      "type": "PDF Report",
+      "title": "Rehab notes PDF uploaded",
+      "sentAt": "2026-08-04T17:30:00+05:30",
+      "recipient": "Nazia Sheikh",
+      "content": "Formal PDF summary attached for insurance and family records."
+    }
+  ],
+  "nriDashboard": {
+    "parentsHealthScore": 82,
+    "todaysUpdate": "Doctor cleared supervised home recovery with night support.",
+    "upcomingDoctorVisit": "Tomorrow 10:30 AM IST",
+    "upcomingNurseVisit": "Tonight 8:00 PM IST",
+    "upcomingPayments": [
+      { "label": "Cardiac home nursing", "amount": 28000, "dueDate": "2026-08-06" },
+      { "label": "Rehab follow-up package", "amount": 18500, "dueDate": "2026-08-08" }
+    ],
+    "reports": ["Cardiac Review.pdf", "Rehab Weekly Summary.pdf"],
+    "invoices": ["INV-9001", "INV-9002"],
+    "liveTimelinePatientId": "ICP-1001",
+    "healthcareAdvisor": {
+      "name": "Dr. Kavya Menon",
+      "designation": "Global Family Healthcare Advisor",
+      "availability": "Available for escalation in 20 minutes"
+    },
+    "emergencyContact": {
+      "name": "InstantCare Emergency Desk",
+      "phone": "+91 80456 99887"
+    },
+    "videoCall": {
+      "label": "Start one-click family call",
+      "status": "UI ready for telehealth provider integration"
+    }
+  },
+  "hospitalCoordination": [
+    {
+      "id": "HC-01",
+      "patientId": "ICP-1001",
+      "admission": "Confirmed",
+      "discharge": "Planned tomorrow",
+      "tpa": "Star Health desk active",
+      "insurance": "Pre-approval under review",
+      "cashless": "Requested",
+      "billing": "Interim bill shared",
+      "doctor": "Dr. Arjun Menon",
+      "room": "CCU-204",
+      "reports": ["Room Summary.pdf", "Billing Interim.pdf"]
+    },
+    {
+      "id": "HC-02",
+      "patientId": "ICP-1002",
+      "admission": "Rehab admitted",
+      "discharge": "Not scheduled",
+      "tpa": "HDFC ERGO reimbursement",
+      "insurance": "Documents submitted",
+      "cashless": "Not applicable",
+      "billing": "Weekly invoice pending",
+      "doctor": "Dr. Sana Qureshi",
+      "room": "Neuro Rehab 12",
+      "reports": ["Therapy Progress.pdf"]
+    }
+  ],
+  "insuranceCases": [
+    {
+      "id": "INS-701",
+      "patientId": "ICP-1001",
+      "policy": "Star Health Senior Secure",
+      "claim": "CLM-8821",
+      "cashless": "Requested",
+      "approval": "Pending document confirmation",
+      "reimbursement": "Not started",
+      "documents": ["Policy Card.pdf", "Discharge Summary.pdf"]
+    },
+    {
+      "id": "INS-702",
+      "patientId": "ICP-1002",
+      "policy": "HDFC ERGO Protect Plus",
+      "claim": "CLM-8822",
+      "cashless": "No",
+      "approval": "Submitted",
+      "reimbursement": "In review",
+      "documents": ["Invoice.pdf", "Therapy Notes.pdf"]
+    }
+  ],
+  "dashboardWidgets": [
+    { "key": "todaysPatients", "label": "Today's Patients", "value": 18, "trend": "+3 since yesterday", "tone": "cyan" },
+    { "key": "todaysVisits", "label": "Today's Visits", "value": 26, "trend": "7 doctor, 12 nurse, 4 physio", "tone": "violet" },
+    { "key": "pendingReports", "label": "Pending Reports", "value": 9, "trend": "2 urgent lab uploads", "tone": "amber" },
+    { "key": "pendingClaims", "label": "Pending Claims", "value": 5, "trend": "3 insurer approvals waiting", "tone": "sky" },
+    { "key": "emergencyCases", "label": "Emergency Cases", "value": 2, "trend": "Rapid response active", "tone": "rose" },
+    { "key": "upcomingAppointments", "label": "Upcoming Appointments", "value": 11, "trend": "Next consult in 40 min", "tone": "emerald" },
+    { "key": "revenue", "label": "Revenue", "value": 248000, "trend": "Collected this week", "tone": "emerald" },
+    { "key": "staffAvailability", "label": "Staff Availability", "value": 92, "trend": "Coverage health score", "tone": "cyan" }
+  ]
+}

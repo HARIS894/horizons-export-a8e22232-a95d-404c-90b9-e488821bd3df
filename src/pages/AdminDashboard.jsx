@@ -1,407 +1,185 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
-import { 
-  Calendar, 
-  Users, 
-  CheckCircle, 
-  Clock, 
-  Filter,
-  Eye,
-  UserCheck,
-  XCircle,
-  TrendingUp
+import {
+  Activity,
+  Building2,
+  CalendarDays,
+  CreditCard,
+  FileBarChart2,
+  MessageSquareMore,
+  Settings2,
+  Stethoscope,
+  Users2,
+  Waypoints,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/components/ui/use-toast';
+import { adminDashboardTabs, buildAdminDashboardViewModel, getAdminDashboardData } from '@/data/adminDashboardData';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  AppointmentsSection,
+  BillingSection,
+  CommunicationsAndReportsOverview,
+  EnquiriesSection,
+  GlassPanel,
+  HospitalsAndInsuranceOverview,
+  HospitalsSection,
+  InsuranceSection,
+  OverviewSection,
+  PatientsSection,
+  ReportsSection,
+  SettingsSection,
+  SummaryStrip,
+  StaffSection,
+  WhatsAppSection,
+} from '@/components/admin/AdminDashboardSections';
+
+const tabIcons = {
+  overview: Activity,
+  patients: Users2,
+  enquiries: Waypoints,
+  staff: Stethoscope,
+  hospitals: Building2,
+  appointments: CalendarDays,
+  insurance: FileBarChart2,
+  billing: CreditCard,
+  whatsapp: MessageSquareMore,
+  reports: FileBarChart2,
+  settings: Settings2,
+};
 
 const AdminDashboard = () => {
   const { toast } = useToast();
-  const [bookings, setBookings] = useState([]);
-  const [filter, setFilter] = useState('all');
-  const [loading, setLoading] = useState(true);
-  const [actionDialog, setActionDialog] = useState({ 
-    open: false, 
-    type: '', 
-    bookingId: null 
-  });
+  const dashboard = useMemo(() => buildAdminDashboardViewModel(getAdminDashboardData()), []);
+  const [activePatientId, setActivePatientId] = useState(dashboard.patients[0]?.id || null);
+  const [activeEnquiryStage, setActiveEnquiryStage] = useState('All');
+  const [activeStaffRole, setActiveStaffRole] = useState('All');
 
-  useEffect(() => {
-    loadBookings();
-  }, []);
-
-  const loadBookings = () => {
-    setLoading(true);
-    try {
-      const savedBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-      setBookings(savedBookings.sort((a, b) => 
-        new Date(b.createdAt) - new Date(a.createdAt)
-      ));
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load bookings',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const stats = {
-    total: bookings.length,
-    pending: bookings.filter(b => b.status === 'pending').length,
-    completed: bookings.filter(b => b.status === 'completed').length,
-    today: bookings.filter(b => {
-      const today = new Date().toDateString();
-      return new Date(b.createdAt).toDateString() === today;
-    }).length
-  };
-
-  const filteredBookings = filter === 'all' 
-    ? bookings 
-    : bookings.filter(b => b.status === filter);
-
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-green-100 text-green-800',
-      completed: 'bg-blue-100 text-blue-800',
-      cancelled: 'bg-red-100 text-red-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
-
-  const handleStatusChange = (bookingId, newStatus) => {
-    const updatedBookings = bookings.map(booking =>
-      booking.id === bookingId ? { ...booking, status: newStatus } : booking
-    );
-    setBookings(updatedBookings);
-    localStorage.setItem('bookings', JSON.stringify(updatedBookings));
-    
-    toast({
-      title: 'Status Updated',
-      description: `Booking has been ${newStatus}`,
-    });
-    setActionDialog({ open: false, type: '', bookingId: null });
-  };
-
-  const openActionDialog = (type, bookingId) => {
-    setActionDialog({ open: true, type, bookingId });
-  };
-
-  const confirmAction = () => {
-    const { type, bookingId } = actionDialog;
-    
-    switch (type) {
-      case 'approve':
-        handleStatusChange(bookingId, 'approved');
-        break;
-      case 'complete':
-        handleStatusChange(bookingId, 'completed');
-        break;
-      case 'cancel':
-        handleStatusChange(bookingId, 'cancelled');
-        break;
-      default:
-        break;
-    }
-  };
-
-  const getDialogContent = () => {
-    const { type } = actionDialog;
-    const titles = {
-      approve: 'Approve Booking',
-      complete: 'Mark as Complete',
-      cancel: 'Cancel Booking'
-    };
-    const descriptions = {
-      approve: 'This will approve the booking and notify the customer.',
-      complete: 'Mark this booking as completed? This action cannot be undone.',
-      cancel: 'Are you sure you want to cancel this booking?'
-    };
-    
-    return {
-      title: titles[type] || '',
-      description: descriptions[type] || ''
-    };
+  const handleAction = (title, description) => {
+    toast({ title, description });
   };
 
   return (
     <>
       <Helmet>
         <title>Admin Dashboard - InstantCare</title>
-        <meta name="description" content="Manage bookings and customers on InstantCare admin dashboard" />
+        <meta
+          name="description"
+          content="Premium healthcare CRM dashboard for InstantCare with patients, enquiries, staff, hospitals, billing, insurance and reporting modules."
+        />
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(6,182,212,0.16),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(139,92,246,0.18),_transparent_24%),linear-gradient(180deg,_#eef8ff_0%,_#f8fafc_48%,_#ffffff_100%)] dark:bg-[linear-gradient(180deg,_#020617_0%,_#0f172a_45%,_#111827_100%)]">
         <Navbar />
 
-        <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
+        <div className="px-4 pb-16 pt-24 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
+              className="space-y-6"
             >
-              <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
-
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Total Bookings</p>
-                      <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
+              <GlassPanel className="overflow-hidden p-0">
+                <div className="relative overflow-hidden rounded-[28px] border border-white/60 bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.22),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(167,139,250,0.22),_transparent_24%),linear-gradient(135deg,_rgba(255,255,255,0.8),_rgba(255,255,255,0.56))] p-6 dark:border-white/10 dark:bg-[linear-gradient(135deg,_rgba(15,23,42,0.85),_rgba(15,23,42,0.64))] sm:p-8">
+                  <div className="absolute -left-8 top-0 h-32 w-32 rounded-full bg-cyan-400/20 blur-3xl" />
+                  <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-violet-400/20 blur-3xl" />
+                  <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                    <div className="max-w-3xl">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.38em] text-slate-500 dark:text-slate-400">Premium Healthcare CRM</p>
+                      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white sm:text-5xl">Admin Dashboard</h1>
+                      <p className="mt-4 text-base leading-8 text-slate-600 dark:text-slate-300">
+                        A professional command centre for patients, enquiries, staff, hospitals, appointments, insurance, billing, WhatsApp operations, reporting and settings.
+                      </p>
                     </div>
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Calendar className="w-6 h-6 text-blue-600" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Pending</p>
-                      <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
-                    </div>
-                    <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                      <Clock className="w-6 h-6 text-yellow-600" />
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-[24px] border border-white/70 bg-white/70 px-4 py-4 dark:border-white/10 dark:bg-slate-950/45">
+                        <p className="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Backend status</p>
+                        <p className="mt-2 text-sm font-semibold text-slate-950 dark:text-white">Mock JSON adapter only</p>
+                      </div>
+                      <div className="rounded-[24px] border border-white/70 bg-white/70 px-4 py-4 dark:border-white/10 dark:bg-slate-950/45">
+                        <p className="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Dark mode ready</p>
+                        <p className="mt-2 text-sm font-semibold text-slate-950 dark:text-white">Glass panels and contrast-safe tokens</p>
+                      </div>
                     </div>
                   </div>
                 </div>
+              </GlassPanel>
 
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Completed</p>
-                      <p className="text-3xl font-bold text-green-600">{stats.completed}</p>
-                    </div>
-                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                      <CheckCircle className="w-6 h-6 text-green-600" />
-                    </div>
-                  </div>
+              <SummaryStrip dashboard={dashboard} />
+
+              <Tabs defaultValue="overview" className="space-y-6">
+                <div className="overflow-x-auto pb-1">
+                  <TabsList className="h-auto min-w-max gap-2 rounded-full bg-white/70 p-2 backdrop-blur dark:bg-slate-900/60">
+                    {adminDashboardTabs.map((tab) => {
+                      const Icon = tabIcons[tab.key] || Activity;
+                      return (
+                        <TabsTrigger
+                          key={tab.key}
+                          value={tab.key}
+                          className="rounded-full px-4 py-2.5 data-[state=active]:bg-slate-950 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-950"
+                        >
+                          <Icon className="mr-2 h-4 w-4" /> {tab.label}
+                        </TabsTrigger>
+                      );
+                    })}
+                  </TabsList>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Today's Bookings</p>
-                      <p className="text-3xl font-bold text-blue-600">{stats.today}</p>
-                    </div>
-                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <TrendingUp className="w-6 h-6 text-blue-600" />
-                    </div>
-                  </div>
-                </div>
-              </div>
+                <TabsContent value="overview" className="space-y-6">
+                  <OverviewSection dashboard={dashboard} onAction={handleAction} />
+                  <HospitalsAndInsuranceOverview dashboard={dashboard} />
+                  <CommunicationsAndReportsOverview dashboard={dashboard} />
+                </TabsContent>
 
-              {/* Bookings Table */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                  <h2 className="text-xl font-semibold text-gray-900">All Bookings</h2>
-                  
-                  <div className="flex items-center gap-2">
-                    <Filter className="w-5 h-5 text-gray-400" />
-                    <select
-                      value={filter}
-                      onChange={(e) => setFilter(e.target.value)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                    >
-                      <option value="all">All Status</option>
-                      <option value="pending">Pending</option>
-                      <option value="approved">Approved</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                  </div>
-                </div>
+                <TabsContent value="patients">
+                  <PatientsSection patients={dashboard.patients} activePatientId={activePatientId} onPatientChange={setActivePatientId} />
+                </TabsContent>
 
-                {loading ? (
-                  <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                  </div>
-                ) : filteredBookings.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600">No bookings found</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-gray-200">
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Booking ID</th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Patient</th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Service</th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Date/Time</th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Status</th>
-                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredBookings.map((booking) => (
-                          <tr key={booking.id} className="border-b border-gray-100 hover:bg-gray-50">
-                            <td className="py-4 px-4 text-sm text-gray-900">{booking.id}</td>
-                            <td className="py-4 px-4">
-                              <div>
-                                <p className="text-sm font-medium text-gray-900">{booking.patientName}</p>
-                                <p className="text-xs text-gray-500">{booking.phone}</p>
-                              </div>
-                            </td>
-                            <td className="py-4 px-4 text-sm text-gray-700">{booking.serviceType}</td>
-                            <td className="py-4 px-4 text-sm text-gray-700">
-                              {booking.type === 'emergency'
-                                ? new Date(booking.createdAt).toLocaleString()
-                                : `${new Date(booking.bookingDate).toLocaleDateString()}`
-                              }
-                            </td>
-                            <td className="py-4 px-4">
-                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                                {booking.status}
-                              </span>
-                            </td>
-                            <td className="py-4 px-4">
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toast({
-                                    title: 'Booking Details',
-                                    description: `Viewing details for ${booking.id}`
-                                  })}
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </Button>
-                                {booking.status === 'pending' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => openActionDialog('approve', booking.id)}
-                                    className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                  >
-                                    <UserCheck className="w-4 h-4" />
-                                  </Button>
-                                )}
-                                {booking.status === 'approved' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => openActionDialog('complete', booking.id)}
-                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                  >
-                                    <CheckCircle className="w-4 h-4" />
-                                  </Button>
-                                )}
-                                {booking.status !== 'cancelled' && booking.status !== 'completed' && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => openActionDialog('cancel', booking.id)}
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  >
-                                    <XCircle className="w-4 h-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
+                <TabsContent value="enquiries">
+                  <EnquiriesSection dashboard={dashboard} activeStage={activeEnquiryStage} onStageChange={setActiveEnquiryStage} onAction={handleAction} />
+                </TabsContent>
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Customer Management</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm text-gray-700">Total Customers</span>
-                      <span className="font-semibold text-gray-900">
-                        {new Set(bookings.map(b => b.email || b.phone)).size}
-                      </span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => toast({
-                        title: 'Feature Coming Soon',
-                        description: '🚧 This feature isn\'t implemented yet—but don\'t worry! You can request it in your next prompt! 🚀'
-                      })}
-                    >
-                      <Users className="w-4 h-4 mr-2" />
-                      View All Customers
-                    </Button>
-                  </div>
-                </div>
+                <TabsContent value="staff">
+                  <StaffSection dashboard={dashboard} activeRole={activeStaffRole} onRoleChange={setActiveStaffRole} />
+                </TabsContent>
 
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Reporting & Analytics</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <span className="text-sm text-gray-700">This Week</span>
-                      <span className="font-semibold text-gray-900">
-                        {bookings.filter(b => {
-                          const weekAgo = new Date();
-                          weekAgo.setDate(weekAgo.getDate() - 7);
-                          return new Date(b.createdAt) > weekAgo;
-                        }).length} bookings
-                      </span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => toast({
-                        title: 'Feature Coming Soon',
-                        description: '🚧 This feature isn\'t implemented yet—but don\'t worry! You can request it in your next prompt! 🚀'
-                      })}
-                    >
-                      <TrendingUp className="w-4 h-4 mr-2" />
-                      View Detailed Reports
-                    </Button>
-                  </div>
-                </div>
-              </div>
+                <TabsContent value="hospitals">
+                  <HospitalsSection hospitals={dashboard.hospitals} />
+                </TabsContent>
+
+                <TabsContent value="appointments">
+                  <AppointmentsSection appointments={dashboard.appointments} onAction={handleAction} />
+                </TabsContent>
+
+                <TabsContent value="insurance">
+                  <InsuranceSection providers={dashboard.insuranceProviders} />
+                </TabsContent>
+
+                <TabsContent value="billing">
+                  <BillingSection dashboard={dashboard} onAction={handleAction} />
+                </TabsContent>
+
+                <TabsContent value="whatsapp">
+                  <WhatsAppSection whatsappCentre={dashboard.whatsappCentre} onAction={handleAction} />
+                </TabsContent>
+
+                <TabsContent value="reports">
+                  <ReportsSection dashboard={dashboard} />
+                </TabsContent>
+
+                <TabsContent value="settings">
+                  <SettingsSection settings={dashboard.settings} onAction={handleAction} />
+                </TabsContent>
+              </Tabs>
             </motion.div>
           </div>
         </div>
 
         <Footer />
       </div>
-
-      {/* Action Confirmation Dialog */}
-      <AlertDialog open={actionDialog.open} onOpenChange={(open) => setActionDialog({ open, type: '', bookingId: null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{getDialogContent().title}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {getDialogContent().description}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmAction}>
-              Confirm
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 };

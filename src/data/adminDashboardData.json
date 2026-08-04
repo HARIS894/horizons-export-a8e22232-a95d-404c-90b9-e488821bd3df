@@ -1,0 +1,401 @@
+{
+  "organization": {
+    "name": "InstantCare Command Centre",
+    "city": "Bengaluru",
+    "timezone": "IST",
+    "coordinatorOnDuty": "Ayesha Nair",
+    "responsePromise": "Under 12 minutes for emergency routing",
+    "careContinuityScore": 94
+  },
+  "serviceLines": [
+    "Critical Care at Home",
+    "Post Surgery Nursing",
+    "Elderly Support",
+    "Physiotherapy at Home",
+    "Doctor Visit Coordination",
+    "Emergency Response"
+  ],
+  "performanceSeries": [
+    { "label": "Mon", "revenue": 82000, "patients": 18, "enquiries": 12 },
+    { "label": "Tue", "revenue": 96000, "patients": 20, "enquiries": 15 },
+    { "label": "Wed", "revenue": 101000, "patients": 23, "enquiries": 14 },
+    { "label": "Thu", "revenue": 114000, "patients": 24, "enquiries": 18 },
+    { "label": "Fri", "revenue": 119000, "patients": 27, "enquiries": 20 },
+    { "label": "Sat", "revenue": 123000, "patients": 29, "enquiries": 24 },
+    { "label": "Sun", "revenue": 110000, "patients": 25, "enquiries": 19 }
+  ],
+  "patients": [
+    {
+      "id": "PAT-2401",
+      "name": "Riya Malhotra",
+      "age": 68,
+      "gender": "Female",
+      "city": "Bengaluru",
+      "condition": "Post cardiac surgery recovery with home ICU observation",
+      "riskLevel": "High",
+      "serviceLine": "Critical Care at Home",
+      "assignedNurse": "Sr. Nurse Meera Joshi",
+      "assignedDoctor": "Dr. Arjun Menon",
+      "assignedCoordinator": "Ayesha Nair",
+      "medicalHistory": ["CABG surgery", "Type 2 diabetes", "Hypertension"],
+      "reports": ["Discharge Summary.pdf", "ECHO Review.jpg", "Medication Chart.pdf"],
+      "carePlan": ["Vitals every 4 hours", "Wound care twice daily", "Cardiac rehab review on Friday"],
+      "dailyUpdates": [
+        "Morning vitals stable; oxygen saturation 97% on room air.",
+        "Patient completed assisted mobility session with improved tolerance.",
+        "Medication reconciliation completed with family caregiver."
+      ],
+      "timeline": [
+        { "date": "2026-08-01", "title": "Home ICU setup activated", "detail": "Equipment installation and baseline assessment completed." },
+        { "date": "2026-08-02", "title": "Doctor review completed", "detail": "Medication schedule adjusted for evening blood pressure trend." },
+        { "date": "2026-08-04", "title": "Family counselling", "detail": "Coordinator aligned discharge goals with daughter and son-in-law." }
+      ]
+    },
+    {
+      "id": "PAT-2402",
+      "name": "Kabir Sharma",
+      "age": 14,
+      "gender": "Male",
+      "city": "Mumbai",
+      "condition": "Neuromuscular rehabilitation with respiratory monitoring",
+      "riskLevel": "Medium",
+      "serviceLine": "Physiotherapy at Home",
+      "assignedNurse": "Nurse Farah Khan",
+      "assignedDoctor": "Dr. Sanjana Bhat",
+      "assignedCoordinator": "Rohan Sethi",
+      "medicalHistory": ["Post viral neuropathy", "Respiratory weakness"],
+      "reports": ["Pulmonary Function Report.pdf", "Rehab Notes.pdf"],
+      "carePlan": ["Chest physiotherapy daily", "Strength plan on alternate days", "Weekly doctor video review"],
+      "dailyUpdates": [
+        "Respiratory effort improved after guided breathing exercises.",
+        "Mobility support updated to include stair confidence training."
+      ],
+      "timeline": [
+        { "date": "2026-07-28", "title": "Rehab intake completed", "detail": "Home assessment and physiotherapy baseline recorded." },
+        { "date": "2026-08-03", "title": "Progress milestone", "detail": "Patient tolerated a 20-minute session without fatigue." }
+      ]
+    },
+    {
+      "id": "PAT-2403",
+      "name": "Amina Qureshi",
+      "age": 82,
+      "gender": "Female",
+      "city": "Hyderabad",
+      "condition": "Advanced dementia support and fall-risk management",
+      "riskLevel": "Critical",
+      "serviceLine": "Emergency Response",
+      "assignedNurse": "Nurse Priya Verma",
+      "assignedDoctor": "Dr. Vivek Rao",
+      "assignedCoordinator": "Neha Bhasin",
+      "medicalHistory": ["Dementia", "History of recurrent falls", "Chronic kidney disease"],
+      "reports": ["Fall Risk Assessment.pdf", "Renal Profile.pdf"],
+      "carePlan": ["24x7 attendant coverage", "Night-time monitoring", "Home safety review with family"],
+      "dailyUpdates": [
+        "Overnight supervision prevented wandering risk.",
+        "Family approved bedside sensor installation for safety alerts."
+      ],
+      "timeline": [
+        { "date": "2026-08-02", "title": "Emergency escalation", "detail": "Rapid response team assessed patient after home fall incident." },
+        { "date": "2026-08-04", "title": "Safety protocol expanded", "detail": "Coordinator added transport standby and high-priority follow-up." }
+      ]
+    }
+  ],
+  "enquiries": [
+    {
+      "id": "ENQ-3301",
+      "status": "New",
+      "priority": "High",
+      "patientName": "Dev Mehta",
+      "serviceRequired": "Critical Care at Home",
+      "city": "Bengaluru",
+      "source": "Website",
+      "contact": "+91 9876543210",
+      "createdAt": "2026-08-04T09:15:00+05:30",
+      "nextStep": "Doctor callback in 15 minutes"
+    },
+    {
+      "id": "ENQ-3302",
+      "status": "Contacted",
+      "priority": "Medium",
+      "patientName": "Sonal Bedi",
+      "serviceRequired": "Elderly Support",
+      "city": "Gurugram",
+      "source": "WhatsApp",
+      "contact": "+91 9988776655",
+      "createdAt": "2026-08-04T08:20:00+05:30",
+      "nextStep": "Share attendant shortlist"
+    },
+    {
+      "id": "ENQ-3303",
+      "status": "Follow Up",
+      "priority": "Medium",
+      "patientName": "Nakul Iyer",
+      "serviceRequired": "Doctor Visit Coordination",
+      "city": "Chennai",
+      "source": "Call Centre",
+      "contact": "+91 9123456780",
+      "createdAt": "2026-08-03T17:10:00+05:30",
+      "nextStep": "Insurance pre-auth clarification"
+    },
+    {
+      "id": "ENQ-3304",
+      "status": "Converted",
+      "priority": "Low",
+      "patientName": "Farzana Shaikh",
+      "serviceRequired": "Physiotherapy at Home",
+      "city": "Pune",
+      "source": "Website",
+      "contact": "+91 9012345678",
+      "createdAt": "2026-08-03T11:45:00+05:30",
+      "nextStep": "Therapist onboarding"
+    },
+    {
+      "id": "ENQ-3305",
+      "status": "Closed",
+      "priority": "Low",
+      "patientName": "George Fernandes",
+      "serviceRequired": "Post Surgery Nursing",
+      "city": "Kochi",
+      "source": "Referral",
+      "contact": "+91 9090909090",
+      "createdAt": "2026-08-02T12:00:00+05:30",
+      "nextStep": "Case closed after discharge"
+    }
+  ],
+  "staff": [
+    {
+      "id": "STF-101",
+      "role": "Nurse",
+      "name": "Meera Joshi",
+      "experience": "11 years",
+      "languages": ["English", "Hindi", "Kannada"],
+      "skills": ["ICU setup", "Tracheostomy care", "Ventilator support"],
+      "documents": ["RN License", "BLS", "ACLS"],
+      "training": ["Critical care pathway", "Family counselling"],
+      "availability": "On duty",
+      "rating": 4.9,
+      "city": "Bengaluru"
+    },
+    {
+      "id": "STF-102",
+      "role": "Doctor",
+      "name": "Dr. Arjun Menon",
+      "experience": "16 years",
+      "languages": ["English", "Hindi", "Malayalam"],
+      "skills": ["Internal medicine", "Cardiac rehabilitation", "Case review"],
+      "documents": ["Medical Council Registration", "Telemedicine Certificate"],
+      "training": ["Home care escalation protocol"],
+      "availability": "Video consult slots open",
+      "rating": 4.8,
+      "city": "Bengaluru"
+    },
+    {
+      "id": "STF-103",
+      "role": "Physiotherapist",
+      "name": "Akash Kulkarni",
+      "experience": "7 years",
+      "languages": ["English", "Hindi", "Marathi"],
+      "skills": ["Neuro rehab", "Respiratory exercises", "Gait training"],
+      "documents": ["Practice License", "Manual Therapy Certificate"],
+      "training": ["Pediatric rehab pathway"],
+      "availability": "Available after 2 PM",
+      "rating": 4.7,
+      "city": "Mumbai"
+    },
+    {
+      "id": "STF-104",
+      "role": "Caregiver",
+      "name": "Priyanka Das",
+      "experience": "5 years",
+      "languages": ["English", "Hindi", "Bengali"],
+      "skills": ["Elderly hygiene support", "Meal assistance", "Mobility support"],
+      "documents": ["Background Verification", "Caregiver Certificate"],
+      "training": ["Dementia behavioural support"],
+      "availability": "Night shift ready",
+      "rating": 4.6,
+      "city": "Hyderabad"
+    },
+    {
+      "id": "STF-105",
+      "role": "Coordinator",
+      "name": "Ayesha Nair",
+      "experience": "9 years",
+      "languages": ["English", "Hindi", "Tamil"],
+      "skills": ["Case routing", "Insurance support", "Family communication"],
+      "documents": ["Operations Certification"],
+      "training": ["Priority triage", "Hospital coordination"],
+      "availability": "On duty",
+      "rating": 5,
+      "city": "Bengaluru"
+    },
+    {
+      "id": "STF-106",
+      "role": "Driver",
+      "name": "Rakesh Pawar",
+      "experience": "8 years",
+      "languages": ["Hindi", "Marathi"],
+      "skills": ["Patient transport", "Oxygen support transport", "Route planning"],
+      "documents": ["Commercial License", "Emergency Vehicle Training"],
+      "training": ["Safe transfer protocol"],
+      "availability": "Standby",
+      "rating": 4.5,
+      "city": "Pune"
+    }
+  ],
+  "hospitals": [
+    {
+      "id": "HSP-11",
+      "name": "Fortis South Care",
+      "city": "Bengaluru",
+      "departments": ["Cardiology", "Neurology", "ICU", "Orthopedics"],
+      "doctors": ["Dr. Arjun Menon", "Dr. Shreya Kapoor"],
+      "tpaSupported": ["MediAssist", "FHPL", "HDFC ERGO", "Star Health"]
+    },
+    {
+      "id": "HSP-12",
+      "name": "Apollo City Hospital",
+      "city": "Hyderabad",
+      "departments": ["Geriatrics", "Nephrology", "Pulmonology"],
+      "doctors": ["Dr. Vivek Rao", "Dr. Isha Patel"],
+      "tpaSupported": ["Care Health", "Niva Bupa", "ICICI Lombard"]
+    },
+    {
+      "id": "HSP-13",
+      "name": "Sunrise Rehab Institute",
+      "city": "Mumbai",
+      "departments": ["Physiotherapy", "Pain Medicine", "Rehabilitation"],
+      "doctors": ["Dr. Sanjana Bhat", "Dr. Kunal Deshmukh"],
+      "tpaSupported": ["MediAssist", "Care Health"]
+    }
+  ],
+  "appointments": [
+    {
+      "id": "APT-801",
+      "patientName": "Riya Malhotra",
+      "doctorName": "Dr. Arjun Menon",
+      "department": "Cardiology",
+      "scheduledAt": "2026-08-04T10:30:00+05:30",
+      "status": "Scheduled",
+      "visitType": "Home Visit",
+      "followUpRequired": true
+    },
+    {
+      "id": "APT-802",
+      "patientName": "Kabir Sharma",
+      "doctorName": "Dr. Sanjana Bhat",
+      "department": "Rehabilitation",
+      "scheduledAt": "2026-08-04T16:00:00+05:30",
+      "status": "Reschedule",
+      "visitType": "Video Review",
+      "followUpRequired": true
+    },
+    {
+      "id": "APT-803",
+      "patientName": "Amina Qureshi",
+      "doctorName": "Dr. Vivek Rao",
+      "department": "Geriatrics",
+      "scheduledAt": "2026-08-05T09:00:00+05:30",
+      "status": "Follow Up",
+      "visitType": "Hospital Coordination",
+      "followUpRequired": true
+    },
+    {
+      "id": "APT-804",
+      "patientName": "Dev Mehta",
+      "doctorName": "Dr. Ananya Sen",
+      "department": "Emergency Medicine",
+      "scheduledAt": "2026-08-04T20:15:00+05:30",
+      "status": "Cancel",
+      "visitType": "Escalation Review",
+      "followUpRequired": false
+    }
+  ],
+  "billing": {
+    "invoices": [
+      { "id": "INV-5101", "patientName": "Riya Malhotra", "amount": 148000, "status": "Paid", "dueDate": "2026-08-06" },
+      { "id": "INV-5102", "patientName": "Kabir Sharma", "amount": 42000, "status": "Pending", "dueDate": "2026-08-07" },
+      { "id": "INV-5103", "patientName": "Amina Qureshi", "amount": 96000, "status": "Refund", "dueDate": "2026-08-03" }
+    ],
+    "payments": [
+      { "channel": "UPI", "amount": 98000 },
+      { "channel": "Bank Transfer", "amount": 122000 },
+      { "channel": "Insurance", "amount": 86000 }
+    ],
+    "pendingBills": [
+      { "title": "Awaiting insurance settlement", "amount": 42000 },
+      { "title": "Family approval pending", "amount": 18000 }
+    ],
+    "refunds": [
+      { "title": "Appointment cancellation refund", "amount": 12000 },
+      { "title": "Duplicate payment adjustment", "amount": 3500 }
+    ]
+  },
+  "insuranceProviders": [
+    { "name": "Cashless", "coverage": "Real-time approval lane", "activeCases": 6 },
+    { "name": "Reimbursement", "coverage": "Claims documentation support", "activeCases": 4 },
+    { "name": "MediAssist", "coverage": "Preferred TPA routing", "activeCases": 3 },
+    { "name": "FHPL", "coverage": "Hospital desk coordination", "activeCases": 2 },
+    { "name": "Star Health", "coverage": "High-volume insurer", "activeCases": 5 },
+    { "name": "ICICI Lombard", "coverage": "Urgent claim review", "activeCases": 2 },
+    { "name": "HDFC ERGO", "coverage": "Home care authorization", "activeCases": 4 },
+    { "name": "Care Health", "coverage": "Elderly care support", "activeCases": 3 },
+    { "name": "Niva Bupa", "coverage": "Planned procedure continuity", "activeCases": 2 }
+  ],
+  "whatsappCentre": {
+    "broadcasts": [
+      { "title": "Monsoon Wellness Check", "audience": "Existing families", "status": "Ready" },
+      { "title": "Post-discharge care reminder", "audience": "Cardiac patients", "status": "Scheduled" }
+    ],
+    "templates": [
+      { "name": "Admission Update", "type": "Patient Update" },
+      { "name": "Night Shift Summary", "type": "Family Update" },
+      { "name": "Billing Reminder", "type": "Collections" }
+    ],
+    "patientUpdates": [
+      "Medication adherence confirmed for 24 active patients.",
+      "Two high-risk patients require vitals confirmation at 8 PM."
+    ],
+    "familyUpdates": [
+      "Three families are awaiting discharge planning summaries.",
+      "One dementia support case requires escalation call with primary caregiver."
+    ]
+  },
+  "reports": {
+    "daily": {
+      "adherence": 96,
+      "responseTimeMinutes": 11,
+      "satisfaction": 4.8
+    },
+    "weekly": {
+      "newAdmissions": 18,
+      "doctorReviews": 34,
+      "closedEnquiries": 22
+    },
+    "monthly": [
+      { "label": "Apr", "revenue": 1820000 },
+      { "label": "May", "revenue": 1960000 },
+      { "label": "Jun", "revenue": 2050000 },
+      { "label": "Jul", "revenue": 2210000 }
+    ],
+    "yearly": [
+      { "label": "2023", "patients": 860 },
+      { "label": "2024", "patients": 1230 },
+      { "label": "2025", "patients": 1680 },
+      { "label": "2026", "patients": 2140 }
+    ]
+  },
+  "settings": {
+    "notifications": [
+      { "name": "Critical case escalation alerts", "enabled": true },
+      { "name": "Daily family summary reminders", "enabled": true },
+      { "name": "Low staffing coverage warnings", "enabled": true }
+    ],
+    "automations": [
+      { "name": "Enquiry to coordinator assignment", "status": "Configured" },
+      { "name": "Appointment follow-up reminder", "status": "Draft" },
+      { "name": "Invoice due nudges", "status": "Configured" }
+    ],
+    "roles": ["Admin", "Care Coordinator", "Doctor Ops", "Finance", "WhatsApp Desk"],
+    "integrations": ["CRM API adapter pending", "Billing API adapter pending", "WhatsApp Business API pending"]
+  }
+}

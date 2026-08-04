@@ -1,418 +1,277 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Paperclip, Loader2, AlertTriangle, FileText, Bot, ChevronDown, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Bot, CalendarDays, ChevronDown, MessageCircleMore, Phone, Send, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
 import { useNavigate } from 'react-router-dom';
+
+const questions = [
+  { key: 'name', label: '1. What is your name?', type: 'text', placeholder: 'Enter your full name', required: true },
+  { key: 'country', label: '2. Which country are you calling from?', type: 'text', placeholder: 'e.g. USA, UK, UAE, India', required: true },
+  { key: 'patientLocation', label: '3. Where is the patient located?', type: 'text', placeholder: 'City or address', required: true },
+  { key: 'pincode', label: '4. What is the pincode?', type: 'text', placeholder: 'Enter 6-digit pincode', required: true },
+  { key: 'medicalCondition', label: '5. What is the medical condition?', type: 'text', placeholder: 'e.g. Cancer care, ICU recovery, stroke', required: true },
+  { key: 'patientAge', label: '6. What is the patient age?', type: 'text', placeholder: 'e.g. 72', required: true },
+  { key: 'emergency', label: '7. Is this an emergency?', type: 'select', options: ['No', 'Yes'], required: true },
+  { key: 'homeNurseNeeded', label: '8. Do you need a home nurse?', type: 'select', options: ['No', 'Yes'], required: true },
+  { key: 'doctorVisit', label: '9. Do you need a doctor visit?', type: 'select', options: ['No', 'Yes'], required: true },
+  { key: 'preferredTime', label: '10. What is your preferred time?', type: 'text', placeholder: 'e.g. Today evening, tomorrow morning', required: true },
+  { key: 'phone', label: '11. What is your phone number?', type: 'tel', placeholder: 'Enter phone number', required: true },
+  { key: 'email', label: '12. What is your email address?', type: 'email', placeholder: 'Enter email address', required: true },
+  { key: 'additionalNotes', label: '13. Any additional notes?', type: 'textarea', placeholder: 'Tell us more about the care requirement', required: false },
+];
 
 const HealthAIChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { 
-      id: 1, 
-      role: 'ai', 
-      text: "Hi! I'm your InstantCare Health Assistant. I can help you find nurses, understand basic health info, or book services. How can I help you today?" 
-    }
-  ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isEmergency, setIsEmergency] = useState(false);
-  const [isQuotaExceeded, setIsQuotaExceeded] = useState(false);
-  const messagesEndRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const sendingRef = useRef(false); // Ref to track in-flight requests
-  
-  const { toast } = useToast();
+  const [step, setStep] = useState(0);
+  const [formData, setFormData] = useState({
+    name: '',
+    country: '',
+    patientLocation: '',
+    pincode: '',
+    medicalCondition: '',
+    patientAge: '',
+    emergency: 'No',
+    homeNurseNeeded: 'No',
+    doctorVisit: 'No',
+    preferredTime: '',
+    phone: '',
+    email: '',
+    additionalNotes: '',
+  });
+  const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
 
-  const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+  const currentQuestion = questions[step];
+  const progress = ((step + 1) / questions.length) * 100;
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const handleChange = (value) => {
+    setFormData((prev) => ({ ...prev, [currentQuestion.key]: value }));
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isOpen]);
+  const goNext = () => {
+    const value = formData[currentQuestion.key]?.toString().trim();
+    if (currentQuestion.required && !value) return;
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast({ title: "File too large", description: "Please upload files smaller than 5MB", variant: "destructive" });
-        return;
-      }
-      setSelectedFile(file);
+    if (step < questions.length - 1) {
+      setStep((prev) => prev + 1);
+      return;
+    }
+
+    setSubmitted(true);
+  };
+
+  const goBack = () => {
+    if (step > 0) {
+      setStep((prev) => prev - 1);
     }
   };
 
-  const handleSendMessage = async (e) => {
-    e?.preventDefault();
-    
-    // Prevent empty sends, duplicate requests, or sends when quota is exceeded
-    if ((!input.trim() && !selectedFile) || isLoading || sendingRef.current || isQuotaExceeded) return;
+  const handleSubmit = () => {
+    const message = [
+      'Hello InstantCare, I would like to request a healthcare consultation.',
+      '',
+      `Name: ${formData.name || 'Not provided'}`,
+      `Country: ${formData.country || 'Not provided'}`,
+      `Patient Location: ${formData.patientLocation || 'Not provided'}`,
+      `Pincode: ${formData.pincode || 'Not provided'}`,
+      `Medical Condition: ${formData.medicalCondition || 'Not provided'}`,
+      `Patient Age: ${formData.patientAge || 'Not provided'}`,
+      `Emergency: ${formData.emergency || 'No'}`,
+      `Home Nurse Needed: ${formData.homeNurseNeeded || 'No'}`,
+      `Doctor Visit: ${formData.doctorVisit || 'No'}`,
+      `Preferred Time: ${formData.preferredTime || 'Not provided'}`,
+      `Phone: ${formData.phone || 'Not provided'}`,
+      `Email: ${formData.email || 'Not provided'}`,
+      `Additional Notes: ${formData.additionalNotes || 'Not provided'}`,
+      '',
+      'Please contact me with the next steps.',
+    ].join('\n');
 
-    const userMessageText = input.trim();
-    const currentFile = selectedFile;
-    
-    // Clear input immediately
-    setInput('');
-    setSelectedFile(null);
+    const url = `https://wa.me/919876543210?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
 
-    // Add User Message
-    const newUserMsg = { 
-      id: Date.now(), 
-      role: 'user', 
-      text: userMessageText,
-      file: currentFile ? currentFile.name : null
-    };
-    
-    setMessages(prev => [...prev, newUserMsg]);
-    setIsLoading(true);
-    sendingRef.current = true;
+  const resetAssistant = () => {
+    setStep(0);
+    setSubmitted(false);
+    setFormData({
+      name: '',
+      country: '',
+      patientLocation: '',
+      pincode: '',
+      medicalCondition: '',
+      patientAge: '',
+      emergency: 'No',
+      homeNurseNeeded: 'No',
+      doctorVisit: 'No',
+      preferredTime: '',
+      phone: '',
+      email: '',
+      additionalNotes: '',
+    });
+  };
 
-    try {
-      if (!API_KEY) {
-        throw new Error("Missing API Key. Please check your configuration.");
-      }
-
-      // System Instruction
-      const systemInstruction = `
-        You are an AI Health Assistant for "InstantCare", a home healthcare service in India.
-        
-        YOUR ROLE:
-        - Provide general health info and guidance.
-        - Assist with booking nurses/staff.
-        - Interpret summaries of lab reports (if text is provided).
-        - STRICTLY NEVER provide medical diagnoses or prescribe meds.
-        - ALWAYS advise consulting a doctor.
-        
-        CRITICAL EMERGENCY DETECTION:
-        - If user mentions: chest pain, difficulty breathing, severe bleeding, stroke symptoms, unconsciousness, suicide, or "emergency".
-        - ACTION: Start response with "EMERGENCY_DETECTED" followed by a newline.
-        - Advise calling ambulance (102/108).
-        
-        INTENT DETECTION:
-        - If user wants to book a nurse: include "ACTION_BOOK_NURSE" in text.
-        - If user provides 6-digit pincode: include "DETECTED_PINCODE: [pincode]".
-        
-        Keep responses concise, helpful, and empathetic.
-      `;
-
-      // Prepare context including file info
-      let fileContext = "";
-      if (currentFile) {
-        fileContext = `[User attached file: ${currentFile.name}. Treat this as if the user shared a document/report context related to their health query.]\n`;
-      }
-
-      const fullPrompt = `${systemInstruction}\n\n${fileContext}\nUser Message: ${userMessageText}`;
-
-      // V1 API Call to Gemini 2.5 Flash
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: fullPrompt }
-              ]
-            }]
-          })
-        }
+  const renderInput = () => {
+    if (currentQuestion.type === 'select') {
+      return (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {currentQuestion.options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => handleChange(option)}
+              className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${formData[currentQuestion.key] === option ? 'border-[#7C3AED] bg-[#7C3AED] text-white' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-[#7C3AED]/40 hover:bg-purple-50'}`}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
       );
-
-      // Handle 429 specifically before parsing JSON
-      if (response.status === 429) {
-        throw new Error("API_QUOTA_EXCEEDED");
-      }
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Check for quota errors in the response body as well
-        if (data.error?.code === 429 || data.error?.status === 'RESOURCE_EXHAUSTED') {
-          throw new Error("API_QUOTA_EXCEEDED");
-        }
-        throw new Error(data.error?.message || 'Failed to fetch from Gemini API');
-      }
-
-      // Safely extract text
-      const aiResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I apologize, I couldn't process that request.";
-
-      // Parse special actions
-      let reply = aiResponseText;
-      let emergencyDetected = false;
-      let action = null;
-      let detectedPincode = null;
-
-      if (reply.includes("EMERGENCY_DETECTED")) {
-        emergencyDetected = true;
-        reply = reply.replace("EMERGENCY_DETECTED", "").trim();
-      }
-
-      if (reply.includes("ACTION_BOOK_NURSE")) {
-        action = "BOOK_NURSE";
-        reply = reply.replace("ACTION_BOOK_NURSE", "").trim();
-      }
-
-      const pincodeMatch = reply.match(/DETECTED_PINCODE:\s*(\d{6})/);
-      if (pincodeMatch) {
-        detectedPincode = pincodeMatch[1];
-        reply = reply.replace(pincodeMatch[0], "").trim();
-        if (!action) action = "SEARCH_NEARBY";
-      }
-
-      setIsEmergency(emergencyDetected);
-
-      // Add AI Response
-      setMessages(prev => [...prev, { 
-        id: Date.now() + 1, 
-        role: 'ai', 
-        text: reply,
-        isEmergency: emergencyDetected
-      }]);
-
-      // Handle Actions
-      if (action === 'BOOK_NURSE') {
-        setTimeout(() => {
-          setIsOpen(false);
-          navigate('/book');
-          toast({ title: "Redirecting...", description: "Taking you to the booking page." });
-        }, 2000);
-      } else if (action === 'SEARCH_NEARBY' && detectedPincode) {
-         const searchEvent = new CustomEvent('searchNearbyNurse', { 
-          detail: { pincode: detectedPincode } 
-        });
-        window.dispatchEvent(searchEvent);
-        
-        // Navigation logic for homepage scroll
-        if (window.location.pathname !== '/') {
-           navigate('/');
-           setTimeout(() => {
-              document.getElementById('nearby-nurse')?.scrollIntoView({ behavior: 'smooth'});
-           }, 800);
-        } else {
-           document.getElementById('nearby-nurse')?.scrollIntoView({ behavior: 'smooth'});
-        }
-      }
-
-    } catch (err) {
-      console.error("Gemini API Error:", err);
-      let errorMessage = "I'm having trouble connecting to my brain right now. Please try again in a moment.";
-      
-      // Specific handling for Quota Exceeded
-      if (err.message === "API_QUOTA_EXCEEDED" || err.message?.includes('429') || err.message?.includes('RESOURCE_EXHAUSTED')) {
-        errorMessage = "I'm currently experiencing very high traffic and have reached my capacity limit. Please try again in a few minutes.";
-        setIsQuotaExceeded(true);
-        // Auto-reset quota error after 1 minute to allow retries
-        setTimeout(() => setIsQuotaExceeded(false), 60000);
-      }
-      
-      setMessages(prev => [...prev, { 
-        id: Date.now() + 1, 
-        role: 'ai', 
-        text: errorMessage,
-        isError: true
-      }]);
-    } finally {
-      setIsLoading(false);
-      sendingRef.current = false;
     }
-  };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+    if (currentQuestion.type === 'textarea') {
+      return (
+        <textarea
+          value={formData[currentQuestion.key]}
+          onChange={(event) => handleChange(event.target.value)}
+          placeholder={currentQuestion.placeholder}
+          rows={5}
+          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none ring-0"
+        />
+      );
     }
+
+    return (
+      <input
+        type={currentQuestion.type}
+        value={formData[currentQuestion.key]}
+        onChange={(event) => handleChange(event.target.value)}
+        placeholder={currentQuestion.placeholder}
+        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none ring-0"
+      />
+    );
   };
 
   return (
     <>
-      {/* Floating Button */}
       {!isOpen && (
         <motion.button
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-24 right-6 z-[140] w-14 h-14 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110"
+          className="fixed bottom-24 right-6 z-[140] flex h-14 w-14 items-center justify-center rounded-full bg-[#7C3AED] text-white shadow-2xl transition-all hover:scale-110 hover:bg-[#6D28D9]"
         >
-          <Bot className="w-8 h-8" />
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse border-2 border-white"></span>
+          <Bot className="h-8 w-8" />
         </motion.button>
       )}
 
-      {/* Chat Interface */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ y: 20, opacity: 0, scale: 0.95 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 20, opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="fixed bottom-6 right-6 z-[150] w-[90vw] md:w-[400px] h-[600px] max-h-[80vh] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden font-sans"
+            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.96 }}
+            className="fixed bottom-6 right-6 z-[150] flex h-[680px] w-[92vw] max-w-[430px] flex-col overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_25px_80px_rgba(15,23,42,0.2)]"
           >
-            {/* Header */}
-            <div className={`p-4 flex items-center justify-between ${isEmergency ? 'bg-red-600' : 'bg-[#7C3AED]'} text-white transition-colors duration-500`}>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                  <Bot className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg leading-tight">AI Health Assistant</h3>
-                  <p className="text-xs text-white/80 flex items-center gap-1">
-                    <span className={`w-1.5 h-1.5 rounded-full ${isQuotaExceeded ? 'bg-yellow-400' : 'bg-green-400 animate-pulse'}`}></span> 
-                    {isQuotaExceeded ? 'High Traffic' : 'Online'}
-                  </p>
-                </div>
+            <div className="flex items-center justify-between bg-gradient-to-r from-[#7C3AED] to-[#38BDF8] px-4 py-4 text-white">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-purple-100">Healthcare Lead Assistant</p>
+                <h3 className="mt-1 text-lg font-semibold">One question at a time</h3>
               </div>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
-              >
-                <ChevronDown className="w-6 h-6" />
+              <button type="button" onClick={() => setIsOpen(false)} className="rounded-full p-2 hover:bg-white/10">
+                <ChevronDown className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Disclaimer Banner */}
-            <div className="bg-blue-50 p-2 px-4 flex items-start gap-2 border-b border-blue-100">
-              <AlertTriangle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-              <p className="text-[10px] text-blue-700 leading-tight">
-                <strong>Disclaimer:</strong> AI provides general info only. Not a substitute for professional medical advice. In emergencies, call 108.
-              </p>
+            <div className="border-b border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="mb-2 flex items-center justify-between text-xs font-semibold text-slate-500">
+                <span>Step {step + 1} of {questions.length}</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-slate-200">
+                <div className="h-2 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#38BDF8]" style={{ width: `${progress}%` }} />
+              </div>
             </div>
 
-            {/* Emergency Banner */}
-            {isEmergency && (
-              <motion.div 
-                initial={{ height: 0 }} 
-                animate={{ height: 'auto' }}
-                className="bg-red-100 border-b border-red-200 p-3 flex items-center gap-3"
-              >
-                <AlertTriangle className="w-5 h-5 text-red-600 animate-bounce" />
-                <div>
-                  <p className="font-bold text-red-700 text-sm">Emergency Detected!</p>
-                  <p className="text-xs text-red-600">Please call an ambulance immediately.</p>
-                </div>
-                <Button size="sm" variant="destructive" className="ml-auto h-8 text-xs" onClick={() => window.open('tel:102')}>
-                  Call 102
-                </Button>
-              </motion.div>
-            )}
-
-            {/* Quota Exceeded Banner */}
-            {isQuotaExceeded && (
-              <motion.div 
-                initial={{ height: 0 }} 
-                animate={{ height: 'auto' }}
-                className="bg-yellow-50 border-b border-yellow-200 p-3 flex items-center gap-3"
-              >
-                <AlertCircle className="w-5 h-5 text-yellow-600" />
-                <div>
-                  <p className="font-bold text-yellow-700 text-sm">System Busy</p>
-                  <p className="text-xs text-yellow-600">We are experiencing high traffic. Please try again later.</p>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Messages Area */}
-            <div className="flex-grow overflow-y-auto p-4 space-y-4 bg-gray-50/50">
-              {messages.map((msg) => (
-                <motion.div
-                  key={msg.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div 
-                    className={`
-                      max-w-[85%] p-3.5 rounded-2xl text-sm leading-relaxed shadow-sm whitespace-pre-wrap
-                      ${msg.role === 'user' 
-                        ? 'bg-[#7C3AED] text-white rounded-br-none' 
-                        : msg.isEmergency 
-                          ? 'bg-red-50 border border-red-200 text-gray-900 rounded-bl-none'
-                          : msg.isError
-                            ? 'bg-red-50 border border-red-200 text-red-800 rounded-bl-none'
-                            : 'bg-white border border-gray-100 text-gray-800 rounded-bl-none'
-                      }
-                    `}
-                  >
-                    {msg.file && (
-                      <div className="flex items-center gap-2 mb-2 p-2 bg-black/10 rounded-lg text-xs">
-                        <FileText className="w-4 h-4" />
-                        <span className="truncate max-w-[150px]">{msg.file}</span>
-                      </div>
-                    )}
-                    {msg.text}
+            <div className="flex-1 overflow-y-auto bg-[linear-gradient(180deg,_#ffffff_0%,_#f8faff_100%)] p-4">
+              {!submitted ? (
+                <>
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-[#7C3AED]">
+                      <Sparkles className="h-4 w-4" />
+                      InstantCare lead capture
+                    </div>
+                    <h4 className="text-lg font-semibold text-slate-900">{currentQuestion.label}</h4>
+                    <div className="mt-4">{renderInput()}</div>
                   </div>
-                </motion.div>
-              ))}
-              
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-white border border-gray-100 p-3 rounded-2xl rounded-bl-none shadow-sm flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-[#7C3AED]" />
-                    <span className="text-xs text-gray-500">Thinking...</span>
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <Button type="button" variant="outline" className="rounded-full border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700" onClick={goBack} disabled={step === 0}>
+                      <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                    </Button>
+                    <Button type="button" className="rounded-full bg-[#7C3AED] px-4 py-3 text-sm font-semibold text-white hover:bg-[#6D28D9]" onClick={goNext}>
+                      {step < questions.length - 1 ? 'Next' : 'Send to WhatsApp'}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-4">
+                  <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4 text-emerald-700">
+                    <div className="flex items-center gap-2 text-sm font-semibold">
+                      <Send className="h-4 w-4" />
+                      Your enquiry is ready
+                    </div>
+                    <p className="mt-2 text-sm leading-7">We have gathered your details and are ready to send them to our care team.</p>
+                  </div>
+
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+                    <h4 className="text-lg font-semibold text-slate-900">Formatted WhatsApp Message</h4>
+                    <pre className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-slate-600">{[
+                      `Name: ${formData.name || 'Not provided'}`,
+                      `Country: ${formData.country || 'Not provided'}`,
+                      `Patient Location: ${formData.patientLocation || 'Not provided'}`,
+                      `Pincode: ${formData.pincode || 'Not provided'}`,
+                      `Medical Condition: ${formData.medicalCondition || 'Not provided'}`,
+                      `Patient Age: ${formData.patientAge || 'Not provided'}`,
+                      `Emergency: ${formData.emergency}`,
+                      `Home Nurse Needed: ${formData.homeNurseNeeded}`,
+                      `Doctor Visit: ${formData.doctorVisit}`,
+                      `Preferred Time: ${formData.preferredTime || 'Not provided'}`,
+                      `Phone: ${formData.phone || 'Not provided'}`,
+                      `Email: ${formData.email || 'Not provided'}`,
+                      `Additional Notes: ${formData.additionalNotes || 'Not provided'}`,
+                    ].join('\n')}</pre>
                   </div>
                 </div>
               )}
-              <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
-            <div className="p-3 bg-white border-t border-gray-100">
-              {selectedFile && (
-                <div className="flex items-center justify-between bg-gray-50 p-2 rounded-lg mb-2 text-xs border border-gray-200">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-3 h-3 text-[#7C3AED]" />
-                    <span className="truncate max-w-[200px] text-gray-700">{selectedFile.name}</span>
-                  </div>
-                  <button onClick={() => setSelectedFile(null)} className="text-gray-400 hover:text-red-500">
-                    <X className="w-3 h-3" />
+            <div className="border-t border-slate-200 bg-white p-4">
+              {!submitted ? (
+                <div className="flex flex-wrap gap-3">
+                  <a href="tel:+919876543210" className="flex-1">
+                    <Button type="button" variant="outline" className="w-full rounded-full border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700">
+                      <Phone className="mr-2 h-4 w-4" /> Call Now
+                    </Button>
+                  </a>
+                  <button type="button" onClick={() => navigate('/book')} className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
+                    <CalendarDays className="mr-2 inline h-4 w-4" /> Book Assessment
+                  </button>
+                  <button type="button" onClick={handleSubmit} className="flex-1 rounded-full bg-[#7C3AED] px-4 py-3 text-sm font-semibold text-white hover:bg-[#6D28D9]">
+                    <MessageCircleMore className="mr-2 inline h-4 w-4" /> Talk to Advisor
                   </button>
                 </div>
+              ) : (
+                <div className="flex flex-wrap gap-3">
+                  <Button type="button" className="flex-1 rounded-full bg-[#7C3AED] px-4 py-3 text-sm font-semibold text-white hover:bg-[#6D28D9]" onClick={handleSubmit}>
+                    <MessageCircleMore className="mr-2 inline h-4 w-4" /> Send to WhatsApp
+                  </Button>
+                  <Button type="button" variant="outline" className="flex-1 rounded-full border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700" onClick={resetAssistant}>
+                    Start Again
+                  </Button>
+                </div>
               )}
-              
-              <div className="flex gap-2">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  accept="image/*,.pdf,.txt"
-                  disabled={isQuotaExceeded}
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isQuotaExceeded}
-                  className={`p-3 rounded-xl transition-colors ${isQuotaExceeded ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-[#7C3AED] hover:bg-purple-50'}`}
-                  title="Upload Report/Image"
-                >
-                  <Paperclip className="w-5 h-5" />
-                </button>
-                
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  disabled={isQuotaExceeded}
-                  placeholder={isQuotaExceeded ? "Chat unavailable due to high traffic" : (isEmergency ? "Describe emergency..." : "Type your health query...")}
-                  className={`flex-grow bg-gray-50 text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 focus:border-[#7C3AED] transition-all text-sm resize-none h-12 max-h-24 ${isQuotaExceeded ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  rows={1}
-                />
-                
-                <Button 
-                  onClick={handleSendMessage}
-                  disabled={isLoading || (!input.trim() && !selectedFile) || isQuotaExceeded}
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md transition-all ${isLoading || isQuotaExceeded ? 'bg-gray-100' : 'bg-[#7C3AED] hover:bg-[#6D28D9] text-white'}`}
-                >
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin text-gray-400" /> : <Send className={`w-5 h-5 ml-0.5 ${isQuotaExceeded ? 'text-gray-300' : ''}`} />}
-                </Button>
-              </div>
             </div>
           </motion.div>
         )}

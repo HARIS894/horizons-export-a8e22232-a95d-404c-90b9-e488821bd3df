@@ -1,0 +1,42 @@
+import { whatsappService } from '../services/whatsappService.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { sendSuccess } from '../utils/response.js';
+
+export const whatsappController = {
+  templateTypes: asyncHandler(async (_req, res) => {
+    sendSuccess(res, whatsappService.getTemplateTypes());
+  }),
+
+  send: asyncHandler(async (req, res) => {
+    sendSuccess(res, await whatsappService.sendTemplateMessage(req.body), 201);
+  }),
+
+  listLogs: asyncHandler(async (req, res) => {
+    sendSuccess(res, await whatsappService.listLogs(req.query));
+  }),
+
+  getLogById: asyncHandler(async (req, res) => {
+    sendSuccess(res, await whatsappService.getLogById(req.params.id));
+  }),
+
+  retry: asyncHandler(async (req, res) => {
+    sendSuccess(res, await whatsappService.retryMessage(req.params.id));
+  }),
+
+  retryFailed: asyncHandler(async (req, res) => {
+    sendSuccess(res, await whatsappService.retryFailedMessages(req.body.limit));
+  }),
+
+  verifyWebhook(req, res, next) {
+    Promise.resolve()
+      .then(() => whatsappService.verifyWebhook(req.query['hub.mode'], req.query['hub.verify_token'], req.query['hub.challenge']))
+      .then((challenge) => {
+        res.status(200).send(challenge);
+      })
+      .catch(next);
+  },
+
+  webhook: asyncHandler(async (req, res) => {
+    sendSuccess(res, await whatsappService.processWebhook(req.body));
+  }),
+};

@@ -21,83 +21,91 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Services', path: '/services' },
-    { name: 'About', path: '/#about' }, // Assuming About section on home or separate page if requested later
+    { name: 'Healthcare Library', path: '/healthcare-library' },
     { name: 'Contact', path: '/contact' }
   ];
 
   return (
-    <nav 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 h-[56px] md:h-[60px] flex items-center bg-white ${
-        scrolled ? 'shadow-soft' : ''
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? 'shadow-[0_10px_30px_rgba(124,58,237,0.12)]' : 'shadow-none'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="flex justify-between items-center h-full">
-          {/* Logo Section */}
-          <Logo />
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className={`mt-3 rounded-full border border-white/70 bg-white/80 px-3 py-2 shadow-[0_10px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 md:px-4 ${scrolled ? 'shadow-[0_16px_45px_rgba(124,58,237,0.14)]' : ''}`}>
+          <div className="flex h-[54px] items-center justify-between md:h-[60px]">
+            <Logo />
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                className={`text-sm font-medium transition-colors relative hover:text-[#7C3AED] ${
-                  location.pathname === link.path ? 'text-[#7C3AED] font-semibold' : 'text-[#1F2937]'
-                }`}
-              >
-                {link.name}
+            <div className="hidden items-center gap-2 md:flex">
+              {navLinks.map((link) => {
+                const isActive = location.pathname === link.path || (link.path === '/#about' && location.pathname === '/');
+
+                return (
+                  <Link
+                    key={link.name}
+                    to={link.path}
+                    className={`relative rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 hover:text-[#7C3AED] ${
+                      isActive ? 'text-[#7C3AED]' : 'text-slate-700'
+                    }`}
+                  >
+                    <span className="relative z-10">{link.name}</span>
+                    {isActive && (
+                      <span className="absolute inset-0 rounded-full bg-purple-100/80" />
+                    )}
+                  </Link>
+                );
+              })}
+
+              <Link to="/book" className="ml-2">
+                <Button className="h-10 rounded-full bg-[#7C3AED] px-6 text-sm font-semibold text-white shadow-[0_10px_25px_rgba(124,58,237,0.25)] transition-all duration-200 hover:bg-[#6D28D9] hover:shadow-[0_12px_30px_rgba(124,58,237,0.3)]">
+                  Book Now
+                </Button>
               </Link>
-            ))}
+            </div>
 
-            <Link to="/book">
-              <Button 
-                className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl px-6 py-2 h-10 font-semibold shadow-sm transition-all duration-200"
-              >
-                Book Now
-              </Button>
-            </Link>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/80 text-slate-700 transition-all duration-200 hover:border-[#7C3AED]/30 hover:bg-purple-50 hover:text-[#7C3AED] md:hidden"
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 text-gray-700 transition-colors"
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-[56px] right-0 bottom-0 w-[280px] bg-white shadow-xl z-40 border-l border-gray-100 md:hidden flex flex-col"
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', stiffness: 280, damping: 26 }}
+            className="fixed right-0 top-[74px] bottom-0 z-40 w-[285px] border-l border-purple-100 bg-white/95 shadow-[0_20px_60px_rgba(15,23,42,0.16)] backdrop-blur-xl md:hidden"
           >
-            <div className="px-5 py-6 space-y-4 flex flex-col h-full overflow-y-auto">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  onClick={() => setIsOpen(false)}
-                  className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                    location.pathname === link.path 
-                      ? 'bg-purple-50 text-[#7C3AED] font-semibold' 
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
-              <div className="mt-auto pb-8 space-y-3 px-2">
-                 <Link to="/book" onClick={() => setIsOpen(false)} className="block w-full">
-                   <Button className="w-full bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-xl py-6 text-lg font-bold shadow-md">
+            <div className="flex h-full flex-col overflow-y-auto px-5 py-6">
+              {navLinks.map((link) => {
+                const isActive = location.pathname === link.path || (link.path === '/#about' && location.pathname === '/');
+
+                return (
+                  <Link
+                    key={link.name}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={`mb-2 rounded-2xl px-4 py-3 text-base font-semibold transition-all duration-200 ${
+                      isActive
+                        ? 'bg-purple-50 text-[#7C3AED] shadow-sm'
+                        : 'text-slate-700 hover:bg-slate-50 hover:text-[#7C3AED]'
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                );
+              })}
+
+              <div className="mt-auto space-y-3 px-1 pb-2">
+                <Link to="/book" onClick={() => setIsOpen(false)} className="block w-full">
+                  <Button className="w-full rounded-2xl bg-[#7C3AED] py-6 text-lg font-bold text-white shadow-[0_10px_25px_rgba(124,58,237,0.25)] hover:bg-[#6D28D9]">
                     Book Nurse Now
                   </Button>
                 </Link>

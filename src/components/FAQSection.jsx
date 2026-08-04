@@ -1,77 +1,97 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Minus, Search, HelpCircle } from 'lucide-react';
+import { getFAQSchema } from '@/utils/seoUtils';
 
-const faqs = [
+const defaultFaqs = [
   {
-    question: "How quickly can you respond to emergencies?",
-    answer: "We treat emergencies with the highest priority. For critical situations, our response team activates immediately, and we aim to dispatch the nearest medical professional within minutes. Our service is available 24/7."
+    question: 'How quickly can you respond to emergencies?',
+    answer: 'We treat emergencies with the highest priority. For critical situations, our response team activates immediately, and we aim to dispatch the nearest medical professional within minutes. Our service is available 24/7.'
   },
   {
-    question: "What areas do you serve?",
-    answer: "We currently serve major metropolitan areas including Bangalore, Delhi, Mumbai, Hyderabad, and Pune. We typically cover a radius of 15km from our city hubs to ensure quick response times."
+    question: 'What areas do you serve?',
+    answer: 'We currently serve major metropolitan areas including Bangalore, Delhi, Mumbai, Hyderabad, and Pune. We typically cover a radius of 15km from our city hubs to ensure quick response times.'
   },
   {
-    question: "How do I book a service?",
+    question: 'How do I book a service?',
     answer: "You can book a service easily through our 'Smart Booking' form on the website, via our mobile app, or by calling our 24/7 hotline directly. We also offer WhatsApp booking for convenience."
   },
   {
-    question: "What payment methods do you accept?",
-    answer: "We accept all major credit/debit cards, UPI (Google Pay, PhonePe, Paytm), Net Banking, and cash on service completion (for select services). Secure online payments are recommended for faster processing."
+    question: 'What payment methods do you accept?',
+    answer: 'We accept all major credit/debit cards, UPI (Google Pay, PhonePe, Paytm), Net Banking, and cash on service completion (for select services). Secure online payments are recommended for faster processing.'
   },
   {
-    question: "Is my medical information secure?",
-    answer: "Absolutely. We are fully HIPAA compliant and use industry-standard encryption for all data transmission and storage. Your medical history and personal details are strictly confidential and shared only with your assigned healthcare provider."
+    question: 'Is my medical information secure?',
+    answer: 'Absolutely. We are fully HIPAA compliant and use industry-standard encryption for all data transmission and storage. Your medical history and personal details are strictly confidential and shared only with your assigned healthcare provider.'
   },
   {
-    question: "Can I choose my preferred staff?",
-    answer: "Yes! Our platform allows you to view profiles of available staff, including their experience, ratings, and specialties. You can request a specific professional, subject to their availability."
+    question: 'Can I choose my preferred staff?',
+    answer: 'Yes! Our platform allows you to view profiles of available staff, including their experience, ratings, and specialties. You can request a specific professional, subject to their availability.'
   }
 ];
 
-const FAQSection = () => {
+const FAQSection = ({
+  items = defaultFaqs,
+  title = 'Frequently Asked Questions',
+  description = 'Helpful answers for families planning home healthcare support.',
+  showSearch = true,
+  className = ''
+}) => {
   const [openIndex, setOpenIndex] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredFaqs = faqs.filter(faq => 
-    faq.question.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredFaqs = (items || []).filter((faq) =>
+    faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
     faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const schema = getFAQSchema(filteredFaqs.length > 0 ? filteredFaqs : items);
+
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-           <HelpCircle className="w-6 h-6 text-[#6B46C1]" /> Frequently Asked Questions
-        </h3>
-        <div className="relative w-full md:w-64">
-           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-           <input 
-              type="text" 
-              placeholder="Search FAQs..." 
+    <div className={`rounded-[1.75rem] border border-gray-100 bg-white p-8 shadow-[0_16px_40px_rgba(15,23,42,0.05)] ${className}`}>
+      <script type="application/ld+json">
+        {JSON.stringify(schema)}
+      </script>
+
+      <div className="mb-8 flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <div className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.3em] text-[#7C3AED]">
+            <HelpCircle className="h-5 w-5" />
+            FAQ
+          </div>
+          <h3 className="mt-3 text-2xl font-bold text-gray-900">{title}</h3>
+          <p className="mt-2 text-sm leading-7 text-gray-600">{description}</p>
+        </div>
+
+        {showSearch && (
+          <div className="relative w-full md:w-72">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search FAQs..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#6B46C1]"
-           />
-        </div>
+              className="w-full rounded-full border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm text-gray-700 outline-none transition focus:border-[#7C3AED] focus:ring-2 focus:ring-purple-100"
+            />
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">
         {filteredFaqs.length > 0 ? (
           filteredFaqs.map((faq, index) => (
-            <div 
-              key={index}
-              className="border border-gray-100 rounded-xl overflow-hidden hover:border-purple-100 transition-colors"
-            >
+            <div key={faq.question} className="overflow-hidden rounded-2xl border border-gray-100 transition-colors hover:border-purple-100">
               <button
+                type="button"
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full flex justify-between items-center p-5 text-left bg-gray-50 hover:bg-gray-100 transition-colors"
+                className="flex w-full items-center justify-between bg-slate-50 px-5 py-4 text-left transition-colors hover:bg-slate-100"
+                aria-expanded={openIndex === index}
               >
                 <span className="font-semibold text-gray-900">{faq.question}</span>
                 {openIndex === index ? (
-                  <Minus className="w-5 h-5 text-[#6B46C1] shrink-0" />
+                  <Minus className="h-5 w-5 shrink-0 text-[#7C3AED]" />
                 ) : (
-                  <Plus className="w-5 h-5 text-gray-400 shrink-0" />
+                  <Plus className="h-5 w-5 shrink-0 text-gray-400" />
                 )}
               </button>
               <AnimatePresence>
@@ -82,7 +102,7 @@ const FAQSection = () => {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <div className="p-5 pt-0 bg-gray-50 text-gray-600 text-sm leading-relaxed border-t border-gray-100">
+                    <div className="border-t border-gray-100 bg-white px-5 py-4 text-sm leading-7 text-gray-600">
                       {faq.answer}
                     </div>
                   </motion.div>
@@ -91,14 +111,10 @@ const FAQSection = () => {
             </div>
           ))
         ) : (
-          <div className="text-center py-8 text-gray-500">
-             No matching FAQs found. Please contact support.
+          <div className="rounded-2xl bg-slate-50 py-8 text-center text-gray-500">
+            No matching FAQs found. Please contact support.
           </div>
         )}
-      </div>
-
-      <div className="mt-6 text-center">
-        <a href="#" className="text-[#6B46C1] hover:underline text-sm font-medium">View Full FAQ Knowledge Base →</a>
       </div>
     </div>
   );

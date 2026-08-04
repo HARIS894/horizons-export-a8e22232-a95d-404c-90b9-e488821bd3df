@@ -8,12 +8,36 @@ const BreadcrumbNavigation = () => {
   const location = useLocation();
   const pathnames = location.pathname.split('/').filter((x) => x);
 
+  const customLabels = {
+    '/healthcare-library': 'Healthcare Library',
+    '/disease-library': 'Disease Library',
+    '/treatment-library': 'Treatment Library',
+    '/elder-care-library': 'Elder Care Library',
+    '/nri-care-library': 'NRI Care Library',
+    '/final-journey-library': 'Final Journey Library',
+    '/nurse-at-home': 'Nurse at Home',
+    '/elder-care': 'Elder Care',
+    '/patient-attendant': 'Patient Attendant',
+    '/icu-at-home': 'ICU at Home',
+    '/doctor-at-home': 'Doctor at Home',
+    '/physiotherapy-at-home': 'Physiotherapy at Home',
+    '/lab-test-at-home': 'Lab Test at Home',
+    '/injection-at-home': 'Injection at Home',
+    '/ambulance-service': 'Ambulance Service',
+    '/palliative-care': 'Palliative Care',
+    '/cancer-care-at-home': 'Cancer Care at Home',
+    '/stroke-care-at-home': 'Stroke Care at Home',
+    '/services': 'Services',
+    '/book': 'Book Care',
+    '/contact': 'Contact Us'
+  };
+
   const breadcrumbItems = [
     { name: 'Home', path: '/' },
     ...pathnames.map((value, index) => {
       const to = `/${pathnames.slice(0, index + 1).join('/')}`;
       return {
-        name: value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' '),
+        name: customLabels[to] || value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' '),
         path: to
       };
     })
@@ -24,23 +48,21 @@ const BreadcrumbNavigation = () => {
   if (location.pathname === '/') return null;
 
   return (
-    <div className="bg-gray-50 border-b border-gray-200 py-3">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="border-b border-purple-100 bg-white/80 py-3 backdrop-blur">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <script type="application/ld+json">
           {JSON.stringify(schema)}
         </script>
-        
-        <nav className="flex" aria-label="Breadcrumb">
-          <ol className="flex items-center space-x-2">
+
+        <nav aria-label="Breadcrumb">
+          <ol className="flex flex-wrap items-center gap-1 text-sm sm:gap-2">
             <li>
-              <div>
-                <Link to="/" className="text-gray-400 hover:text-gray-500">
-                  <Home className="h-4 w-4" aria-hidden="true" />
-                  <span className="sr-only">Home</span>
-                </Link>
-              </div>
+              <Link to="/" className="inline-flex items-center gap-1 rounded-full px-2 py-1 font-medium text-gray-500 transition-colors hover:bg-purple-50 hover:text-[#7C3AED]">
+                <Home className="h-4 w-4" aria-hidden="true" />
+                <span className="sr-only">Home</span>
+              </Link>
             </li>
-            
+
             {breadcrumbItems.slice(1).map((item, index) => {
               const isLast = index === breadcrumbItems.length - 2;
               return (
@@ -49,10 +71,10 @@ const BreadcrumbNavigation = () => {
                     <ChevronRight className="h-4 w-4 text-gray-300" aria-hidden="true" />
                     <Link
                       to={item.path}
-                      className={`ml-2 text-sm font-medium ${
-                        isLast 
-                          ? 'text-[#6B46C1] font-semibold cursor-default pointer-events-none' 
-                          : 'text-gray-500 hover:text-gray-700'
+                      className={`ml-1 rounded-full px-2 py-1 font-medium transition-colors ${
+                        isLast
+                          ? 'cursor-default bg-purple-50 text-[#7C3AED] pointer-events-none'
+                          : 'text-gray-500 hover:bg-purple-50 hover:text-[#7C3AED]'
                       }`}
                       aria-current={isLast ? 'page' : undefined}
                     >

@@ -1,0 +1,498 @@
+{
+  "libraries": [
+    {
+      "slug": "healthcare-library",
+      "title": "Healthcare Library",
+      "badge": "Core Care Guides",
+      "heroTitle": "A healthcare knowledge library built for families making high-stakes care decisions.",
+      "heroText": "Browse reusable, SEO-ready healthcare content covering home nursing, post-discharge planning, NRI coordination, elder care, palliative support and complex recovery at home.",
+      "seoTitle": "Healthcare Knowledge Library | InstantCare",
+      "seoDescription": "Explore expert-led healthcare articles on home nursing, elder care, recovery, palliative support, NRI coordination and medically managed home care.",
+      "focusAreas": [
+        "Home healthcare guidance families can understand quickly",
+        "Reusable article templates designed for scale and internal linking",
+        "Strong pathways into related services, consultations and emergency support"
+      ],
+      "serviceSlugs": ["home-nursing", "doctor-at-home", "dedicated-care-manager"],
+      "featuredArticleSlugs": ["choosing-home-nursing-for-seniors", "post-hospital-recovery-at-home"]
+    },
+    {
+      "slug": "disease-library",
+      "title": "Disease Library",
+      "badge": "Condition Support",
+      "heroTitle": "Condition-specific guidance for families managing medically complex care at home.",
+      "heroText": "Understand how cancer care, stroke recovery and other condition-led journeys can be coordinated with more clarity, better escalation planning and calmer family decision-making.",
+      "seoTitle": "Disease Care Library | InstantCare",
+      "seoDescription": "Read practical guides on cancer care, stroke recovery, symptom monitoring and complex disease support at home.",
+      "focusAreas": [
+        "Symptoms, escalation triggers and safe home support pathways",
+        "Condition-aware family preparation and recovery planning",
+        "Internal links to service pages built for oncology, stroke and critical care"
+      ],
+      "serviceSlugs": ["palliative-care", "stroke-rehabilitation", "icu-home-care"],
+      "featuredArticleSlugs": ["cancer-care-at-home-guide", "stroke-recovery-at-home-guide"]
+    },
+    {
+      "slug": "treatment-library",
+      "title": "Treatment Library",
+      "badge": "Treatment Guides",
+      "heroTitle": "Treatment support articles that help families book the right home-based medical assistance.",
+      "heroText": "Understand what happens before, during and after physiotherapy, injections, diagnostics and doctor visits at home.",
+      "seoTitle": "Treatment Support Library | InstantCare",
+      "seoDescription": "Explore treatment support articles on physiotherapy at home, injections, diagnostics, doctor visits and safe recovery routines.",
+      "focusAreas": [
+        "Treatment planning before a home visit is scheduled",
+        "Safe preparation for injections, therapy and diagnostics",
+        "Doctor-guided recovery with stronger follow-up expectations"
+      ],
+      "serviceSlugs": ["doctor-at-home", "home-nursing", "hourly-nurse"],
+      "featuredArticleSlugs": ["physiotherapy-at-home-guide", "home-injection-safety-guide"]
+    },
+    {
+      "slug": "elder-care-library",
+      "title": "Elder Care Library",
+      "badge": "Senior Support",
+      "heroTitle": "Senior care guidance for families balancing dignity, safety, memory care and daily routines.",
+      "heroText": "Learn how to support dementia, bedridden care, medication adherence, fall prevention and long-term comfort at home.",
+      "seoTitle": "Elder Care Knowledge Library | InstantCare",
+      "seoDescription": "Read elder care articles on dementia support, bedridden patient care, home routines, safety planning and family guidance.",
+      "focusAreas": [
+        "Long-term home routines for medically fragile seniors",
+        "Memory-sensitive caregiving and fall prevention planning",
+        "Actionable guidance for families supporting elders from near or far"
+      ],
+      "serviceSlugs": ["elder-care", "patient-attendant", "parents-care-management"],
+      "featuredArticleSlugs": ["dementia-care-at-home-guide", "bedridden-patient-care-guide"]
+    },
+    {
+      "slug": "nri-care-library",
+      "title": "NRI Care Library",
+      "badge": "Cross-Border Care",
+      "heroTitle": "NRI healthcare guidance for families coordinating care in India from abroad.",
+      "heroText": "Use these guides to plan parent care, hospital representation, remote decision-making and healthcare communication from outside India.",
+      "seoTitle": "NRI Care Knowledge Library | InstantCare",
+      "seoDescription": "Explore NRI healthcare guides for parent care management, hospital representation and remote family coordination in India.",
+      "focusAreas": [
+        "Remote parent care planning from the US, UK, UAE and beyond",
+        "Decision support for admissions, discharges and emergency changes",
+        "Clear models for daily updates, video calls and documentation"
+      ],
+      "serviceSlugs": ["parents-care-management", "hospital-representation", "daily-updates"],
+      "featuredArticleSlugs": ["nri-parent-care-coordination-guide", "hospital-representation-guide"]
+    },
+    {
+      "slug": "final-journey-library",
+      "title": "Final Journey Library",
+      "badge": "Compassionate Care",
+      "heroTitle": "Compassion-led guidance for palliative support, end-of-life planning and family preparation.",
+      "heroText": "Read respectful guidance on comfort care, emergency signs, family conversations and when to seek urgent medical help during advanced illness.",
+      "seoTitle": "Final Journey Knowledge Library | InstantCare",
+      "seoDescription": "Explore compassionate healthcare articles on palliative care, end-of-life support, comfort planning and family guidance.",
+      "focusAreas": [
+        "Comfort, dignity and symptom-awareness in advanced illness",
+        "Family preparation and urgent escalation guidance",
+        "Respectful internal linking into palliative and care coordination services"
+      ],
+      "serviceSlugs": ["palliative-care", "dedicated-care-manager", "healthcare-concierge"],
+      "featuredArticleSlugs": ["palliative-care-at-home-guide", "end-of-life-support-for-families"]
+    }
+  ],
+  "articles": [
+    {
+      "slug": "choosing-home-nursing-for-seniors",
+      "librarySlug": "healthcare-library",
+      "title": "Choosing Home Nursing for Seniors in India",
+      "heroBadge": "Senior Clinical Support",
+      "seoTitle": "Choosing Home Nursing for Seniors in India | InstantCare Knowledge Library",
+      "metaDescription": "Learn when home nursing is right for seniors, what symptoms to watch, what families can do at home and when to seek doctor advice.",
+      "excerpt": "A practical guide for families deciding whether an elderly parent needs structured nursing support at home.",
+      "quickAnswer": "Home nursing is often the right next step when a senior needs medication oversight, wound care, mobility assistance, monitoring or safer recovery after discharge.",
+      "overview": "Home nursing helps families bridge the gap between hospital care and daily recovery at home. It is especially useful when a senior needs clinically informed support but does not require continuous hospitalization.",
+      "symptoms": ["Frequent weakness, falls or dizziness", "Difficulty managing medicines correctly", "Poor recovery after surgery, infection or illness", "Worsening confusion or inability to complete daily routines"],
+      "causes": ["Advanced age with multiple health conditions", "Recent hospital discharge or surgery", "Reduced mobility and frailty", "Caregiver burnout or lack of clinical support at home"],
+      "riskFactors": ["Living alone without close monitoring", "History of medication errors", "Repeated emergency visits", "Chronic illnesses such as diabetes, stroke or heart disease"],
+      "prevention": ["Schedule discharge planning before a patient returns home", "Create a medicine schedule with visible reminders", "Review mobility and bathroom safety risks", "Arrange regular doctor follow-ups for unstable conditions"],
+      "homeCare": ["Track vitals, hydration and appetite daily", "Keep prescriptions, test reports and emergency contacts organised", "Use clean wound-care routines if advised", "Avoid leaving a frail patient unsupported during transfers"],
+      "doctorAdvice": ["Ask the doctor whether the patient needs nurse-led monitoring or only attendant support", "Confirm red-flag symptoms that require same-day medical review", "Clarify dressing, catheter or injection instructions", "Review whether therapy or diagnostics should also be arranged at home"],
+      "recovery": ["Recovery is smoother when medicines and observations happen consistently", "Family communication should remain simple and scheduled", "Mobility, nutrition and follow-up appointments need regular review", "Escalate quickly if the patient becomes more breathless, confused or weak"],
+      "emergencySigns": ["New chest pain or breathlessness", "Sudden unresponsiveness or collapse", "Rapid bleeding, high fever or uncontrolled vomiting", "Confusion that worsens sharply within hours"],
+      "faqs": [
+        {"question": "How do I know if a senior needs a nurse instead of a caregiver?", "answer": "If the patient needs medication administration, wound care, monitoring, injections or clinical observation, nursing support is usually more appropriate."},
+        {"question": "Can home nursing be temporary after discharge?", "answer": "Yes. Many families use short-term nursing for seven to thirty days after surgery, infection or a major hospital stay."},
+        {"question": "Does home nursing replace doctor supervision?", "answer": "No. Nursing support works best when it follows the patient’s doctor advice and escalation plan."}
+      ],
+      "relatedServiceSlugs": ["home-nursing", "elder-care", "doctor-at-home"],
+      "relatedArticleSlugs": ["elder-care-library/dementia-care-at-home-guide", "treatment-library/physiotherapy-at-home-guide", "nri-care-library/nri-parent-care-coordination-guide"],
+      "cta": {
+        "eyebrow": "Need a nursing plan?",
+        "title": "Arrange a private home nursing assessment for your loved one.",
+        "description": "Speak with the care coordination team to decide whether nursing, attendant support, doctor visits or a wider senior care plan is the right fit."
+      },
+      "lastUpdated": "2026-08-04",
+      "reviewedBy": "InstantCare Clinical Content Team"
+    },
+    {
+      "slug": "post-hospital-recovery-at-home",
+      "librarySlug": "healthcare-library",
+      "title": "Post-Hospital Recovery at Home: What Families Should Prepare",
+      "heroBadge": "Discharge Planning",
+      "seoTitle": "Post-Hospital Recovery at Home | InstantCare Knowledge Library",
+      "metaDescription": "A discharge-to-home guide covering symptoms, risks, home care, doctor advice, recovery planning and red flags after hospitalization.",
+      "excerpt": "A structured recovery checklist for families supporting a patient after discharge from hospital.",
+      "quickAnswer": "Successful recovery at home depends on discharge clarity, medication tracking, mobility safety, follow-up planning and rapid escalation if symptoms worsen.",
+      "overview": "The first days after discharge are often when families feel the least confident. A recovery plan should convert medical instructions into a simple home routine with clear check-ins and escalation triggers.",
+      "symptoms": ["Pain, fatigue or weakness after discharge", "Appetite loss or nausea", "Difficulty walking safely", "Confusion about medicines or dressing changes"],
+      "causes": ["Surgery or acute illness", "Complex medication changes", "Reduced mobility after bed rest", "Unclear discharge instructions"],
+      "riskFactors": ["Older age and frailty", "Multiple prescriptions", "No caregiver at home during the first week", "Existing heart, lung or neurological disease"],
+      "prevention": ["Review the discharge summary before leaving hospital", "Arrange transport and home setup in advance", "Confirm which symptoms are normal and which are urgent", "Book follow-up calls or visits before the patient reaches home"],
+      "homeCare": ["Keep the patient’s sleep area accessible and safe", "Use a written medicine and meal chart", "Encourage gentle movement if medically permitted", "Track fever, pain, swelling, wound changes and breathing"],
+      "doctorAdvice": ["Ask for a clear timeline for review appointments", "Confirm when dressing, therapy or lab work should happen", "Discuss mobility precautions and nutrition goals", "Clarify whether nurse-led support is advisable"],
+      "recovery": ["Recovery improves when the routine stays predictable", "Family members should avoid changing medicines without review", "Therapy, nutrition and hydration affect long-term outcome", "Ongoing communication reduces avoidable setbacks"],
+      "emergencySigns": ["Severe breathlessness or chest pain", "Wound bleeding or rapidly increasing swelling", "Sudden weakness, facial droop or severe confusion", "Fever with low blood pressure or extreme lethargy"],
+      "faqs": [
+        {"question": "How soon should follow-up happen after discharge?", "answer": "That depends on the diagnosis, but most families benefit from confirming the next review before discharge itself."},
+        {"question": "Should I arrange nursing before the patient gets home?", "answer": "If the patient needs dressing care, monitoring, injections or assistance with clinical routines, planning ahead is better."},
+        {"question": "Can recovery care be coordinated entirely at home?", "answer": "In many cases, yes, provided the patient is clinically stable and the home support plan is appropriate."}
+      ],
+      "relatedServiceSlugs": ["dedicated-care-manager", "home-nursing", "icu-home-care"],
+      "relatedArticleSlugs": ["treatment-library/home-injection-safety-guide", "disease-library/stroke-recovery-at-home-guide", "healthcare-library/choosing-home-nursing-for-seniors"],
+      "cta": {
+        "eyebrow": "Planning discharge?",
+        "title": "Let InstantCare turn discharge instructions into a workable home recovery plan.",
+        "description": "From staffing and medicines to follow-up and family updates, the team can help you prepare the first critical week at home."
+      },
+      "lastUpdated": "2026-08-04",
+      "reviewedBy": "InstantCare Clinical Content Team"
+    },
+    {
+      "slug": "cancer-care-at-home-guide",
+      "librarySlug": "disease-library",
+      "title": "Cancer Care at Home: What Families Need to Prepare",
+      "heroBadge": "Oncology Home Support",
+      "seoTitle": "Cancer Care at Home Guide | InstantCare Knowledge Library",
+      "metaDescription": "Learn how to plan cancer care at home, manage symptoms, recognize emergency signs and support recovery with clinical guidance.",
+      "excerpt": "A home care guide for oncology families handling treatment fatigue, symptom changes and daily support needs.",
+      "quickAnswer": "Cancer care at home works best when symptom changes, medicines, nutrition, infection risks and doctor follow-ups are all tracked in one structured plan.",
+      "overview": "Home-based cancer support is not only about comfort. It also helps families manage symptom patterns, treatment fatigue, medicine adherence and emotional stress in a more organized environment.",
+      "symptoms": ["Fatigue, weakness and reduced appetite", "Nausea, vomiting or dehydration", "Pain, constipation or sleep disturbance", "New fever or signs of infection during treatment"],
+      "causes": ["Cancer itself or its complications", "Chemotherapy, radiation or targeted therapy side effects", "Reduced immunity and prolonged weakness", "Stress, pain and poor nutritional intake"],
+      "riskFactors": ["Active cancer treatment cycles", "Recent hospitalization", "Poor oral intake and low energy", "Limited caregiver capacity at home"],
+      "prevention": ["Keep medication schedules and side-effect notes updated", "Reduce infection exposure and maintain hygiene", "Plan oncology follow-up dates in advance", "Document appetite, fluids and bowel changes daily"],
+      "homeCare": ["Create a quiet rest and hydration routine", "Use small frequent meals if full meals are difficult", "Track fever, pain and unusual bleeding", "Prepare transportation plans for urgent review"],
+      "doctorAdvice": ["Ask which symptoms should trigger immediate oncology review", "Clarify pain and nausea medicine timing", "Confirm when blood counts or tests need repeating", "Discuss whether nurse support is appropriate at home"],
+      "recovery": ["Recovery often fluctuates across treatment cycles", "Emotional reassurance matters as much as logistics", "Professional support reduces burnout on the family", "Good escalation planning improves safety"],
+      "emergencySigns": ["Fever after chemotherapy", "Confusion, sudden breathing difficulty or severe weakness", "Uncontrolled pain or repeated vomiting", "Any new bleeding, black stool or collapse"],
+      "faqs": [
+        {"question": "Can cancer care be coordinated at home during treatment?", "answer": "Yes. Many families use home-based support for symptom monitoring, comfort, medicine routines and caregiver relief."},
+        {"question": "Should every patient have a nurse at home?", "answer": "Not always. Some patients need a nurse, while others need coordinated doctor follow-up, an attendant or periodic visits."},
+        {"question": "When should a cancer patient go to hospital urgently?", "answer": "Urgent review is needed for fever, severe breathing trouble, uncontrolled pain, confusion or sudden bleeding."}
+      ],
+      "relatedServiceSlugs": ["palliative-care", "home-nursing", "doctor-at-home"],
+      "relatedArticleSlugs": ["final-journey-library/palliative-care-at-home-guide", "healthcare-library/post-hospital-recovery-at-home", "elder-care-library/bedridden-patient-care-guide"],
+      "cta": {
+        "eyebrow": "Need oncology support?",
+        "title": "Create a calmer home care pathway during cancer treatment.",
+        "description": "Discuss nursing, doctor coordination, symptom monitoring and family communication with the InstantCare team."
+      },
+      "lastUpdated": "2026-08-04",
+      "reviewedBy": "InstantCare Clinical Content Team"
+    },
+    {
+      "slug": "stroke-recovery-at-home-guide",
+      "librarySlug": "disease-library",
+      "title": "Stroke Recovery at Home: A Family Guide",
+      "heroBadge": "Neuro Rehabilitation",
+      "seoTitle": "Stroke Recovery at Home Guide | InstantCare Knowledge Library",
+      "metaDescription": "A family guide to stroke recovery at home covering symptoms, risks, therapy, home care, emergency signs and rehabilitation support.",
+      "excerpt": "What families should organize after a patient returns home following a stroke.",
+      "quickAnswer": "Stroke recovery at home requires therapy consistency, safety monitoring, medication adherence, nutrition support and rapid action if neurological symptoms return.",
+      "overview": "Stroke recovery is rarely linear. Patients may improve, plateau or show new challenges with speech, swallowing, movement or mood, which makes family structure and therapy planning essential.",
+      "symptoms": ["Weakness or stiffness on one side", "Speech difficulty or swallowing issues", "Memory changes, frustration or mood swings", "Poor balance and fear of movement"],
+      "causes": ["Recent ischemic or hemorrhagic stroke", "Delayed rehabilitation after discharge", "Poor medicine adherence", "Limited home mobility support"],
+      "riskFactors": ["High blood pressure, diabetes or heart disease", "Previous stroke or transient ischemic attack", "Poor caregiver availability", "Unsafe home environment with fall risks"],
+      "prevention": ["Follow medicine and therapy plans exactly", "Monitor blood pressure regularly", "Use safe walking support and bathroom modifications", "Do not ignore small neurological changes"],
+      "homeCare": ["Encourage short, repeated therapy-led movements", "Keep food texture safe if swallowing is affected", "Use pressure relief and position changes for low-mobility patients", "Track speech, mood and movement changes every day"],
+      "doctorAdvice": ["Ask about blood pressure goals and medication timing", "Confirm swallowing precautions and rehabilitation frequency", "Discuss signs of recurrent stroke or aspiration", "Review mood and sleep disturbances during follow-up"],
+      "recovery": ["Small repeated improvements matter", "Therapy continuity usually shapes outcome more than intensity alone", "Family patience and emotional support are crucial", "Rehab plans need regular adjustment as the patient improves"],
+      "emergencySigns": ["New facial droop or arm weakness", "Sudden speech worsening or unresponsiveness", "Seizure, collapse or severe headache", "Breathlessness or choking during feeding"],
+      "faqs": [
+        {"question": "Can a stroke patient recover well at home?", "answer": "Yes, many patients recover at home with the right mix of therapy, nursing oversight, safety planning and doctor review."},
+        {"question": "How often is physiotherapy needed?", "answer": "That depends on severity and doctor advice, but consistency matters more than occasional intensive sessions."},
+        {"question": "What is the biggest home risk after stroke?", "answer": "Falls, swallowing complications, medicine errors and missed signs of recurrence are common risks."}
+      ],
+      "relatedServiceSlugs": ["stroke-rehabilitation", "home-nursing", "doctor-at-home"],
+      "relatedArticleSlugs": ["treatment-library/physiotherapy-at-home-guide", "healthcare-library/post-hospital-recovery-at-home", "elder-care-library/bedridden-patient-care-guide"],
+      "cta": {
+        "eyebrow": "Need stroke coordination?",
+        "title": "Build a structured neuro-recovery plan for home.",
+        "description": "InstantCare can coordinate therapy, nursing, doctor review and family updates for stroke recovery journeys."
+      },
+      "lastUpdated": "2026-08-04",
+      "reviewedBy": "InstantCare Clinical Content Team"
+    },
+    {
+      "slug": "physiotherapy-at-home-guide",
+      "librarySlug": "treatment-library",
+      "title": "Physiotherapy at Home: What Patients and Families Should Expect",
+      "heroBadge": "Recovery Therapy",
+      "seoTitle": "Physiotherapy at Home Guide | InstantCare Knowledge Library",
+      "metaDescription": "Learn how physiotherapy at home works, who needs it, what to prepare and when recovery needs medical review.",
+      "excerpt": "A practical guide to home physiotherapy for post-surgery, orthopedic and neurological recovery.",
+      "quickAnswer": "Physiotherapy at home supports mobility, strength and confidence when the patient needs guided exercises but regular clinic travel is difficult.",
+      "overview": "Home physiotherapy brings recovery into the patient’s real environment. That makes it especially effective for older adults, post-surgical recovery and stroke rehabilitation when travel is tiring or unsafe.",
+      "symptoms": ["Difficulty standing, walking or climbing stairs", "Painful stiffness after surgery or injury", "Reduced coordination after stroke", "Loss of confidence in movement"],
+      "causes": ["Orthopedic surgery or injury", "Neurological weakness", "Extended bed rest", "Age-related deconditioning"],
+      "riskFactors": ["Delay in starting rehabilitation", "Fear of movement due to pain", "Unsafe home layout", "Poor follow-through between sessions"],
+      "prevention": ["Begin therapy only after clinical clearance", "Remove fall hazards at home", "Keep assistive devices ready", "Document pain and mobility changes between sessions"],
+      "homeCare": ["Follow the therapist’s home exercise plan faithfully", "Hydrate and eat before demanding sessions when advised", "Wear supportive footwear during exercises", "Stop and escalate if dizziness or chest discomfort appears"],
+      "doctorAdvice": ["Ask whether weight-bearing is safe", "Clarify how much pain is acceptable during exercises", "Discuss therapy goals week by week", "Review swelling, new numbness or weakness promptly"],
+      "recovery": ["Recovery tends to improve with steady repetition", "Confidence and function often return together", "Family encouragement helps with adherence", "Progress needs periodic reassessment"],
+      "emergencySigns": ["Sudden severe pain or limb swelling", "Chest pain, fainting or breathlessness during therapy", "New numbness or loss of limb control", "Fever or wound issues after recent surgery"],
+      "faqs": [
+        {"question": "Who benefits most from physiotherapy at home?", "answer": "Patients recovering from surgery, stroke, orthopedic injuries and seniors with limited mobility often benefit the most."},
+        {"question": "Is home therapy as effective as clinic therapy?", "answer": "It can be highly effective when exercises are followed consistently and the goals are regularly reviewed."},
+        {"question": "How long does recovery take?", "answer": "That depends on the diagnosis, baseline strength, age and adherence to the therapy plan."}
+      ],
+      "relatedServiceSlugs": ["home-physiotherapy", "stroke-rehabilitation", "doctor-at-home"],
+      "relatedArticleSlugs": ["disease-library/stroke-recovery-at-home-guide", "healthcare-library/post-hospital-recovery-at-home", "elder-care-library/bedridden-patient-care-guide"],
+      "cta": {
+        "eyebrow": "Planning rehabilitation?",
+        "title": "Book a guided home physiotherapy consultation.",
+        "description": "Talk through recovery goals, mobility concerns and whether home therapy is the right next step."
+      },
+      "lastUpdated": "2026-08-04",
+      "reviewedBy": "InstantCare Clinical Content Team"
+    },
+    {
+      "slug": "home-injection-safety-guide",
+      "librarySlug": "treatment-library",
+      "title": "Home Injection Safety: When Families Should Use Nurse Support",
+      "heroBadge": "Medication Administration",
+      "seoTitle": "Home Injection Safety Guide | InstantCare Knowledge Library",
+      "metaDescription": "A safety guide to home injection support, including preparation, prevention, doctor advice, recovery and emergency signs.",
+      "excerpt": "Understand when injections at home are appropriate and how to make the process safer.",
+      "quickAnswer": "Home injections are safer when they are prescription-led, professionally administered and supported by clear observation instructions afterward.",
+      "overview": "Home injection services reduce travel burden, but they must still follow careful medicine handling, identity confirmation, dose timing and observation practices.",
+      "symptoms": ["Need for repeated prescribed injections", "Difficulty traveling for routine medication administration", "Weakness or illness that makes clinic visits hard", "Caregiver uncertainty about giving medicines safely"],
+      "causes": ["Chronic treatment plans", "Post-operative medicine schedules", "Short-term antibiotic or supportive therapy needs", "Mobility limitations"],
+      "riskFactors": ["Using the wrong dose or time", "Poor storage of temperature-sensitive medicines", "No observation after administration", "History of allergic reactions"],
+      "prevention": ["Use only prescription-backed medication", "Confirm dose, patient name and expiry before administration", "Store medicines correctly", "Keep the prescribing doctor’s instructions available"],
+      "homeCare": ["Observe the patient after the injection as advised", "Track pain, fever, swelling or rash", "Maintain hygiene and clean sharps disposal", "Do not repeat or skip a dose without clarification"],
+      "doctorAdvice": ["Confirm route, frequency and observation requirements", "Ask which reactions are expected and which are dangerous", "Clarify storage instructions", "Review whether a nurse should administer every dose"],
+      "recovery": ["Medication schedules work best when they are consistent", "Families should avoid improvising with leftover medicines", "Observation is part of safety, not an optional extra", "Documentation helps prevent repeat errors"],
+      "emergencySigns": ["Difficulty breathing or facial swelling after injection", "Severe dizziness, fainting or collapse", "Rapidly increasing redness and swelling", "Persistent vomiting, seizures or altered consciousness"],
+      "faqs": [
+        {"question": "Can all injections be given at home?", "answer": "No. Suitability depends on the prescription, patient condition and whether nurse support is required."},
+        {"question": "When is nurse administration recommended?", "answer": "A nurse is strongly preferred when the patient is frail, medically unstable, or has had previous reactions."},
+        {"question": "What should families monitor after the injection?", "answer": "Watch for rash, breathing difficulty, dizziness, unusual pain, swelling or anything specifically highlighted by the doctor."}
+      ],
+      "relatedServiceSlugs": ["hourly-nurse", "home-nursing", "doctor-at-home"],
+      "relatedArticleSlugs": ["healthcare-library/post-hospital-recovery-at-home", "treatment-library/physiotherapy-at-home-guide", "elder-care-library/bedridden-patient-care-guide"],
+      "cta": {
+        "eyebrow": "Need safe home medication support?",
+        "title": "Arrange nurse-led injection support at home.",
+        "description": "InstantCare can help families coordinate trained support for prescription-led medication administration."
+      },
+      "lastUpdated": "2026-08-04",
+      "reviewedBy": "InstantCare Clinical Content Team"
+    },
+    {
+      "slug": "dementia-care-at-home-guide",
+      "librarySlug": "elder-care-library",
+      "title": "Dementia Care at Home: Practical Guidance for Families",
+      "heroBadge": "Memory Care",
+      "seoTitle": "Dementia Care at Home Guide | InstantCare Knowledge Library",
+      "metaDescription": "Learn how to manage dementia care at home with safer routines, prevention steps, doctor advice, emergency signs and family support.",
+      "excerpt": "A practical guide for families supporting a parent with memory loss, confusion and changing behavior at home.",
+      "quickAnswer": "Dementia care at home works best when routines stay predictable, the environment is safe, medicines are supervised and the family knows when confusion requires medical review.",
+      "overview": "Dementia care is often emotionally demanding because the patient’s needs can change gradually and unpredictably. Good home care focuses on calm routines, safety, communication and reduced caregiver burnout.",
+      "symptoms": ["Forgetfulness that affects daily function", "Repeated confusion about time, place or family members", "Agitation, wandering or disrupted sleep", "Missed medicines and unsafe home decisions"],
+      "causes": ["Degenerative memory-related illness", "Existing neurological disease", "Medication complexity", "Environmental overstimulation or inconsistent routines"],
+      "riskFactors": ["Living alone", "History of falls or wandering", "Poor nutrition or dehydration", "Limited caregiver supervision"],
+      "prevention": ["Use simple predictable routines", "Reduce clutter and fall hazards", "Label rooms, medicines and important items clearly", "Maintain regular clinical follow-up"],
+      "homeCare": ["Speak slowly and use one instruction at a time", "Keep meal, sleep and toileting routines structured", "Avoid arguments during confusion episodes", "Track behavior changes and triggers"],
+      "doctorAdvice": ["Ask which changes are expected and which suggest delirium or infection", "Review medicines regularly", "Discuss sleep disturbance and mood changes", "Plan follow-up if confusion worsens suddenly"],
+      "recovery": ["Dementia is usually progressive, so the goal is safer, calmer daily living", "Care plans often need regular adjustment", "Family support systems matter greatly", "Respite and professional help reduce burnout"],
+      "emergencySigns": ["Sudden major confusion change over hours", "New fever or inability to stay awake", "Fall with head injury", "Aggression or wandering that creates immediate danger"],
+      "faqs": [
+        {"question": "Is dementia care mostly medical or daily-living support?", "answer": "It is usually a mix of routine support, medicine supervision, safety planning and periodic medical review."},
+        {"question": "When should sudden confusion worry the family?", "answer": "Sudden worsening may suggest infection, dehydration, stroke or another acute issue and needs prompt medical review."},
+        {"question": "Can a caregiver help even if the patient resists help sometimes?", "answer": "Yes, trained support often helps reduce conflict by bringing more consistent routines and calmer communication."}
+      ],
+      "relatedServiceSlugs": ["elder-care", "parents-care-management", "doctor-at-home"],
+      "relatedArticleSlugs": ["elder-care-library/bedridden-patient-care-guide", "healthcare-library/choosing-home-nursing-for-seniors", "nri-care-library/nri-parent-care-coordination-guide"],
+      "cta": {
+        "eyebrow": "Supporting a parent with memory loss?",
+        "title": "Create a safer dementia care routine at home.",
+        "description": "Get help with daily support, family coordination, medication oversight and doctor follow-up planning."
+      },
+      "lastUpdated": "2026-08-04",
+      "reviewedBy": "InstantCare Clinical Content Team"
+    },
+    {
+      "slug": "bedridden-patient-care-guide",
+      "librarySlug": "elder-care-library",
+      "title": "Bedridden Patient Care at Home: A Complete Family Checklist",
+      "heroBadge": "Bedside Support",
+      "seoTitle": "Bedridden Patient Care Guide | InstantCare Knowledge Library",
+      "metaDescription": "A home care checklist for bedridden patients covering symptoms, risk factors, prevention, doctor advice, recovery and emergency signs.",
+      "excerpt": "A practical bedside care guide for families managing low mobility, feeding, comfort and pressure-relief routines.",
+      "quickAnswer": "Bedridden care requires position changes, hygiene, nutrition monitoring, pressure prevention, medication support and fast action when breathing, fever or confusion worsen.",
+      "overview": "Caring for a bedridden patient is physically demanding and detail-sensitive. The main home goals are comfort, skin protection, nutrition, infection prevention and safe communication between family and clinicians.",
+      "symptoms": ["Unable to sit, stand or turn independently", "Skin redness or pressure areas", "Low appetite or constipation", "Increasing cough, drowsiness or breathlessness"],
+      "causes": ["Stroke, frailty or advanced neurological disease", "Post-surgical complications or prolonged weakness", "Advanced cancer or severe chronic illness", "High dependency after ICU or hospital discharge"],
+      "riskFactors": ["Long periods in one position", "Poor hydration or protein intake", "Limited caregiver assistance", "No skin or respiratory monitoring"],
+      "prevention": ["Reposition on a medically appropriate schedule", "Use clean bedding and pressure-relief supports", "Track food, water, bowel and urine patterns", "Escalate early if cough, fever or skin breakdown begins"],
+      "homeCare": ["Protect skin with gentle cleaning and drying", "Use pillows or supports to reduce pressure points", "Feed slowly and safely if swallowing is weak", "Document daily changes in breathing, pain and alertness"],
+      "doctorAdvice": ["Ask how often the patient should be repositioned", "Clarify feeding and aspiration precautions", "Review signs of pressure injury or infection", "Discuss whether nurse support is necessary"],
+      "recovery": ["Some bedridden patients improve with rehabilitation, others need long-term support", "Comfort and skin safety need daily review", "Family burden is high, so structured help matters", "A clear escalation plan reduces crisis decision-making"],
+      "emergencySigns": ["Sudden breathing difficulty or choking", "Fever with cough or low oxygen suspicion", "Deep skin wound or foul-smelling sore", "Extreme drowsiness or inability to wake the patient"],
+      "faqs": [
+        {"question": "How often should a bedridden patient be repositioned?", "answer": "That depends on the patient’s condition, but frequent pressure relief is usually essential and should follow medical advice."},
+        {"question": "What is the biggest home risk?", "answer": "Pressure injuries, aspiration, pneumonia, dehydration and missed medical deterioration are common risks."},
+        {"question": "Can a family manage this without professional help?", "answer": "Some families can for short periods, but many benefit from nursing or attendant support because the workload is high and clinically sensitive."}
+      ],
+      "relatedServiceSlugs": ["patient-attendant", "elder-care", "home-nursing"],
+      "relatedArticleSlugs": ["elder-care-library/dementia-care-at-home-guide", "disease-library/cancer-care-at-home-guide", "final-journey-library/palliative-care-at-home-guide"],
+      "cta": {
+        "eyebrow": "Need bedside support?",
+        "title": "Plan safer bedside care with nursing or attendant support.",
+        "description": "Talk through repositioning, skin safety, hygiene, feeding and escalation routines with the care team."
+      },
+      "lastUpdated": "2026-08-04",
+      "reviewedBy": "InstantCare Clinical Content Team"
+    },
+    {
+      "slug": "nri-parent-care-coordination-guide",
+      "librarySlug": "nri-care-library",
+      "title": "How NRIs Can Coordinate Parent Care in India Without Constant Crisis Management",
+      "heroBadge": "NRI Parent Care",
+      "seoTitle": "NRI Parent Care Coordination Guide | InstantCare Knowledge Library",
+      "metaDescription": "A guide for NRIs managing parent care in India, including risk factors, prevention, home support, doctor advice and emergency signs.",
+      "excerpt": "A cross-border care guide for families living abroad who need stronger visibility and accountability in India.",
+      "quickAnswer": "NRI parent care becomes manageable when one local team handles updates, appointments, staffing, escalation and documentation in a structured way.",
+      "overview": "Distance makes every medical decision feel heavier. The most successful NRI care arrangements rely on one clear local operating model for communication, logistics and clinical follow-up.",
+      "symptoms": ["Parents missing appointments or medicines", "Repeated urgent calls without clear updates", "Difficulty understanding hospital changes remotely", "Emotional burnout from time-zone-based coordination"],
+      "causes": ["No trusted local point of contact", "Fragmented providers and poor communication", "Parents living alone or avoiding help", "Sudden deterioration without monitoring"],
+      "riskFactors": ["Elderly parents with chronic disease", "Previous admissions or falls", "No nearby family in India", "Financial, legal or hospital admin complexity"],
+      "prevention": ["Set up a communication rhythm before emergencies happen", "Keep medical records shared and current", "Use one point of accountability for hospital and home tasks", "Build a plan for transport, admission and daily updates"],
+      "homeCare": ["Track medicines, vitals and caregiver visits consistently", "Use video updates when family reassurance is needed", "Organize bills, reports and doctor notes in one place", "Make sure neighbors or building staff know who to call"],
+      "doctorAdvice": ["Ask for concise visit summaries that family can understand", "Clarify whether the parent is safe living alone", "Review long-term monitoring needs and specialist follow-up", "Confirm when immediate travel should be considered"],
+      "recovery": ["NRI families do best with systems, not ad hoc decisions", "Routine updates reduce panic-driven choices", "Local representation helps during admissions and discharges", "Care coordination should evolve as the parent’s condition changes"],
+      "emergencySigns": ["Parent not answering calls and no local contact available", "Sudden fall, confusion or hospital admission", "Breathing difficulty or chest pain reported remotely", "Repeated urgent complaints without same-day review"],
+      "faqs": [
+        {"question": "Can NRIs coordinate everything from abroad?", "answer": "They can coordinate a lot remotely, but a trusted local execution layer makes the system much safer and calmer."},
+        {"question": "What updates matter most?", "answer": "Daily status, medicine changes, doctor recommendations, diagnostics and any change in mobility or cognition are the most valuable updates."},
+        {"question": "Should NRIs plan before an emergency happens?", "answer": "Yes. Predefined escalation, admission, transport and communication plans reduce chaos during urgent events."}
+      ],
+      "relatedServiceSlugs": ["parents-care-management", "daily-updates", "hospital-representation"],
+      "relatedArticleSlugs": ["nri-care-library/hospital-representation-guide", "elder-care-library/dementia-care-at-home-guide", "healthcare-library/choosing-home-nursing-for-seniors"],
+      "cta": {
+        "eyebrow": "Managing care from abroad?",
+        "title": "Set up a structured parent-care coordination plan in India.",
+        "description": "InstantCare can help NRIs with updates, representation, appointments and on-ground family support."
+      },
+      "lastUpdated": "2026-08-04",
+      "reviewedBy": "InstantCare Clinical Content Team"
+    },
+    {
+      "slug": "hospital-representation-guide",
+      "librarySlug": "nri-care-library",
+      "title": "Hospital Representation for Families Abroad: When It Matters Most",
+      "heroBadge": "On-Ground Advocacy",
+      "seoTitle": "Hospital Representation Guide for NRI Families | InstantCare Knowledge Library",
+      "metaDescription": "Learn when hospital representation helps families abroad, what risks it reduces and when immediate intervention is needed.",
+      "excerpt": "A practical guide to on-ground hospital representation for NRI and out-of-city families.",
+      "quickAnswer": "Hospital representation is valuable when a family cannot be physically present but still needs clear updates, admission support, discharge guidance and calmer decision-making.",
+      "overview": "Family absence during admissions, procedures or discharges can create information gaps. On-ground representation helps make communication and logistics more reliable at exactly those moments.",
+      "symptoms": ["Family is unable to attend a hospital review or admission", "Repeated hospital calls create confusion instead of clarity", "Billing, documentation or discharge planning feels overwhelming", "Parents feel unsupported during hospital visits"],
+      "causes": ["Family members living abroad or in another city", "Complex hospital workflows", "A fragile patient who needs advocacy", "Limited ability to take time away from work or caregiving"],
+      "riskFactors": ["Unplanned admissions", "Multiple doctors and tests in a short period", "Insurance and billing confusion", "A patient with cognitive decline or frailty"],
+      "prevention": ["Pre-authorize local representation before major hospital events", "Keep identity documents and insurance details ready", "Use one communication channel for family updates", "Clarify which decisions can be made locally"],
+      "homeCare": ["Review the admission summary and discharge notes afterward", "Store bills, prescriptions and reports centrally", "Arrange follow-up support before returning home", "Keep a list of new symptoms after discharge"],
+      "doctorAdvice": ["Ask for key updates in family-friendly language", "Confirm next tests, referrals and medicines clearly", "Discuss mobility, diet and follow-up after discharge", "Review which signs should lead to re-admission"],
+      "recovery": ["Good hospital representation reduces avoidable friction", "Families can make better decisions with real-time updates", "Discharge transitions improve when someone coordinates the details", "Representation works best when tied to a larger care plan"],
+      "emergencySigns": ["Patient condition changes rapidly during admission", "A discharge is being planned without clear family understanding", "Unexpected consent or procedure decisions arise", "The patient appears unsafe to travel or return home"],
+      "faqs": [
+        {"question": "Is hospital representation only for NRIs?", "answer": "No. It also helps working professionals, out-of-city children and any family that cannot be present physically."},
+        {"question": "What does representation typically include?", "answer": "It often includes attendance, updates, document coordination, discharge support and family communication."},
+        {"question": "Can this connect to home care afterward?", "answer": "Yes. It is most useful when the hospital phase and home-care phase are coordinated together."}
+      ],
+      "relatedServiceSlugs": ["hospital-representation", "dedicated-care-manager", "insurance-assistance"],
+      "relatedArticleSlugs": ["nri-care-library/nri-parent-care-coordination-guide", "healthcare-library/post-hospital-recovery-at-home", "final-journey-library/end-of-life-support-for-families"],
+      "cta": {
+        "eyebrow": "Need someone on the ground?",
+        "title": "Arrange hospital representation before the next major admission or review.",
+        "description": "The InstantCare team can support communication, logistics and continuity between hospital and home."
+      },
+      "lastUpdated": "2026-08-04",
+      "reviewedBy": "InstantCare Clinical Content Team"
+    },
+    {
+      "slug": "palliative-care-at-home-guide",
+      "librarySlug": "final-journey-library",
+      "title": "Palliative Care at Home: Comfort, Dignity and Clear Family Guidance",
+      "heroBadge": "Comfort-Focused Care",
+      "seoTitle": "Palliative Care at Home Guide | InstantCare Knowledge Library",
+      "metaDescription": "A compassionate guide to palliative care at home covering symptoms, prevention, home care, doctor advice, emergency signs and family support.",
+      "excerpt": "A family-first guide to comfort-focused home care during advanced illness.",
+      "quickAnswer": "Palliative care at home focuses on comfort, symptom relief, dignity, emotional support and clear escalation guidance when the patient’s condition changes.",
+      "overview": "Palliative support helps families respond to pain, breathlessness, weakness, anxiety and practical caregiving strain in a more humane and organized way. The goal is comfort and clarity, not unnecessary medical chaos.",
+      "symptoms": ["Pain, breathlessness or severe fatigue", "Poor intake and increasing weakness", "Anxiety, restlessness or reduced responsiveness", "Caregiver exhaustion and uncertainty about next steps"],
+      "causes": ["Advanced cancer or organ disease", "Neurological decline", "Repeated hospitalizations without sustained comfort", "Progressive frailty and symptom burden"],
+      "riskFactors": ["Uncontrolled pain or distress", "No home symptom plan", "Family disagreement about care goals", "No understanding of emergency versus expected decline"],
+      "prevention": ["Discuss comfort priorities early", "Keep symptom medicines available and clearly labeled", "Use one clinician or care coordinator for consistent direction", "Prepare the family for expected changes"],
+      "homeCare": ["Keep the room calm, quiet and easy to access", "Monitor pain, breathing and agitation patterns", "Offer comfort, mouth care and repositioning as tolerated", "Support the primary caregiver with rest and relief"],
+      "doctorAdvice": ["Ask which symptoms are expected and which require urgent review", "Clarify pain medicine timing and breakthrough medication use", "Discuss hydration, nutrition and sedation questions honestly", "Review whether hospital transfer is helpful or avoidable"],
+      "recovery": ["Recovery may not be the goal in palliative care; comfort often is", "Families need reassurance that calm, symptom-led care is still active care", "Communication and dignity matter deeply", "Professional guidance reduces guilt and crisis decision-making"],
+      "emergencySigns": ["Uncontrolled breathlessness or severe pain", "New seizures or collapse", "Bleeding that cannot be controlled", "Distress that the family cannot manage safely at home"],
+      "faqs": [
+        {"question": "Is palliative care only for the final days of life?", "answer": "No. It can support comfort much earlier in advanced illness and alongside treatment decisions."},
+        {"question": "Can families still call a doctor during palliative care?", "answer": "Yes. Clear doctor advice remains essential, especially when symptoms or comfort needs change."},
+        {"question": "What is the biggest benefit of palliative support at home?", "answer": "It helps families reduce distress, make calmer decisions and maintain more dignity and comfort for the patient."}
+      ],
+      "relatedServiceSlugs": ["palliative-care", "dedicated-care-manager", "doctor-at-home"],
+      "relatedArticleSlugs": ["final-journey-library/end-of-life-support-for-families", "disease-library/cancer-care-at-home-guide", "elder-care-library/bedridden-patient-care-guide"],
+      "cta": {
+        "eyebrow": "Need comfort-focused planning?",
+        "title": "Create a compassionate home support plan for advanced illness.",
+        "description": "Speak with InstantCare about palliative support, family updates, symptom planning and respectful care coordination."
+      },
+      "lastUpdated": "2026-08-04",
+      "reviewedBy": "InstantCare Clinical Content Team"
+    },
+    {
+      "slug": "end-of-life-support-for-families",
+      "librarySlug": "final-journey-library",
+      "title": "End-of-Life Support for Families: What to Prepare and When to Ask for Help",
+      "heroBadge": "Family Preparation",
+      "seoTitle": "End-of-Life Support for Families | InstantCare Knowledge Library",
+      "metaDescription": "A guide for families preparing for end-of-life care with comfort planning, emergency signs, home support and compassionate next steps.",
+      "excerpt": "A sensitive guide to help families prepare practically and emotionally during advanced illness.",
+      "quickAnswer": "Families benefit most when end-of-life planning includes comfort routines, honest escalation guidance, shared decision-making and support for the primary caregiver.",
+      "overview": "End-of-life care can feel overwhelming when families are unsure what changes are expected and which ones require urgent help. A clear plan protects both the patient’s dignity and the family’s stability.",
+      "symptoms": ["Progressive weakness and reduced appetite", "Longer sleep periods or reduced interaction", "Pain, breathlessness or visible distress", "Family confusion about what is expected"],
+      "causes": ["Advanced illness or multi-organ decline", "Progressive symptom burden", "Reduced oral intake and strength", "Late conversations about comfort goals"],
+      "riskFactors": ["No clear comfort plan", "Family disagreement about care direction", "No local support or overnight help", "Lack of doctor guidance for symptom escalation"],
+      "prevention": ["Discuss care preferences early", "Assign one family decision lead when possible", "Keep required medicines and documents accessible", "Arrange palliative or doctor support before crises happen"],
+      "homeCare": ["Use calm communication and reduce unnecessary stimulation", "Prioritize comfort and symptom relief", "Support hydration or mouth care as tolerated", "Rotate caregiving responsibilities to protect the primary caregiver"],
+      "doctorAdvice": ["Ask what changes are expected over the next days or weeks", "Clarify which symptoms can be managed at home", "Discuss when hospital transfer is or is not helpful", "Review medication plans for distress, pain and breathlessness"],
+      "recovery": ["This stage is often about comfort rather than recovery", "Families need permission to focus on dignity and calm", "Professional guidance reduces panic and guilt", "Documentation and emotional support matter for the whole household"],
+      "emergencySigns": ["Sudden uncontrolled pain or severe respiratory distress", "Massive bleeding", "Seizure or collapse", "Any symptom the family cannot manage safely or humanely at home"],
+      "faqs": [
+        {"question": "How do we know when to ask for palliative support?", "answer": "If symptom burden, distress or family uncertainty is rising, it is usually the right time to ask for help."},
+        {"question": "Should every symptom lead to hospital transfer?", "answer": "Not always. That depends on the patient’s wishes, the clinical context and whether comfort can be managed safely at home."},
+        {"question": "Can families get help with coordination as well as care?", "answer": "Yes. Many families need help not only with symptoms but also with updates, logistics and difficult next-step decisions."}
+      ],
+      "relatedServiceSlugs": ["palliative-care", "healthcare-concierge", "parents-care-management"],
+      "relatedArticleSlugs": ["final-journey-library/palliative-care-at-home-guide", "nri-care-library/hospital-representation-guide", "disease-library/cancer-care-at-home-guide"],
+      "cta": {
+        "eyebrow": "Need guidance now?",
+        "title": "Talk through the next steps with a compassionate care coordinator.",
+        "description": "The team can help families understand comfort options, escalation triggers and supportive services at home."
+      },
+      "lastUpdated": "2026-08-04",
+      "reviewedBy": "InstantCare Clinical Content Team"
+    }
+  ]
+}

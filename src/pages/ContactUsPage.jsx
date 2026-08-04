@@ -1,32 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { Phone, Mail, MapPin, Loader2, CheckCircle, MessageCircle, Instagram, Linkedin, Facebook, Twitter } from 'lucide-react';
+import { Phone, Mail, MapPin, MessageCircle, Instagram, Linkedin, Facebook, Twitter } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import InquiryForm from '@/components/inquiry/InquiryForm';
+import { buildWhatsAppUrl, siteContact } from '@/config/siteConfig';
 
 const ContactUsPage = () => {
-   const { toast } = useToast();
-   const [loading, setLoading] = useState(false);
-   const [success, setSuccess] = useState(false);
    const ogImage = "https://horizons-cdn.hostinger.com/a8e22232-a95d-404c-90b9-e488821bd3df/e5cc0df1efbb4be6faf5d180e168f0cb.jpg";
-   
-   const [form, setForm] = useState({
-      name: '', email: '', phone: '', subject: '', message: ''
-   });
-
-   const handleSubmit = (e) => {
-      e.preventDefault();
-      setLoading(true);
-      setTimeout(() => {
-         setLoading(false);
-         setSuccess(true);
-         setForm({ name: '', email: '', phone: '', subject: '', message: '' });
-         toast({ title: "Message Sent", description: "We'll get back to you shortly." });
-      }, 1500);
-   };
 
    return (
       <div className="min-h-screen bg-[#F8FAFB] font-sans">
@@ -85,8 +67,8 @@ const ContactUsPage = () => {
                            </div>
                            <div>
                               <h3 className="font-semibold text-gray-900 mb-1">Phone Number</h3>
-                              <a href="tel:+918948989353" className="text-gray-600 text-sm hover:text-[#7C3AED] block">
-                                 +91 89489 89353
+                              <a href={siteContact.phoneHref} className="text-gray-600 text-sm hover:text-[#7C3AED] block">
+                                 {siteContact.phoneDisplay}
                               </a>
                               <p className="text-xs text-gray-400 mt-1">Available 24/7 for support</p>
                            </div>
@@ -98,8 +80,8 @@ const ContactUsPage = () => {
                            </div>
                            <div>
                               <h3 className="font-semibold text-gray-900 mb-1">WhatsApp</h3>
-                              <a href="https://wa.me/918948989353" className="text-gray-600 text-sm hover:text-green-600 block">
-                                 +91 89489 89353
+                              <a href={buildWhatsAppUrl('Hello InstantCare, I need help with a care inquiry.')} className="text-gray-600 text-sm hover:text-green-600 block">
+                                 {siteContact.phoneDisplay}
                               </a>
                               <p className="text-xs text-gray-400 mt-1">Chat with us instantly</p>
                            </div>
@@ -111,8 +93,8 @@ const ContactUsPage = () => {
                            </div>
                            <div>
                               <h3 className="font-semibold text-gray-900 mb-1">Email Address</h3>
-                              <a href="mailto:instantnurseservice@gmail.com" className="text-gray-600 text-sm hover:text-[#7C3AED] block break-all">
-                                 instantnurseservice@gmail.com
+                              <a href={`mailto:${siteContact.supportEmail}`} className="text-gray-600 text-sm hover:text-[#7C3AED] block break-all">
+                                 {siteContact.supportEmail}
                               </a>
                            </div>
                         </div>
@@ -140,93 +122,11 @@ const ContactUsPage = () => {
 
                {/* Contact Form Column */}
                <div className="lg:col-span-2 space-y-8">
-                  <div className="bg-white rounded-2xl shadow-soft border border-gray-100 overflow-hidden p-8">
-                     <h2 className="text-2xl font-bold text-gray-900 mb-6">Send a Message</h2>
-                     
-                     {success ? (
-                        <div className="bg-green-50 p-8 rounded-xl text-center">
-                           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                           <h3 className="text-2xl font-bold text-gray-900 mb-2">Thank You!</h3>
-                           <p className="text-gray-600 mb-6">Your message has been sent successfully. We will get back to you shortly.</p>
-                           <Button onClick={() => setSuccess(false)} variant="outline" className="bg-white">
-                              Send Another Message
-                           </Button>
-                        </div>
-                     ) : (
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                           <div className="grid md:grid-cols-2 gap-6">
-                              <div>
-                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Name</label>
-                                 <input 
-                                    type="text" 
-                                    required
-                                    className="input-field" 
-                                    placeholder="Your Full Name"
-                                    value={form.name}
-                                    onChange={e => setForm({...form, name: e.target.value})}
-                                 />
-                              </div>
-                              <div>
-                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Phone</label>
-                                 <input 
-                                    type="tel" 
-                                    required
-                                    className="input-field" 
-                                    placeholder="Mobile Number"
-                                    value={form.phone}
-                                    onChange={e => setForm({...form, phone: e.target.value})}
-                                 />
-                              </div>
-                           </div>
-
-                           <div className="grid md:grid-cols-2 gap-6">
-                              <div>
-                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                                 <input 
-                                    type="email" 
-                                    className="input-field" 
-                                    placeholder="email@example.com"
-                                    value={form.email}
-                                    onChange={e => setForm({...form, email: e.target.value})}
-                                 />
-                              </div>
-                              <div>
-                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Subject</label>
-                                 <select 
-                                    className="input-field"
-                                    value={form.subject}
-                                    onChange={e => setForm({...form, subject: e.target.value})}
-                                 >
-                                    <option value="">Select Topic</option>
-                                    <option value="Booking">Service Booking</option>
-                                    <option value="Inquiry">General Inquiry</option>
-                                    <option value="Support">Support</option>
-                                 </select>
-                              </div>
-                           </div>
-
-                           <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">Message</label>
-                              <textarea 
-                                 required
-                                 rows={5}
-                                 className="input-field resize-none" 
-                                 placeholder="How can we assist you?"
-                                 value={form.message}
-                                 onChange={e => setForm({...form, message: e.target.value})}
-                              ></textarea>
-                           </div>
-
-                           <Button 
-                              type="submit" 
-                              disabled={loading}
-                              className="bg-[#7C3AED] hover:bg-[#6D28D9] text-white px-8 py-3 h-auto text-lg font-bold rounded-xl shadow-md w-full sm:w-auto"
-                           >
-                              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Message'}
-                           </Button>
-                        </form>
-                     )}
-                  </div>
+                  <InquiryForm
+                     source="contact-page"
+                     title="Create a professional care inquiry"
+                     description="Share patient details, location, service preference, budget, timeline, and supporting reports so our team can respond with the right next step."
+                  />
                   
                   {/* Google Map */}
                   <div className="bg-white rounded-2xl shadow-soft border border-gray-100 overflow-hidden h-[300px]">
