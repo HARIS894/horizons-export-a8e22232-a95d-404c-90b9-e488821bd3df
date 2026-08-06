@@ -29,22 +29,30 @@ export const whatsappController = {
 
   verifyWebhook(req, res, next) {
     Promise.resolve()
-      .then(() => whatsappService.verifyWebhook(req.query['hub.mode'], req.query['hub.verify_token'], req.query['hub.challenge']))
+      .then(() =>
+        whatsappService.verifyWebhook(
+          req.query['hub.mode'],
+          req.query['hub.verify_token'],
+          req.query['hub.challenge']
+        )
+      )
       .then((challenge) => {
         res.status(200).send(challenge);
       })
       .catch(next);
   },
 
-webhook: asyncHandler(async (req, res) => {
-  console.log("========== WEBHOOK BODY ==========");
-  console.log(JSON.stringify(req.body, null, 2));
+  webhook: asyncHandler(async (req, res) => {
+    console.log("========== WEBHOOK BODY ==========");
+    console.log(JSON.stringify(req.body, null, 2));
 
-  const result = await whatsappService.processWebhook(req.body);
+    const result = await whatsappService.processWebhook(req.body);
 
-  console.log("========== RESULT ==========");
-  console.log(result);
+    console.log("========== RESULT ==========");
+    console.log(result);
 
-    sendSuccess(res, result);
-  }),
+      sendSuccess(res, result);
+    }),
+};
+
 };

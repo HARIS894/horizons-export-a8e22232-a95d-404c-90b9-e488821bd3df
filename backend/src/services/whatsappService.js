@@ -394,149 +394,211 @@ export const whatsappService = {
 
     throw new ApiError(403, 'Invalid WhatsApp webhook verification request.');
   },
-console.log("====== WEBHOOK ======");
-console.log(JSON.stringify(payload, null, 2));
-
-const statuses =
-  payload?.entry?.flatMap(e => e.changes || [])
-  .flatMap(c => c.value?.statuses || []);
-
-const messages =
-  payload?.entry?.flatMap(e => e.changes || [])
-  .flatMap(c => c.value?.messages || []);
-
-console.log("MESSAGES =", messages.length);
-console.log("STATUSES =", statuses.length);
   async processWebhook(payload) {
+    console.log('========== WEBHOOK BODY ==========');
+    console.log(JSON.stringify(payload, null, 2));
 
-    console.log("MESSAGE =", JSON.stringify(message, null, 2));
-
-console.log("CONTACT =", contactNumber);
-
-console.log("REPLY =", reply);
-
-console.log("BEFORE SEND");
-
-const delivery = await sendViaWhatsappCloud({
-    to: contactNumber,
-    body: reply
-});
-
-console.log("AFTER SEND");
+    const changes = Array.isArray(payload?.entry)
+      ? payload.entry.flatMap((entry) => (Array.isArray(entry?.changes) ? entry.changes : []))
+      : [];
+    const values = changes
+      .map((change) => change?.value)
+      .filter(Boolean);
+    const statuses = values.flatMap((value) => (Array.isArray(value?.statuses) ? value.statuses : []));
+    const messages = values.flatMap((value) => (Array.isArray(value?.messages) ? value.messages : []));
 
     // -------- STATUS LOOP --------
     for (const status of statuses) {
+      const messageId = status.id;
 
-        const messageId = status.id;
+      if (!messageId) {
+        continue;
+      }
 
-        if (!messageId) continue;
+      const result = await whatsappLogModel.list({
+        page: 1,
+        limit: 1,
+        provider_message_id: messageId,
+      });
 
-        const result = await whatsappLogModel.list({
-            page: 1,
-            limit: 1,
-            provider_message_id: messageId
-        });
+      const log = result.items?.[0];
 
-        const log = result.items?.[0];
+      if (!log) {
+        continue;
+      }
 
-        if (!log) continue;
-
-        await whatsappLogModel.update(log.id,{
-            status: mapWebhookStatus(status.status),
-            provider_response: status
-        });
-
+      await whatsappLogModel.update(log.id, {
+        status: mapWebhookStatus(status.status),
+        provider_response: status,
+      });
     }
 
     // -------- MESSAGE LOOP --------
     for (const message of messages) {
+      console.log('MESSAGE =', JSON.stringify(message, null, 2));
 
-        const contactNumber = message.from;
+      const inboundMessageId = message.id || null;
+      const contactNumber = message.from;
+      const messageBody = (message.text?.body || '').trim();
 
-        if (!contactNumber) continue;
+      console.log('CONTACT =', contactNumber);
 
-        const incoming =
-            (message.text?.body || "")
-            .trim()
-            .toLowerCase();
+      if (!contactNumber) {
+        continue;
+      }
 
-        console.log("Incoming =", incoming);
+      if (message.type !== 'text' || !messageBody) {
+        continue;
+      }
 
-        let reply = "";
+      const priorReplies = await whatsappLogModel.list({
+        page: 1,
+        limit: 100,
+        recipient_phone: contactNumber,
+        direction: 'outbound',
+      });
+      const alreadyReplied = priorReplies.items.some(
+        (log) => log.webhook_payload?.inboundMessageId === inboundMessageId,
+      );
 
-        switch (incoming) {
+      if (alreadyReplied) {
+        continue;
+      }
 
-            case "hi":
-            case "hello":
-            case "hey":
-            case "hii":
-            case "namaste":
+      const incoming = messageBody.toLowerCase();
 
-                reply =
-`🙏 Welcome to InstantCare
+      console.log('Incoming =', incoming);
 
-1️⃣ Home Nursing
-2️⃣ Caregiver
-3️⃣ Doctor Visit
-4️⃣ Physiotherapy
-5️⃣ Ambulance
-6️⃣ Health Checkup
-7️⃣ Elder Care
-8️⃣ Talk to Executive
+      const reply = 'Hello! Thank you for contacting InstantCare. How can we help you today?';
 
-Reply with a number.`;
+      console.log('REPLY =', reply);
 
-                break;
+      const notification = await resourceServices.notifications.create(
+        buildNotificationPayload({
+          subject: 'InstantCare WhatsApp message',
+          message: reply,
+          metadata: {
+            supportEmail: env.supportEmail,
+            inboundMessageId,
+            inboundMessageBody: messageBody,
+          },
+        }),
+      );
 
-            case "1":
-                reply="Please share Patient Name, Age & Location.";
-                break;
+      const log = await whatsappLogModel.create({
+        ...buildWhatsAppLogPayload({
+          notificationId: notification.id,
+          templateType: 'inbound-reply',
+          to: contactNumber,
+          messageBody: reply,
+          metadata: {
+            inboundMessageId,
+            inboundMessageBody: messageBody,
+          },
+        }),
+        webhook_payload: {
+          inboundMessageId,
+          inboundMessageBody: messageBody,
+          inboundMessageType: message.type,
+        },
+      });
 
-            case "2":
-                reply="Please share Patient Name & Requirement.";
-                break;
+      try {
+        console.log('BEFORE SEND');
 
-            default:
-                reply="Please reply 1-8.";
+        const delivery = await sendViaWhatsappCloud({
+          to: contactNumber,
+          body: reply,
+        });
+
+        console.log('AFTER SEND');
+        console.log('SUCCESS');
+        console.log(JSON.stringify(delivery, null, 2));
+
+        if (!delivery.sent) {
+          await updateStatuses({
+            notificationId: notification.id,
+            whatsappLogId: log.id,
+            notificationPayload: {
+              status: 'queued',
+              metadata: {
+                ...(notification.metadata || {}),
+                provider: delivery.provider,
+                reason: delivery.reason,
+              },
+            },
+            whatsappLogPayload: {
+              status: 'queued',
+              provider_response: {
+                provider: delivery.provider,
+                reason: delivery.reason,
+              },
+            },
+          });
+
+          continue;
         }
 
-        console.log("Reply =", reply);
+        const providerMessageId = delivery.response?.messages?.[0]?.id || null;
+        const sentAt = nowIso();
 
-        try {
+        await updateStatuses({
+          notificationId: notification.id,
+          whatsappLogId: log.id,
+          notificationPayload: {
+            status: 'sent',
+            sent_at: sentAt,
+            external_reference: providerMessageId,
+            metadata: {
+              ...(notification.metadata || {}),
+              provider: delivery.provider,
+            },
+          },
+          whatsappLogPayload: {
+            status: 'sent',
+            attempt_count: 1,
+            sent_at: sentAt,
+            provider_message_id: providerMessageId,
+            provider_response: delivery.response,
+          },
+        });
+      } catch (err) {
+        console.log('========== META ERROR ==========');
+        console.log(err);
+        console.log(err.details);
 
-    console.log("===== SENDING TO META =====");
+        const attemptCount = Number(log.attempt_count || 0) + 1;
+        const canRetry = attemptCount < env.whatsappMaxRetries;
 
-    const delivery = await sendViaWhatsappCloud({
-        to: contactNumber,
-        body: reply
-    });
+        await updateStatuses({
+          notificationId: notification.id,
+          whatsappLogId: log.id,
+          notificationPayload: {
+            status: 'failed',
+            metadata: {
+              ...(notification.metadata || {}),
+              provider: 'whatsapp-cloud-api',
+              lastError: err.message,
+            },
+          },
+          whatsappLogPayload: {
+            status: 'failed',
+            attempt_count: attemptCount,
+            last_error: err.message,
+            next_retry_at: canRetry ? getRetryTimestamp(attemptCount) : null,
+            provider_response: err.details || { error: err.message },
+          },
+        });
 
-    console.log("SUCCESS");
-    console.log(JSON.stringify(delivery,null,2));
-
-}
-catch(err){
-
-    console.log("========== META ERROR ==========");
-
-    console.log(err);
-
-    console.log(err.details);
-
-}
-
+        logger.error({ err, recipient: contactNumber, templateType: 'inbound-reply' }, 'Failed to send WhatsApp message');
+      }
     }
 
     return {
-
-        received:true,
-
-        statusUpdates:statuses.length,
-
-        inboundMessages:messages.length,
-
-        processed:messages.length
-
+      received: true,
+      statusUpdates: statuses.length,
+      inboundMessages: messages.length,
+      processed: messages.length,
     };
-
-}
+  },
+};
