@@ -46,15 +46,15 @@ const HealthcareCrmPortalPage = () => {
     <>
       <Helmet>
         <title>Healthcare CRM Portal - InstantCare</title>
-        <meta name="description" content="Backend-ready healthcare CRM portal for patient profiles, timelines, daily reports, family updates, hospital coordination and insurance workflows." />
+        <meta name="description" content="Healthcare CRM portal for patient profiles, timelines, daily reports, family updates, hospital coordination and insurance workflows." />
       </Helmet>
       <Navbar />
       <PortalShell
         eyebrow="InstantCare Healthcare CRM"
         title="Clinical operations and family coordination"
-        description="A separate, reusable CRM architecture for patient intelligence, care updates, hospital coordination and family communication. Existing dashboards remain untouched."
+        description="A dedicated CRM experience for patient intelligence, care updates, hospital coordination and family communication."
         footerMeta={[
-          <div key="backend" className="rounded-[24px] border border-white/70 bg-white/70 px-4 py-4 dark:border-white/10 dark:bg-slate-950/45"><p className="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Backend readiness</p><p className="mt-2 text-sm font-semibold text-slate-950 dark:text-white">Prepared for Supabase data tables</p></div>,
+          <div key="backend" className="rounded-[24px] border border-white/70 bg-white/70 px-4 py-4 dark:border-white/10 dark:bg-slate-950/45"><p className="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Care operations</p><p className="mt-2 text-sm font-semibold text-slate-950 dark:text-white">Patient records and workflows</p></div>,
           <div key="owner" className="rounded-[24px] border border-white/70 bg-white/70 px-4 py-4 dark:border-white/10 dark:bg-slate-950/45"><p className="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Command lead</p><p className="mt-2 text-sm font-semibold text-slate-950 dark:text-white">{portal.organization.commandLead}</p></div>,
         ]}
       >
@@ -64,7 +64,7 @@ const HealthcareCrmPortalPage = () => {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400">Patient Selector</p>
-              <h2 className="mt-2 text-xl font-semibold text-slate-950 dark:text-white">Reusable patient context</h2>
+              <h2 className="mt-2 text-xl font-semibold text-slate-950 dark:text-white">Patient overview</h2>
             </div>
             <PatientSwitcher patients={portal.patientProfiles} activePatientId={activePatientId} onChange={setActivePatientId} />
           </div>
@@ -107,10 +107,10 @@ const HealthcareCrmPortalPage = () => {
         <GlassPanel>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400">Supabase Preparation</p>
-              <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">Each module is separated by domain object: patient profile, timeline event, daily care report, family update, hospital coordination, insurance case and widgets.</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400">Care Modules</p>
+              <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">Review patient profiles, timelines, daily care reports, family updates, hospital coordination, insurance details and key widgets in one place.</p>
             </div>
-            <Button type="button" variant="outline" className="rounded-full" onClick={() => handleAction('Schema adapter ready', 'This UI is prepared for Supabase tables and edge functions without changing presentation components.')}>Review Data Contract</Button>
+            <Button type="button" variant="outline" className="rounded-full" onClick={() => handleAction('Module overview', 'Review patient records, updates and care workflows from this dashboard.')}>Review Overview</Button>
           </div>
         </GlassPanel>
       </PortalShell>

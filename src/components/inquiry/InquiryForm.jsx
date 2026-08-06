@@ -60,8 +60,9 @@ const validateForm = (values) => {
 const InquiryForm = ({
   source = 'contact-page',
   title = 'Create a Care Inquiry',
-  description = 'Share the care requirement once and let our coordination team take it forward professionally.',
+  description = 'Tell us about the care you need and our team will contact you.',
   hideContainer = false,
+  hideIntro = false,
   initialOverrides = null,
   onSubmitted,
 }) => {
@@ -158,7 +159,7 @@ const InquiryForm = ({
       setSuccessState(result);
       inquiryStorage.clearDraft();
       setValues(inquiryInitialValues);
-      toast({ title: 'Inquiry saved', description: 'The enquiry was saved for the admin team and outbound actions were prepared.' });
+      toast({ title: 'Inquiry saved', description: 'Your enquiry has been received and our team can follow up.' });
       openOutboundLinks(result.emailLink, result.whatsappLink);
       onSubmitted?.(result);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -188,7 +189,7 @@ const InquiryForm = ({
           <p className="mt-6 text-sm font-semibold uppercase tracking-[0.3em] text-green-600">Inquiry Received</p>
           <h3 className="mt-3 text-3xl font-bold text-slate-900">Your healthcare inquiry is ready for follow-up.</h3>
           <p className="mt-4 text-base leading-7 text-slate-600">
-            The enquiry has been saved in a future API-ready structure, and the support email draft plus WhatsApp-ready message are prepared for immediate outreach.
+            Your enquiry has been received, and our team can follow up right away by email or WhatsApp.
           </p>
 
           <div className="mt-8 grid gap-4 rounded-[1.5rem] border border-slate-200 bg-white/80 p-6 text-left sm:grid-cols-2">
@@ -220,8 +221,8 @@ const InquiryForm = ({
               <p className="mt-2 text-sm font-semibold text-slate-900">{successState.inquiry.patientName}, {successState.inquiry.patientAge}</p>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Payload</p>
-              <p className="mt-2 text-sm font-semibold text-slate-900">Ready for API integration</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Follow-Up</p>
+              <p className="mt-2 text-sm font-semibold text-slate-900">Support team notified</p>
             </div>
           </div>
 
@@ -248,49 +249,53 @@ const InquiryForm = ({
 
   const content = (
     <>
-      <div className="max-w-3xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#7C3AED]">Professional Inquiry Flow</p>
-        <h2 className="mt-3 text-3xl font-bold text-slate-900">{title}</h2>
-        <p className="mt-4 text-base leading-7 text-slate-600">{description}</p>
-      </div>
+      {!hideIntro ? (
+        <>
+          <div className="max-w-3xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#7C3AED]">Care Inquiry</p>
+            <h2 className="mt-3 text-3xl font-bold text-slate-900">{title}</h2>
+            <p className="mt-4 text-base leading-7 text-slate-600">{description}</p>
+          </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
-        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#7C3AED] shadow-sm">
-              <ShieldCheck className="h-5 w-5" />
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#7C3AED] shadow-sm">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Priority review</p>
+                  <p className="text-xs leading-6 text-slate-600">Your care needs, timing and notes are captured clearly for our team.</p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-900">Structured triage</p>
-              <p className="text-xs leading-6 text-slate-600">Every enquiry is saved in a backend-ready schema for future API delivery.</p>
+            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#7C3AED] shadow-sm">
+                  <Clock3 className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Preferred timing</p>
+                  <p className="text-xs leading-6 text-slate-600">Choose the date and time that work best for your care request.</p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#7C3AED] shadow-sm">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Complete details</p>
+                  <p className="text-xs leading-6 text-slate-600">Share reports, doctor details and hospital information that may help our team assist you.</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#7C3AED] shadow-sm">
-              <Clock3 className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-900">Time-aware follow-up</p>
-              <p className="text-xs leading-6 text-slate-600">Capture preferred date and time so the care team responds with the right urgency.</p>
-            </div>
-          </div>
-        </div>
-        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#7C3AED] shadow-sm">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-900">Premium coordination</p>
-              <p className="text-xs leading-6 text-slate-600">Medical reports, clinician names and hospital context travel with the enquiry.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        </>
+      ) : null}
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-8">
+      <form onSubmit={handleSubmit} className={`${hideIntro ? '' : 'mt-8 '}space-y-8`}>
         <div className="grid gap-6 md:grid-cols-2">
           <InquiryField label="Full Name" htmlFor="inquiry-name" required error={errors.name}>
             <InquiryInput id="inquiry-name" value={values.name} onChange={(event) => updateValue('name', event.target.value)} placeholder="Full name" autoComplete="name" aria-invalid={Boolean(errors.name)} />

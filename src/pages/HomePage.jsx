@@ -399,7 +399,7 @@ const HomePage = () => {
 
         <SectionShell
           eyebrow="Who We Serve"
-          title="A premium international healthcare website built around the people carrying the most pressure."
+          title="A premium international healthcare service for the people carrying the most pressure."
           description="Every pathway is designed to reduce medical, logistical and emotional overload for the people making critical care decisions."
           badge="Mobile-first and family-led"
         >
@@ -410,16 +410,16 @@ const HomePage = () => {
           eyebrow="Premium Care Models"
           title="Luxury healthcare pathways for complex family situations, not generic one-size-fits-all staffing."
           description="Each pathway is designed for a distinct care burden, whether the family is abroad, managing rehabilitation or navigating medically fragile home care."
-          badge="Catalog-linked routes"
+          badge="Tailored care pathways"
         >
           <HighlightGrid items={careModels} linkPrefix="/services/" />
         </SectionShell>
 
         <SectionShell
           eyebrow="Service Spotlight"
-          title="A data-backed services ecosystem that connects care teams, specialists and family communication."
-          description="These services already exist inside the core catalog and now surface on the homepage through the same routing model."
-          badge="Reusable service links"
+          title="A services ecosystem that connects care teams, specialists and family communication."
+          description="Explore services that support every stage of care, from urgent coordination to long-term recovery and family updates."
+          badge="Featured services"
         >
           <HighlightGrid items={featuredServices} linkPrefix="/services/" />
         </SectionShell>

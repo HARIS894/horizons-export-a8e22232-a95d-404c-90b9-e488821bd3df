@@ -489,7 +489,7 @@ const ServiceDetailPage = () => {
             <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-[0_16px_40px_rgba(15,23,42,0.05)] lg:col-span-2">
               <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#7C3AED]">Overview</p>
               <h2 className="mt-3 text-2xl font-bold text-gray-900">What this service covers</h2>
-              <p className="mt-4 max-w-4xl text-sm leading-8 text-slate-600">{service.description} InstantCare delivers this through one reusable service model: clear assessment, structured family communication, timeline guidance, documented next steps, enquiry actions and related-service continuity.</p>
+              <p className="mt-4 max-w-4xl text-sm leading-8 text-slate-600">{service.description} InstantCare supports this with clear assessment, family communication, timeline guidance, documented next steps and continuity of care.</p>
             </div>
 
             <div className="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-[0_16px_40px_rgba(15,23,42,0.05)]">
@@ -664,12 +664,12 @@ const ServiceDetailPage = () => {
             <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#7C3AED]">Raise Enquiry</p>
-                <h3 className="mt-3 text-3xl font-semibold text-slate-900">Start a structured consultation for this service.</h3>
-                <p className="mt-4 text-sm leading-7 text-slate-600">Share the patient need, urgency and contact details. We generate a formatted email and WhatsApp enquiry so the operations team can respond quickly.</p>
+                <h3 className="mt-3 text-3xl font-semibold text-slate-900">Start a consultation for this service.</h3>
+                <p className="mt-4 text-sm leading-7 text-slate-600">Share the patient need, urgency and contact details. Our team will review the enquiry and respond quickly.</p>
                 <div className="mt-6 space-y-3 text-sm text-slate-600">
                   <div className="flex items-center gap-2"><BadgeCheck className="h-4 w-4 text-green-500" /> Confidential communication</div>
                   <div className="flex items-center gap-2"><Clock3 className="h-4 w-4 text-[#7C3AED]" /> Fast response for urgent requests</div>
-                  <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-[#7C3AED]" /> Clean, reusable lead capture format</div>
+                  <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-[#7C3AED]" /> Clear care request details</div>
                 </div>
               </div>
 

@@ -145,7 +145,7 @@ const ServicesPage = () => {
                 <div className="mt-8 grid gap-3 sm:grid-cols-3">
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <p className="text-2xl font-bold text-slate-900">{serviceCatalog.length}+</p>
-                    <p className="mt-1 text-sm text-slate-600">Reusable catalog-backed services</p>
+                    <p className="mt-1 text-sm text-slate-600">Healthcare services</p>
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <p className="text-2xl font-bold text-slate-900">8</p>
@@ -153,7 +153,7 @@ const ServicesPage = () => {
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <p className="text-2xl font-bold text-slate-900">1</p>
-                    <p className="mt-1 text-sm text-slate-600">Unified service detail template</p>
+                    <p className="mt-1 text-sm text-slate-600">Comprehensive service guidance</p>
                   </div>
                 </div>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -214,7 +214,7 @@ const ServicesPage = () => {
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#7C3AED]">Featured Services</p>
                 <h2 className="mt-2 text-3xl font-bold text-slate-900">Premium support for each stage of the healthcare journey</h2>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">Each service in the ecosystem uses one shared data contract, so every detail page inherits the same hero, overview, benefits, process, eligibility, timeline, FAQ, related services, CTA and enquiry experience.</p>
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">Each service page gives families a clear overview of benefits, process, eligibility, timeline, FAQs, related services and enquiry options.</p>
               </div>
             </div>
 
@@ -234,7 +234,7 @@ const ServicesPage = () => {
               <div className="max-w-3xl">
                 <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#7C3AED]">Service Ecosystem</p>
                 <h2 className="mt-2 text-3xl font-bold text-slate-900">Find the right service across the entire 50+ healthcare catalog</h2>
-                <p className="mt-3 text-sm leading-7 text-slate-600">Search by diagnosis, support type or family need. Every result opens the same reusable service detail experience with hero, overview, benefits, process, eligibility, timeline, FAQ, AEO answers, related services and enquiry actions.</p>
+                <p className="mt-3 text-sm leading-7 text-slate-600">Search by diagnosis, support type or family need. Every result opens a detailed service page with an overview, benefits, process, eligibility, timeline, FAQs, related services and enquiry options.</p>
               </div>
               <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700">{filteredServices.length} services visible</div>
             </div>

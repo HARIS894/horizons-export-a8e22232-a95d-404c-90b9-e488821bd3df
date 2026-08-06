@@ -56,6 +56,16 @@ const buildWhatsAppLogPayload = ({ notificationId, patientId, appointmentId, inv
 });
 
 const sendViaWhatsappCloud = async ({ to, body, preview }) => {
+
+  console.log("========== WHATSAPP SEND ==========");
+  console.log({
+    isWhatsappConfigured,
+    phoneNumberId: env.whatsappPhoneNumberId,
+    accessTokenPresent: !!env.whatsappAccessToken,
+    to,
+    body,
+  });
+
   if (!isWhatsappConfigured) {
     return {
       sent: false,
@@ -66,35 +76,43 @@ const sendViaWhatsappCloud = async ({ to, body, preview }) => {
   }
 
   const endpoint = `https://graph.facebook.com/${env.whatsappApiVersion}/${env.whatsappPhoneNumberId}/messages`;
+
   const response = await fetch(endpoint, {
-    method: 'POST',
+    method: "POST",
     headers: {
       Authorization: `Bearer ${env.whatsappAccessToken}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      messaging_product: 'whatsapp',
-      recipient_type: 'individual',
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
       to,
-      type: 'text',
+      type: "text",
       text: {
         preview_url: false,
         body,
       },
-      context: preview ? { message_id: undefined } : undefined,
     }),
   });
 
   const responseBody = await response.json().catch(() => ({}));
 
+  console.log("========== META RESPONSE ==========");
+  console.log("STATUS:", response.status);
+  console.log(JSON.stringify(responseBody, null, 2));
+
   if (!response.ok) {
-    throw new ApiError(502, 'WhatsApp Cloud API request failed.', responseBody);
+    throw new ApiError(
+      502,
+      "WhatsApp Cloud API request failed.",
+      responseBody
+    );
   }
 
   return {
     sent: true,
     queued: false,
-    provider: 'whatsapp-cloud-api',
+    provider: "whatsapp-cloud-api",
     response: responseBody,
   };
 };
@@ -376,99 +394,149 @@ export const whatsappService = {
 
     throw new ApiError(403, 'Invalid WhatsApp webhook verification request.');
   },
+console.log("====== WEBHOOK ======");
+console.log(JSON.stringify(payload, null, 2));
 
+const statuses =
+  payload?.entry?.flatMap(e => e.changes || [])
+  .flatMap(c => c.value?.statuses || []);
+
+const messages =
+  payload?.entry?.flatMap(e => e.changes || [])
+  .flatMap(c => c.value?.messages || []);
+
+console.log("MESSAGES =", messages.length);
+console.log("STATUSES =", statuses.length);
   async processWebhook(payload) {
-    const statuses = payload?.entry?.flatMap((entry) => entry?.changes || [])
-      .flatMap((change) => change?.value?.statuses || []) || [];
-    const messages = payload?.entry?.flatMap((entry) => entry?.changes || [])
-      .flatMap((change) => change?.value?.messages || []) || [];
 
-    const updates = [];
+    console.log("MESSAGE =", JSON.stringify(message, null, 2));
 
+console.log("CONTACT =", contactNumber);
+
+console.log("REPLY =", reply);
+
+console.log("BEFORE SEND");
+
+const delivery = await sendViaWhatsappCloud({
+    to: contactNumber,
+    body: reply
+});
+
+console.log("AFTER SEND");
+
+    // -------- STATUS LOOP --------
     for (const status of statuses) {
-      const messageId = status?.id;
-      if (!messageId) {
-        continue;
-      }
 
-      const result = await whatsappLogModel.list({ page: 1, limit: 1, provider_message_id: messageId });
-      const log = result.items[0];
-      if (!log) {
-        continue;
-      }
+        const messageId = status.id;
 
-      const normalizedStatus = mapWebhookStatus(status.status);
-      const payloadUpdate = {
-        status: normalizedStatus,
-        webhook_payload: status,
-        provider_response: {
-          ...(log.provider_response || {}),
-          webhookStatus: status,
-        },
-      };
+        if (!messageId) continue;
 
-      if (normalizedStatus === 'delivered') {
-        payloadUpdate.delivered_at = status.timestamp ? new Date(Number(status.timestamp) * 1000).toISOString() : nowIso();
-      }
-      if (normalizedStatus === 'read') {
-        payloadUpdate.read_at = status.timestamp ? new Date(Number(status.timestamp) * 1000).toISOString() : nowIso();
-      }
+        const result = await whatsappLogModel.list({
+            page: 1,
+            limit: 1,
+            provider_message_id: messageId
+        });
 
-      const updatedLog = await whatsappLogModel.update(log.id, payloadUpdate);
-      if (log.notification_id) {
-        const notificationUpdate = {
-          status: normalizedStatus,
-        };
-        if (normalizedStatus === 'delivered') {
-          notificationUpdate.delivered_at = payloadUpdate.delivered_at;
-        }
-        if (normalizedStatus === 'read') {
-          notificationUpdate.read_at = payloadUpdate.read_at;
-        }
+        const log = result.items?.[0];
 
-        await resourceServices.notifications.update(log.notification_id, notificationUpdate);
-      }
+        if (!log) continue;
 
-      updates.push(updatedLog);
+        await whatsappLogModel.update(log.id,{
+            status: mapWebhookStatus(status.status),
+            provider_response: status
+        });
+
     }
 
+    // -------- MESSAGE LOOP --------
     for (const message of messages) {
-      const contactNumber = message?.from;
-      if (!contactNumber) {
-        continue;
-      }
 
-      const inboundLog = await whatsappLogModel.create({
-        notification_id: null,
-        patient_id: null,
-        appointment_id: null,
-        invoice_id: null,
-        recipient_user_id: null,
-        whatsapp_type: 'inbound-webhook',
-        phone_number_id: env.whatsappPhoneNumberId || null,
-        recipient_phone: contactNumber,
-        template_name: 'inbound-webhook',
-        message_body: message?.text?.body || '',
-        status: 'delivered',
-        attempt_count: 0,
-        max_attempts: env.whatsappMaxRetries,
-        next_retry_at: null,
-        last_error: null,
-        provider_message_id: message?.id || null,
-        idempotency_key: randomUUID(),
-        direction: 'inbound',
-        webhook_payload: message,
-        provider_response: payload,
-      });
+        const contactNumber = message.from;
 
-      updates.push(inboundLog);
+        if (!contactNumber) continue;
+
+        const incoming =
+            (message.text?.body || "")
+            .trim()
+            .toLowerCase();
+
+        console.log("Incoming =", incoming);
+
+        let reply = "";
+
+        switch (incoming) {
+
+            case "hi":
+            case "hello":
+            case "hey":
+            case "hii":
+            case "namaste":
+
+                reply =
+`🙏 Welcome to InstantCare
+
+1️⃣ Home Nursing
+2️⃣ Caregiver
+3️⃣ Doctor Visit
+4️⃣ Physiotherapy
+5️⃣ Ambulance
+6️⃣ Health Checkup
+7️⃣ Elder Care
+8️⃣ Talk to Executive
+
+Reply with a number.`;
+
+                break;
+
+            case "1":
+                reply="Please share Patient Name, Age & Location.";
+                break;
+
+            case "2":
+                reply="Please share Patient Name & Requirement.";
+                break;
+
+            default:
+                reply="Please reply 1-8.";
+        }
+
+        console.log("Reply =", reply);
+
+        try {
+
+    console.log("===== SENDING TO META =====");
+
+    const delivery = await sendViaWhatsappCloud({
+        to: contactNumber,
+        body: reply
+    });
+
+    console.log("SUCCESS");
+    console.log(JSON.stringify(delivery,null,2));
+
+}
+catch(err){
+
+    console.log("========== META ERROR ==========");
+
+    console.log(err);
+
+    console.log(err.details);
+
+}
+
     }
 
     return {
-      received: true,
-      statusUpdates: statuses.length,
-      inboundMessages: messages.length,
-      processed: updates.length,
+
+        received:true,
+
+        statusUpdates:statuses.length,
+
+        inboundMessages:messages.length,
+
+        processed:messages.length
+
     };
-  },
-};
+
+}

@@ -97,7 +97,7 @@ const AdminDashboard = () => {
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="rounded-[24px] border border-white/70 bg-white/70 px-4 py-4 dark:border-white/10 dark:bg-slate-950/45">
                         <p className="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Backend status</p>
-                        <p className="mt-2 text-sm font-semibold text-slate-950 dark:text-white">Mock JSON adapter only</p>
+                        <p className="mt-2 text-sm font-semibold text-slate-950 dark:text-white">Dashboard data available</p>
                       </div>
                       <div className="rounded-[24px] border border-white/70 bg-white/70 px-4 py-4 dark:border-white/10 dark:bg-slate-950/45">
                         <p className="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Dark mode ready</p>

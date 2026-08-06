@@ -255,7 +255,7 @@ const DailyCareReportSection = ({ report }) => {
 
   return (
     <GlassPanel>
-      <SectionHeader eyebrow="Daily Care Report" title={`Care metrics for ${report.date}`} description="Vitals, intake, medicines, exercise, sleep and symptom notes are structured here for later Supabase storage." />
+      <SectionHeader eyebrow="Daily Care Report" title={`Care metrics for ${report.date}`} description="View vitals, intake, medicines, exercise, sleep and symptom notes in one daily summary." />
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {metricEntries.map(([key, value]) => {
           const Icon = reportMetricIcons[key] || Activity;
@@ -291,7 +291,7 @@ const DailyCareReportSection = ({ report }) => {
 
 const FamilyUpdatesSection = ({ updates }) => (
   <GlassPanel>
-    <SectionHeader eyebrow="Family Updates" title="WhatsApp, email, voice, video and PDF summaries" description="Family communication is modeled as structured outbound records for later automation through messaging services." />
+    <SectionHeader eyebrow="Family Updates" title="WhatsApp, email, voice, video and PDF summaries" description="Keep family members informed with clear updates across every communication channel." />
     <div className="mt-6 grid gap-4 lg:grid-cols-2">
       {updates.map((update) => (
         <div key={update.id} className="rounded-[22px] border border-slate-200/70 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
@@ -311,7 +311,7 @@ const FamilyUpdatesSection = ({ updates }) => (
 
 const HospitalCoordinationSection = ({ coordination }) => (
   <GlassPanel>
-    <SectionHeader eyebrow="Hospital Coordination" title="Admission, discharge, TPA and room logistics" description="This object is shaped for future hospital and insurer synchronization layers via Supabase." />
+    <SectionHeader eyebrow="Hospital Coordination" title="Admission, discharge, TPA and room logistics" description="Track admission, discharge, insurance and room arrangements in one place." />
     <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3 text-sm text-slate-700 dark:text-slate-200">
       {Object.entries({
         Admission: coordination.admission,
@@ -340,7 +340,7 @@ const HospitalCoordinationSection = ({ coordination }) => (
 
 const InsuranceSection = ({ insuranceCase }) => (
   <GlassPanel>
-    <SectionHeader eyebrow="Insurance" title="Policy, claim and documents" description="Claims are represented as one reusable case model for cashless and reimbursement workflows." />
+    <SectionHeader eyebrow="Insurance" title="Policy, claim and documents" description="Review policy, claim and document details for cashless and reimbursement support." />
     <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3 text-sm text-slate-700 dark:text-slate-200">
       <div className="rounded-[22px] border border-slate-200/70 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/40"><p className="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Policy</p><p className="mt-3 font-medium text-slate-900 dark:text-white">{insuranceCase.policy}</p></div>
       <div className="rounded-[22px] border border-slate-200/70 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/40"><p className="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Claim</p><p className="mt-3 font-medium text-slate-900 dark:text-white">{insuranceCase.claim}</p></div>

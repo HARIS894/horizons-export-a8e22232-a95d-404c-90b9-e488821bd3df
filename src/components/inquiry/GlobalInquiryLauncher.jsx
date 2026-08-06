@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CalendarHeart, FileText, ShieldCheck, X } from 'lucide-react';
+import { CalendarHeart, X } from 'lucide-react';
 import InquiryForm from '@/components/inquiry/InquiryForm';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { onOpenInquiryRequest, requestOpenInquiry } from '@/utils/inquiryUtils';
 
 const GlobalInquiryLauncher = () => {
@@ -48,27 +48,11 @@ const GlobalInquiryLauncher = () => {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto rounded-[2rem] border border-slate-200 bg-[linear-gradient(180deg,_#f8fbff_0%,_#ffffff_100%)] p-0 shadow-[0_30px_90px_rgba(15,23,42,0.24)]">
-          <div className="border-b border-slate-200 bg-white/90 px-6 py-5 backdrop-blur">
-            <DialogHeader className="text-left">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#7C3AED]/15 bg-purple-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-[#7C3AED]">
-                <ShieldCheck className="h-3.5 w-3.5" /> InstantCare Inquiry System
-              </div>
-              <DialogTitle className="text-2xl font-bold text-slate-900">Professional healthcare inquiry</DialogTitle>
-              <DialogDescription className="max-w-2xl text-sm leading-7 text-slate-600">
-                Share patient details, medical reports, preferred timing and location once. The same reusable payload is ready for admin review now and API integration later.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="mt-4 flex flex-wrap gap-3 text-xs text-slate-500">
-              <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2"><FileText className="h-3.5 w-3.5" /> Email and WhatsApp payloads included</span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2"><ShieldCheck className="h-3.5 w-3.5" /> No backend connection yet</span>
-            </div>
-          </div>
           <div className="p-6 sm:p-8">
             <InquiryForm
               source="global-inquiry-launcher"
-              title="Create a care inquiry from any page"
-              description="This form is available across the site for urgent requests, planned care setup, doctor coordination and report-based triage."
               hideContainer
+              hideIntro
               initialOverrides={prefill}
               onSubmitted={() => setPrefill({})}
             />

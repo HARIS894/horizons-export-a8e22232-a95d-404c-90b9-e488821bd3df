@@ -212,14 +212,14 @@ export const buildInquiryEmailLink = (inquiry) => {
     '',
     ...buildInquirySummaryLines(inquiry),
     '',
-    'Note: Uploaded files are stored in the admin dashboard for review.',
+    'Note: Uploaded files are available for review.',
   ].join('\n');
 
   return `mailto:${siteContact.supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 };
 
 export const buildInquiryWhatsappMessage = (inquiry) => [
-  'Hello InstantCare, I would like to submit a professional care enquiry.',
+  'Hello InstantCare, I would like to submit a care enquiry.',
   '',
   ...buildInquirySummaryLines(inquiry),
   '',

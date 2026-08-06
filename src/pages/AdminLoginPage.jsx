@@ -105,13 +105,6 @@ const AdminLoginPage = () => {
               <p className="text-gray-600">Sign in to access the dashboard</p>
             </div>
 
-            {/* Demo Credentials Info */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-900 font-medium mb-2">Demo Credentials:</p>
-              <p className="text-xs text-blue-800">Email: admin@instantcare.com</p>
-              <p className="text-xs text-blue-800">Password: admin123</p>
-            </div>
-
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>

@@ -283,38 +283,62 @@ logger.error = (msg, options) => {
 
 	loggerError(msg, options);
 }
-
 export default defineConfig({
 	customLogger: logger,
+
 	plugins: [
-		...(isDev ? [inlineEditPlugin(), editModeDevPlugin(), iframeRouteRestorationPlugin(), selectionModePlugin(), sitePagesPlugin()] : []),
+		...(isDev
+			? [
+					inlineEditPlugin(),
+					editModeDevPlugin(),
+					iframeRouteRestorationPlugin(),
+					selectionModePlugin(),
+					sitePagesPlugin(),
+			  ]
+			: []),
 		react(),
-		addTransformIndexHtml
+		addTransformIndexHtml,
 	],
+
 	server: {
-		cors: { origin: AllowedEditorOrigins },
+		cors: {
+			origin: AllowedEditorOrigins,
+		},
 		headers: {
 			'Cross-Origin-Embedder-Policy': 'credentialless',
 		},
 		allowedHosts: [
+			'instantcare.in',
+			'www.instantcare.in',
 			'.app-preview.com',
 			'.app-preview.io',
 		],
 	},
+
+	preview: {
+		allowedHosts: [
+			'instantcare.in',
+			'www.instantcare.in',
+			'.app-preview.com',
+			'.app-preview.io',
+		],
+	},
+
 	resolve: {
-		extensions: ['.jsx', '.js', '.tsx', '.ts', '.json', ],
+		extensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],
 		alias: {
 			'@': path.resolve(__dirname, './src'),
 		},
 	},
+
 	build: {
 		rollupOptions: {
 			external: [
 				'@babel/parser',
 				'@babel/traverse',
 				'@babel/generator',
-				'@babel/types'
-			]
-		}
-	}
+				'@babel/types',
+			],
+		},
+	},
 });

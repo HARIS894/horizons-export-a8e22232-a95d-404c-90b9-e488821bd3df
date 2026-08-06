@@ -63,11 +63,11 @@ const HealthcareLibraryPage = () => {
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <p className="text-2xl font-bold text-gray-900">{articles.length}+</p>
-                    <p className="mt-1 text-sm text-gray-600">Reusable article records</p>
+                    <p className="mt-1 text-sm text-gray-600">Healthcare articles</p>
                   </div>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <p className="text-2xl font-bold text-gray-900">1</p>
-                    <p className="mt-1 text-sm text-gray-600">Scalable article template</p>
+                    <p className="mt-1 text-sm text-gray-600">Trusted knowledge hub</p>
                   </div>
                 </div>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -89,11 +89,11 @@ const HealthcareLibraryPage = () => {
                   <p className="text-sm font-semibold uppercase tracking-[0.3em] text-purple-100">Why Families Trust Us</p>
                   <div className="mt-6 grid gap-4 sm:grid-cols-2">
                     <div className="rounded-2xl bg-white/15 p-4 backdrop-blur">
-                      <p className="text-2xl font-bold">SEO</p>
-                      <p className="mt-1 text-sm text-purple-50">Structured article metadata</p>
+                      <p className="text-2xl font-bold">Guides</p>
+                      <p className="mt-1 text-sm text-purple-50">Clear information for families</p>
                     </div>
                     <div className="rounded-2xl bg-white/15 p-4 backdrop-blur">
-                      <p className="text-2xl font-bold">AEO</p>
+                      <p className="text-2xl font-bold">Answers</p>
                       <p className="mt-1 text-sm text-purple-50">Quick answers and FAQs</p>
                     </div>
                   </div>
@@ -128,7 +128,7 @@ const HealthcareLibraryPage = () => {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#7C3AED]">Search Articles</p>
-                <h2 className="mt-2 text-3xl font-bold text-gray-900">Reusable content designed for thousands of future healthcare articles</h2>
+                <h2 className="mt-2 text-3xl font-bold text-gray-900">Find healthcare articles for the support your family needs</h2>
               </div>
               <div className="rounded-full bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700">{filteredArticles.length} article results</div>
             </div>

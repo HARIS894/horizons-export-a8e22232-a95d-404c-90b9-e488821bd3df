@@ -147,8 +147,8 @@ const OverviewSection = ({ dashboard, onAction }) => (
         <PanelHeader
           eyebrow="Operations Pulse"
           title="Care demand and revenue trend"
-          description="A frontend-only CRM surface fed from a reusable mock adapter. The chart structure is ready for API replacement later without changing the UI layer."
-          action={<Button type="button" variant="outline" className="rounded-full border-white/60 bg-white/60 dark:border-white/10 dark:bg-slate-950/40" onClick={() => onAction('Exports prepared', 'This module is structured for CSV/PDF export wiring once backend endpoints are ready.')}>Export Snapshot</Button>}
+          description="A live overview of care demand, revenue trends and coordination activity."
+          action={<Button type="button" variant="outline" className="rounded-full border-white/60 bg-white/60 dark:border-white/10 dark:bg-slate-950/40" onClick={() => onAction('Export options', 'Snapshot export options will appear here.')}>Export Snapshot</Button>}
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div>
@@ -233,7 +233,7 @@ const PatientsSection = ({ patients, activePatientId, onPatientChange }) => {
   return (
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
       <GlassPanel>
-        <PanelHeader eyebrow="Patient Management" title="Profiles and care ownership" description="Profiles include medical history, reports, care plan and assigned teams. The panel is shaped to map to future patient APIs without changing the view components." />
+        <PanelHeader eyebrow="Patient Management" title="Profiles and care ownership" description="Profiles include medical history, reports, care plans and assigned teams." />
         <div className="mt-6 space-y-3">
           {patients.map((patient) => (
             <button key={patient.id} type="button" onClick={() => onPatientChange(patient.id)} className={cn('w-full rounded-[22px] border px-4 py-4 text-left transition', activePatient.id === patient.id ? 'border-slate-900 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950' : 'border-slate-200/80 bg-white/70 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-950/30')}>
@@ -320,7 +320,7 @@ const EnquiriesSection = ({ dashboard, activeStage, onStageChange, onAction }) =
   const filtered = activeStage === 'All' ? dashboard.enquiries : dashboard.enquiries.filter((item) => item.status === activeStage);
   return (
     <GlassPanel className="space-y-6">
-      <PanelHeader eyebrow="Enquiry Management" title="Pipeline visibility with conversion stages" description="Dummy CRM enquiries are mapped to a reusable stage model: New, Contacted, Follow Up, Converted and Closed." />
+      <PanelHeader eyebrow="Enquiry Management" title="Pipeline visibility with conversion stages" description="Track enquiries through each follow-up stage: New, Contacted, Follow Up, Converted and Closed." />
       <div className="flex flex-wrap gap-2">
         {['All', ...dashboard.enquiryStages].map((stage) => (
           <button key={stage} type="button" onClick={() => onStageChange(stage)} className={cn('rounded-full px-4 py-2 text-sm font-semibold transition', activeStage === stage ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950' : 'bg-white/70 text-slate-700 ring-1 ring-slate-200 hover:bg-white dark:bg-slate-950/40 dark:text-slate-200 dark:ring-slate-800')}>
@@ -384,7 +384,7 @@ const StaffSection = ({ dashboard, activeRole, onRoleChange }) => {
         ))}
       </div>
       <GlassPanel className="space-y-6">
-        <PanelHeader eyebrow="Staff Management" title="Role-based roster and profile depth" description="Nurses, doctors, physiotherapists, caregivers, coordinators and drivers share one reusable profile schema." />
+        <PanelHeader eyebrow="Staff Management" title="Role-based roster and profile depth" description="View roster details for nurses, doctors, physiotherapists, caregivers, coordinators and drivers." />
         <div className="flex flex-wrap gap-2">
           {['All', ...dashboard.staffRoles].map((role) => (
             <button key={role} type="button" onClick={() => onRoleChange(role)} className={cn('rounded-full px-4 py-2 text-sm font-semibold transition', activeRole === role ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950' : 'bg-white/70 text-slate-700 ring-1 ring-slate-200 hover:bg-white dark:bg-slate-950/40 dark:text-slate-200 dark:ring-slate-800')}>
@@ -457,7 +457,7 @@ const HospitalsSection = ({ hospitals }) => (
 
 const AppointmentsSection = ({ appointments, onAction }) => (
   <GlassPanel>
-    <PanelHeader eyebrow="Doctor Appointment" title="Schedule, reschedule, cancel and follow-up" description="Appointment orchestration is represented as a reusable queue model ready for API-backed slots and confirmations." />
+    <PanelHeader eyebrow="Doctor Appointment" title="Schedule, reschedule, cancel and follow-up" description="Manage scheduling, rescheduling, cancellations and follow-up for doctor visits." />
     <div className="mt-6 grid gap-4 lg:grid-cols-2">
       {appointments.map((appointment) => (
         <div key={appointment.id} className="rounded-[24px] border border-slate-200/70 bg-white/70 p-5 dark:border-slate-800 dark:bg-slate-950/40">
@@ -475,7 +475,7 @@ const AppointmentsSection = ({ appointments, onAction }) => (
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
             {['Schedule', 'Reschedule', 'Cancel', 'Follow Up'].map((action) => (
-              <Button key={action} type="button" variant="outline" className="rounded-full border-white/60 bg-white/70 dark:border-white/10 dark:bg-slate-950/40" onClick={() => onAction(`${action} flow prepared`, `${action} action for ${appointment.patientName} is currently a UI placeholder ready for backend scheduling APIs.`)}>{action}</Button>
+              <Button key={action} type="button" variant="outline" className="rounded-full border-white/60 bg-white/70 dark:border-white/10 dark:bg-slate-950/40" onClick={() => onAction(`${action} appointment`, `${action} options for ${appointment.patientName} are available here.`)}>{action}</Button>
             ))}
           </div>
         </div>
@@ -506,7 +506,7 @@ const BillingSection = ({ dashboard, onAction }) => (
       <GlassPanel><p className="text-sm text-slate-500 dark:text-slate-400">Refunds</p><p className="mt-3 text-3xl font-semibold text-slate-950 dark:text-white">{dashboard.formatCurrency(dashboard.billingSummary.refundAmount)}</p></GlassPanel>
     </div>
     <GlassPanel>
-      <PanelHeader eyebrow="Billing" title="Invoices, payments, pending bills and refunds" description="Financial objects are isolated in one dummy-data schema so later backend billing services can replace the adapter only." />
+      <PanelHeader eyebrow="Billing" title="Invoices, payments, pending bills and refunds" description="Review billing activity, outstanding balances and payment status in one place." />
       <Table>
         <TableHeader>
           <TableRow className="border-slate-200/70 dark:border-slate-800">
@@ -526,7 +526,7 @@ const BillingSection = ({ dashboard, onAction }) => (
               <TableCell className="text-slate-700 dark:text-slate-200">{dashboard.formatCurrency(invoice.amount)}</TableCell>
               <TableCell><StatusBadge value={invoice.status} /></TableCell>
               <TableCell className="text-slate-700 dark:text-slate-200">{invoice.dueDate}</TableCell>
-              <TableCell className="text-right"><Button type="button" variant="ghost" className="rounded-full" onClick={() => onAction('Invoice view prepared', `${invoice.id} is rendered from mock billing data and ready for backend invoice detail wiring.`)}>Inspect</Button></TableCell>
+              <TableCell className="text-right"><Button type="button" variant="ghost" className="rounded-full" onClick={() => onAction('Invoice details', `Review ${invoice.id} for billing information and status.`)}>Inspect</Button></TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -538,7 +538,7 @@ const BillingSection = ({ dashboard, onAction }) => (
 const WhatsAppSection = ({ whatsappCentre, onAction }) => (
   <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
     <GlassPanel>
-      <PanelHeader eyebrow="WhatsApp Centre" title="Broadcasts and templates" description="Communication flows are framed for broadcast, patient updates and family updates without API dependency yet." />
+      <PanelHeader eyebrow="WhatsApp Centre" title="Broadcasts and templates" description="Manage broadcasts, patient updates and family updates from one communication hub." />
       <div className="mt-6 space-y-4">
         {whatsappCentre.broadcasts.map((item) => (
           <div key={item.title} className="rounded-[24px] border border-slate-200/70 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
@@ -552,8 +552,8 @@ const WhatsAppSection = ({ whatsappCentre, onAction }) => (
           </div>
         ))}
         <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" className="rounded-full" onClick={() => onAction('Broadcast flow prepared', 'Broadcast composer UI is ready for future WhatsApp Business API integration.')}>Broadcast</Button>
-          <Button type="button" variant="outline" className="rounded-full" onClick={() => onAction('Templates prepared', 'Template management is represented with mock content and reusable cards.')}>Templates</Button>
+          <Button type="button" variant="outline" className="rounded-full" onClick={() => onAction('Broadcast options', 'Use this area to send updates to selected recipients.')}>Broadcast</Button>
+          <Button type="button" variant="outline" className="rounded-full" onClick={() => onAction('Message templates', 'Review saved message formats for common updates.')}>Templates</Button>
         </div>
       </div>
     </GlassPanel>
@@ -586,7 +586,7 @@ const WhatsAppSection = ({ whatsappCentre, onAction }) => (
 const ReportsSection = ({ dashboard }) => (
   <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
     <GlassPanel>
-      <PanelHeader eyebrow="Reports" title="Daily, weekly, monthly and yearly visibility" description="KPIs and period reports are rendered from one report schema to keep the frontend aligned with future analytics endpoints." />
+      <PanelHeader eyebrow="Reports" title="Daily, weekly, monthly and yearly visibility" description="Track performance across daily, weekly, monthly and yearly reporting periods." />
       <div className="mt-6 grid gap-4">
         <div className="rounded-[24px] border border-slate-200/70 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-950/40">
           <p className="text-xs uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400">Daily</p>
@@ -663,14 +663,14 @@ const SettingsSection = ({ settings, onAction }) => (
       </div>
     </GlassPanel>
     <GlassPanel>
-      <p className="text-sm font-semibold text-slate-950 dark:text-white">Backend Readiness</p>
+      <p className="text-sm font-semibold text-slate-950 dark:text-white">Platform Settings</p>
       <div className="mt-4 space-y-3 text-sm leading-7 text-slate-700 dark:text-slate-200">
         {settings.integrations.map((item) => <p key={item}>{item}</p>)}
       </div>
       <div className="mt-5 flex flex-wrap gap-2">
         {settings.roles.map((role) => <span key={role} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-200">{role}</span>)}
       </div>
-      <Button type="button" variant="outline" className="mt-5 rounded-full" onClick={() => onAction('Settings layer prepared', 'Settings cards are UI-ready and awaiting real integration preferences and role permissions.')}>Review Architecture</Button>
+      <Button type="button" variant="outline" className="mt-5 rounded-full" onClick={() => onAction('Settings overview', 'Review communication, access and operational preferences here.')}>Review Settings</Button>
     </GlassPanel>
   </div>
 );

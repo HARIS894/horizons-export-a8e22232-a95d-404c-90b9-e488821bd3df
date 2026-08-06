@@ -36,7 +36,14 @@ export const whatsappController = {
       .catch(next);
   },
 
-  webhook: asyncHandler(async (req, res) => {
-    sendSuccess(res, await whatsappService.processWebhook(req.body));
-  }),
-};
+webhook: asyncHandler(async (req, res) => {
+  console.log("========== WEBHOOK BODY ==========");
+  console.log(JSON.stringify(req.body, null, 2));
+
+  const result = await whatsappService.processWebhook(req.body);
+
+  console.log("========== RESULT ==========");
+  console.log(result);
+
+  sendSuccess(res, result);
+}),

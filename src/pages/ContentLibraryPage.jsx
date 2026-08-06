@@ -237,7 +237,7 @@ const ContentLibraryPage = () => {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#7C3AED]">Article Collection</p>
-                    <h2 className="mt-3 text-2xl font-bold text-gray-900">Reusable article pages under {library.title}</h2>
+                    <h2 className="mt-3 text-2xl font-bold text-gray-900">Explore articles in {library.title}</h2>
                   </div>
                   <span className="rounded-full bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700">{libraryArticles.length} articles</span>
                 </div>
@@ -275,7 +275,7 @@ const ContentLibraryPage = () => {
 
         <section className="px-4 py-16 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl rounded-[1.75rem] border border-gray-100 bg-slate-50 p-8 shadow-[0_16px_40px_rgba(15,23,42,0.05)] sm:p-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#7C3AED]">Internal Linking</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#7C3AED]">Related Reading</p>
             <h2 className="mt-3 text-2xl font-bold text-gray-900">Explore more trusted library pages</h2>
             <div className="mt-6 flex flex-wrap gap-3">
               {Object.values(libraryBySlug).filter((item) => item.slug !== library.slug).map((item) => (

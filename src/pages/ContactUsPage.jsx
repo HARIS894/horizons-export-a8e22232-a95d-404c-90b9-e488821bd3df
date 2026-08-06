@@ -124,8 +124,8 @@ const ContactUsPage = () => {
                <div className="lg:col-span-2 space-y-8">
                   <InquiryForm
                      source="contact-page"
-                     title="Create a professional care inquiry"
-                     description="Share patient details, location, service preference, budget, timeline, and supporting reports so our team can respond with the right next step."
+                     title="Create a care inquiry"
+                     description="Tell us about the patient, location and support needed so our team can contact you with the next step."
                   />
                   
                   {/* Google Map */}

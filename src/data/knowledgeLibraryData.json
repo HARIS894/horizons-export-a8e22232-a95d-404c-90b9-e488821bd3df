@@ -5,12 +5,12 @@
       "title": "Healthcare Library",
       "badge": "Core Care Guides",
       "heroTitle": "A healthcare knowledge library built for families making high-stakes care decisions.",
-      "heroText": "Browse reusable, SEO-ready healthcare content covering home nursing, post-discharge planning, NRI coordination, elder care, palliative support and complex recovery at home.",
+      "heroText": "Browse trusted healthcare content covering home nursing, post-discharge planning, NRI coordination, elder care, palliative support and complex recovery at home.",
       "seoTitle": "Healthcare Knowledge Library | InstantCare",
       "seoDescription": "Explore expert-led healthcare articles on home nursing, elder care, recovery, palliative support, NRI coordination and medically managed home care.",
       "focusAreas": [
         "Home healthcare guidance families can understand quickly",
-        "Reusable article templates designed for scale and internal linking",
+        "Practical articles designed to help families compare care options",
         "Strong pathways into related services, consultations and emergency support"
       ],
       "serviceSlugs": ["home-nursing", "doctor-at-home", "dedicated-care-manager"],
@@ -91,7 +91,7 @@
       "focusAreas": [
         "Comfort, dignity and symptom-awareness in advanced illness",
         "Family preparation and urgent escalation guidance",
-        "Respectful internal linking into palliative and care coordination services"
+        "Helpful pathways into palliative and care coordination services"
       ],
       "serviceSlugs": ["palliative-care", "dedicated-care-manager", "healthcare-concierge"],
       "featuredArticleSlugs": ["palliative-care-at-home-guide", "end-of-life-support-for-families"]
