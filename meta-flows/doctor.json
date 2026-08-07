@@ -1,0 +1,98 @@
+{
+  "version": "6.2",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "DOCTOR_INTRO": ["DOCTOR_REQUEST"],
+    "DOCTOR_REQUEST": ["DOCTOR_SCHEDULE"],
+    "DOCTOR_SCHEDULE": ["DOCTOR_SUMMARY", "DOCTOR_FAILURE"],
+    "DOCTOR_SUMMARY": ["DOCTOR_SUCCESS", "DOCTOR_FAILURE"],
+    "DOCTOR_SUCCESS": [],
+    "DOCTOR_FAILURE": []
+  },
+  "screens": [
+    {
+      "id": "DOCTOR_INTRO",
+      "title": "Talk to Doctor",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Doctor and teleconsultation" },
+        { "type": "TextBody", "text": "Schedule an in-person doctor visit or teleconsultation with specialty routing." },
+        { "type": "Footer", "label": "Start", "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "DOCTOR_REQUEST" }, "payload": {} } }
+      ] }
+    },
+    {
+      "id": "DOCTOR_REQUEST",
+      "title": "Consultation Request",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "RadioButtonsGroup", "name": "consultation_mode", "label": "Consultation mode", "required": true, "data-source": [
+          { "id": "doctor_visit", "title": "Doctor Visit", "description": "Home doctor consultation", "metadata": "Physical", "enabled": true },
+          { "id": "teleconsultation", "title": "Teleconsultation", "description": "Remote video or phone consultation", "metadata": "Virtual", "enabled": true }
+        ] },
+        { "type": "Dropdown", "name": "specialty", "label": "Specialty", "required": true, "data-source": [
+          { "id": "general_medicine", "title": "General Medicine", "description": "Primary care and evaluation", "metadata": "General", "enabled": true },
+          { "id": "geriatrics", "title": "Geriatrics", "description": "Senior health and chronic care", "metadata": "Senior", "enabled": true },
+          { "id": "oncology_support", "title": "Oncology Support", "description": "Cancer care review and supportive consult", "metadata": "Oncology", "enabled": true },
+          { "id": "neurology_rehab", "title": "Neurology and Rehab", "description": "Stroke, Parkinson and neuro rehab planning", "metadata": "Neuro", "enabled": true },
+          { "id": "post_surgical", "title": "Post Surgical Review", "description": "Recovery and wound follow-up", "metadata": "Surgery", "enabled": true }
+        ] },
+        { "type": "TextInput", "name": "patient_name", "label": "Patient name", "required": true, "helper-text": "Patient full name" },
+        { "type": "TextInput", "name": "mobile_number", "label": "Mobile number", "input-type": "phone", "required": true, "helper-text": "Primary contact number" },
+        { "type": "TextArea", "name": "clinical_reason", "label": "Reason for consultation", "required": true, "helper-text": "Symptoms, follow-up reason or doctor request", "max-length": "600" },
+        { "type": "Footer", "label": "Next", "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "DOCTOR_SCHEDULE" }, "payload": {} } }
+      ] }
+    },
+    {
+      "id": "DOCTOR_SCHEDULE",
+      "title": "Schedule",
+      "data": {
+        "available_slots": {
+          "type": "array",
+          "items": { "type": "object", "properties": { "id": { "type": "string" }, "title": { "type": "string" }, "description": { "type": "string" }, "metadata": { "type": "string" }, "enabled": { "type": "boolean" } } },
+          "__example__": [ { "id": "10:00", "title": "10:00 AM", "description": "Consult slot", "metadata": "IST", "enabled": true } ]
+        },
+        "is_slot_visible": { "type": "boolean", "__example__": true },
+        "summary_markdown": { "type": "string", "__example__": "# Doctor Request\n- Mode: Teleconsultation\n- Specialty: General Medicine" }
+      },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "DatePicker", "name": "preferred_date", "label": "Preferred date", "required": true, "helper-text": "Select consultation date", "on-select-action": { "name": "data_exchange", "payload": { "flow_action": "doctor_fetch_slots", "preferred_date": "${form.preferred_date}", "consultation_mode": "${screen.DOCTOR_REQUEST.form.consultation_mode}", "specialty": "${screen.DOCTOR_REQUEST.form.specialty}" } } },
+        { "type": "Dropdown", "name": "preferred_time", "label": "Preferred time", "required": true, "visible": "${data.is_slot_visible}", "data-source": "${data.available_slots}" },
+        { "type": "TextInput", "name": "city", "label": "City", "required": true, "helper-text": "Needed for home doctor visit routing" },
+        { "type": "TextInput", "name": "hospital_name", "label": "Hospital", "helper-text": "Optional referring or current hospital" },
+        { "type": "TextInput", "name": "doctor_name", "label": "Preferred doctor name", "helper-text": "Optional doctor preference" },
+        { "type": "Footer", "label": "Review", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "doctor_prepare_summary", "consultation_mode": "${screen.DOCTOR_REQUEST.form.consultation_mode}", "specialty": "${screen.DOCTOR_REQUEST.form.specialty}", "patient_name": "${screen.DOCTOR_REQUEST.form.patient_name}", "mobile_number": "${screen.DOCTOR_REQUEST.form.mobile_number}", "clinical_reason": "${screen.DOCTOR_REQUEST.form.clinical_reason}", "preferred_date": "${form.preferred_date}", "preferred_time": "${form.preferred_time}", "city": "${form.city}", "hospital_name": "${form.hospital_name}", "doctor_name": "${form.doctor_name}" } } }
+      ] }
+    },
+    {
+      "id": "DOCTOR_SUMMARY",
+      "title": "Summary",
+      "data": { "summary_markdown": { "type": "string", "__example__": "# Doctor Consultation Summary\n- Mode: Teleconsultation\n- Date: 2026-08-10\n- Time: 10:00 AM" } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "RichText", "text": "${data.summary_markdown}" },
+        { "type": "Footer", "label": "Submit", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "submit_doctor_request", "consultation_mode": "${screen.DOCTOR_REQUEST.form.consultation_mode}", "specialty": "${screen.DOCTOR_REQUEST.form.specialty}", "patient_name": "${screen.DOCTOR_REQUEST.form.patient_name}", "mobile_number": "${screen.DOCTOR_REQUEST.form.mobile_number}", "clinical_reason": "${screen.DOCTOR_REQUEST.form.clinical_reason}", "preferred_date": "${screen.DOCTOR_SCHEDULE.form.preferred_date}", "preferred_time": "${screen.DOCTOR_SCHEDULE.form.preferred_time}", "city": "${screen.DOCTOR_SCHEDULE.form.city}", "hospital_name": "${screen.DOCTOR_SCHEDULE.form.hospital_name}", "doctor_name": "${screen.DOCTOR_SCHEDULE.form.doctor_name}" } } }
+      ] }
+    },
+    {
+      "id": "DOCTOR_SUCCESS",
+      "title": "Submitted",
+      "terminal": true,
+      "success": true,
+      "data": { "request_id": { "type": "string", "__example__": "DR-20260807-001" } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Doctor request submitted" },
+        { "type": "TextCaption", "text": "Reference: ${data.request_id}" },
+        { "type": "Footer", "label": "Done", "on-click-action": { "name": "complete", "payload": { "flow_name": "doctor", "request_id": "${data.request_id}" } } }
+      ] }
+    },
+    {
+      "id": "DOCTOR_FAILURE",
+      "title": "Submission Error",
+      "terminal": true,
+      "success": false,
+      "data": { "error_message": { "type": "string", "__example__": "Unable to schedule the doctor request." } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Unable to submit" },
+        { "type": "TextBody", "text": "${data.error_message}" },
+        { "type": "Footer", "label": "Close", "on-click-action": { "name": "complete", "payload": { "flow_name": "doctor", "outcome": "failed" } } }
+      ] }
+    }
+  ]
+}

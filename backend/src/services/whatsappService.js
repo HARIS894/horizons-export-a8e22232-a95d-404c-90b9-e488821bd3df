@@ -66,6 +66,13 @@ const isMissingColumnError = (error) => {
     || /column/i.test(message);
 };
 
+const isMissingRequiredUserError = (error) => {
+  const message = error?.message || error?.details?.message || '';
+
+  return /null value in column "(?:user_id|recipient_user_id)"/i.test(message)
+    || /not-null constraint/i.test(message);
+};
+
 const buildNotificationPayload = ({ recipientUserId, patientId, appointmentId, subject, message, metadata }) => ({
   recipient_user_id: recipientUserId || null,
   patient_id: patientId || null,
@@ -381,7 +388,18 @@ const sendViaWhatsappCloud = async ({ to, body, context = {} }) => {
   }
 };
 
-const createOutboundNotification = async ({ recipientUserId, patientId, appointmentId, subject, message, metadata }) => {
+const createOutboundNotification = async ({ recipientUserId, patientId, appointmentId, subject, message, metadata, templateType, recipientPhone }) => {
+  if (!recipientUserId) {
+    logWhatsapp('warn', 'NOTIFICATION SAVE SKIPPED', {
+      templateType,
+      recipientPhone,
+      subject,
+      reason: 'missing-recipient-user-id',
+    });
+
+    return null;
+  }
+
   try {
     return await resourceServices.notifications.create(
       buildNotificationPayload({
@@ -394,13 +412,15 @@ const createOutboundNotification = async ({ recipientUserId, patientId, appointm
       }),
     );
   } catch (error) {
-    if (!isMissingColumnError(error)) {
-      throw error;
-    }
-
     logWhatsapp('warn', 'NOTIFICATION SAVE SKIPPED', {
+      templateType,
+      recipientPhone,
       subject,
-      reason: 'notification-schema-mismatch',
+      reason: isMissingColumnError(error)
+        ? 'notification-schema-mismatch'
+        : isMissingRequiredUserError(error)
+          ? 'notification-user-required'
+          : 'notification-create-failed',
       error: error.message,
       details: error.details,
     });
@@ -522,6 +542,8 @@ const deliverOutboundMessage = async ({
     subject,
     message: messageBody,
     metadata: notificationMetadata,
+    templateType,
+    recipientPhone,
   });
 
   let delivery = null;

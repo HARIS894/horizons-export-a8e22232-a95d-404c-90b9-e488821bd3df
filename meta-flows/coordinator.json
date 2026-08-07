@@ -1,0 +1,84 @@
+{
+  "version": "6.2",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "COORDINATOR_INTRO": ["COORDINATOR_REQUEST"],
+    "COORDINATOR_REQUEST": ["COORDINATOR_DETAILS"],
+    "COORDINATOR_DETAILS": ["COORDINATOR_SUMMARY", "COORDINATOR_FAILURE"],
+    "COORDINATOR_SUMMARY": ["COORDINATOR_SUCCESS", "COORDINATOR_FAILURE"],
+    "COORDINATOR_SUCCESS": [],
+    "COORDINATOR_FAILURE": []
+  },
+  "screens": [
+    {
+      "id": "COORDINATOR_INTRO",
+      "title": "Care Coordinator",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Talk to a care coordinator" },
+        { "type": "TextBody", "text": "Choose live chat, callback, scheduled call, location sharing or document support." },
+        { "type": "Footer", "label": "Start", "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "COORDINATOR_REQUEST" }, "payload": {} } }
+      ] }
+    },
+    {
+      "id": "COORDINATOR_REQUEST",
+      "title": "Support Type",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "RadioButtonsGroup", "name": "support_type", "label": "Coordinator support", "required": true, "data-source": [
+          { "id": "live_chat", "title": "Live Chat", "description": "Immediate coordinator chat queue", "metadata": "Chat", "enabled": true },
+          { "id": "request_callback", "title": "Request Callback", "description": "Fast callback from operations", "metadata": "Callback", "enabled": true },
+          { "id": "schedule_call", "title": "Schedule Call", "description": "Book a planned coordination call", "metadata": "Schedule", "enabled": true },
+          { "id": "share_location", "title": "Share WhatsApp Location", "description": "Location validation for serviceability", "metadata": "Location", "enabled": true },
+          { "id": "upload_documents", "title": "Upload Documents", "description": "Prescription or report review workflow", "metadata": "Documents", "enabled": true }
+        ] },
+        { "type": "TextArea", "name": "request_context", "label": "Request context", "required": true, "helper-text": "Explain what coordination help is needed", "max-length": "500" },
+        { "type": "Footer", "label": "Next", "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "COORDINATOR_DETAILS" }, "payload": {} } }
+      ] }
+    },
+    {
+      "id": "COORDINATOR_DETAILS",
+      "title": "Contact And Timing",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextInput", "name": "full_name", "label": "Full name", "required": true, "helper-text": "Requester or family contact" },
+        { "type": "TextInput", "name": "mobile_number", "label": "Mobile number", "input-type": "phone", "required": true, "helper-text": "Coordinator callback number" },
+        { "type": "DatePicker", "name": "preferred_date", "label": "Preferred date", "helper-text": "For scheduled calls or callbacks" },
+        { "type": "TextInput", "name": "preferred_time", "label": "Preferred time", "helper-text": "Preferred callback or call time" },
+        { "type": "TextInput", "name": "location_reference", "label": "Location reference", "helper-text": "Location token or area reference if location is being shared" },
+        { "type": "TextInput", "name": "document_reference", "label": "Document reference", "helper-text": "Secure upload reference for coordinator review" },
+        { "type": "Footer", "label": "Review", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "coordinator_prepare_summary", "support_type": "${screen.COORDINATOR_REQUEST.form.support_type}", "request_context": "${screen.COORDINATOR_REQUEST.form.request_context}", "full_name": "${form.full_name}", "mobile_number": "${form.mobile_number}", "preferred_date": "${form.preferred_date}", "preferred_time": "${form.preferred_time}", "location_reference": "${form.location_reference}", "document_reference": "${form.document_reference}" } } }
+      ] }
+    },
+    {
+      "id": "COORDINATOR_SUMMARY",
+      "title": "Summary",
+      "data": { "summary_markdown": { "type": "string", "__example__": "# Coordinator Request\n- Support Type: Request Callback\n- Preferred Time: 05:00 PM" } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "RichText", "text": "${data.summary_markdown}" },
+        { "type": "Footer", "label": "Submit", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "submit_coordinator_request", "support_type": "${screen.COORDINATOR_REQUEST.form.support_type}", "request_context": "${screen.COORDINATOR_REQUEST.form.request_context}", "full_name": "${screen.COORDINATOR_DETAILS.form.full_name}", "mobile_number": "${screen.COORDINATOR_DETAILS.form.mobile_number}", "preferred_date": "${screen.COORDINATOR_DETAILS.form.preferred_date}", "preferred_time": "${screen.COORDINATOR_DETAILS.form.preferred_time}", "location_reference": "${screen.COORDINATOR_DETAILS.form.location_reference}", "document_reference": "${screen.COORDINATOR_DETAILS.form.document_reference}" } } }
+      ] }
+    },
+    {
+      "id": "COORDINATOR_SUCCESS",
+      "title": "Submitted",
+      "terminal": true,
+      "success": true,
+      "data": { "request_id": { "type": "string", "__example__": "CC-20260807-001" } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Coordinator request submitted" },
+        { "type": "TextCaption", "text": "Reference: ${data.request_id}" },
+        { "type": "Footer", "label": "Done", "on-click-action": { "name": "complete", "payload": { "flow_name": "coordinator", "request_id": "${data.request_id}" } } }
+      ] }
+    },
+    {
+      "id": "COORDINATOR_FAILURE",
+      "title": "Submission Error",
+      "terminal": true,
+      "success": false,
+      "data": { "error_message": { "type": "string", "__example__": "Unable to submit the coordinator request." } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Unable to submit" },
+        { "type": "TextBody", "text": "${data.error_message}" },
+        { "type": "Footer", "label": "Close", "on-click-action": { "name": "complete", "payload": { "flow_name": "coordinator", "outcome": "failed" } } }
+      ] }
+    }
+  ]
+}

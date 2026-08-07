@@ -1,0 +1,93 @@
+{
+  "version": "6.2",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "EQUIPMENT_INTRO": ["EQUIPMENT_REQUEST"],
+    "EQUIPMENT_REQUEST": ["EQUIPMENT_DETAILS"],
+    "EQUIPMENT_DETAILS": ["EQUIPMENT_SUMMARY", "EQUIPMENT_FAILURE"],
+    "EQUIPMENT_SUMMARY": ["EQUIPMENT_SUCCESS", "EQUIPMENT_FAILURE"],
+    "EQUIPMENT_SUCCESS": [],
+    "EQUIPMENT_FAILURE": []
+  },
+  "screens": [
+    {
+      "id": "EQUIPMENT_INTRO",
+      "title": "Medical Equipment",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Medical equipment rental" },
+        { "type": "TextBody", "text": "Request hospital beds, oxygen, wheelchairs, monitors and critical care equipment with delivery coordination." },
+        { "type": "Footer", "label": "Start", "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "EQUIPMENT_REQUEST" }, "payload": {} } }
+      ] }
+    },
+    {
+      "id": "EQUIPMENT_REQUEST",
+      "title": "Equipment Need",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "Dropdown", "name": "equipment_item", "label": "Equipment item", "required": true, "data-source": [
+          { "id": "hospital_bed", "title": "Hospital Bed", "description": "Manual or electric hospital bed", "metadata": "Bed", "enabled": true },
+          { "id": "oxygen_concentrator", "title": "Oxygen Concentrator", "description": "Home oxygen concentrator", "metadata": "Oxygen", "enabled": true },
+          { "id": "oxygen_cylinder", "title": "Oxygen Cylinder", "description": "Cylinder-based oxygen support", "metadata": "Oxygen", "enabled": true },
+          { "id": "wheelchair", "title": "Wheelchair", "description": "Standard or commode wheelchair", "metadata": "Mobility", "enabled": true },
+          { "id": "walker", "title": "Walker", "description": "Walking support device", "metadata": "Mobility", "enabled": true },
+          { "id": "suction_machine", "title": "Suction Machine", "description": "Airway suction support", "metadata": "Airway", "enabled": true },
+          { "id": "bipap", "title": "BiPAP", "description": "Respiratory support device", "metadata": "Respiratory", "enabled": true },
+          { "id": "ventilator", "title": "Ventilator", "description": "Advanced respiratory support", "metadata": "Critical", "enabled": true },
+          { "id": "monitor", "title": "Patient Monitor", "description": "Vitals monitoring equipment", "metadata": "Monitoring", "enabled": true }
+        ] },
+        { "type": "Dropdown", "name": "rental_duration", "label": "Rental duration", "required": true, "data-source": [
+          { "id": "3_days", "title": "3 Days", "description": "Short-duration use", "metadata": "Short", "enabled": true },
+          { "id": "7_days", "title": "7 Days", "description": "One-week rental", "metadata": "Week", "enabled": true },
+          { "id": "15_days", "title": "15 Days", "description": "Fifteen-day rental", "metadata": "Fortnight", "enabled": true },
+          { "id": "30_days", "title": "30 Days", "description": "Monthly rental", "metadata": "Month", "enabled": true },
+          { "id": "custom", "title": "Custom", "description": "Custom rental duration", "metadata": "Custom", "enabled": true }
+        ] },
+        { "type": "Footer", "label": "Next", "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "EQUIPMENT_DETAILS" }, "payload": {} } }
+      ] }
+    },
+    {
+      "id": "EQUIPMENT_DETAILS",
+      "title": "Delivery Details",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextInput", "name": "patient_name", "label": "Patient name", "required": true, "helper-text": "Patient or beneficiary name" },
+        { "type": "TextInput", "name": "city", "label": "City", "required": true, "helper-text": "Delivery city" },
+        { "type": "TextInput", "name": "mobile_number", "label": "Mobile number", "input-type": "phone", "required": true, "helper-text": "Delivery coordination number" },
+        { "type": "TextInput", "name": "prescription_reference", "label": "Prescription reference", "helper-text": "Required for regulated equipment where applicable" },
+        { "type": "TextArea", "name": "special_instructions", "label": "Special instructions", "helper-text": "Floor access, lift availability, setup notes or urgent needs", "max-length": "500" },
+        { "type": "Footer", "label": "Review", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "equipment_prepare_summary", "equipment_item": "${screen.EQUIPMENT_REQUEST.form.equipment_item}", "rental_duration": "${screen.EQUIPMENT_REQUEST.form.rental_duration}", "patient_name": "${form.patient_name}", "city": "${form.city}", "mobile_number": "${form.mobile_number}", "prescription_reference": "${form.prescription_reference}", "special_instructions": "${form.special_instructions}" } } }
+      ] }
+    },
+    {
+      "id": "EQUIPMENT_SUMMARY",
+      "title": "Summary",
+      "data": { "summary_markdown": { "type": "string", "__example__": "# Equipment Request\n- Equipment: Oxygen Concentrator\n- Duration: 7 Days\n- City: Chennai" } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "RichText", "text": "${data.summary_markdown}" },
+        { "type": "Footer", "label": "Submit", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "submit_equipment_request", "equipment_item": "${screen.EQUIPMENT_REQUEST.form.equipment_item}", "rental_duration": "${screen.EQUIPMENT_REQUEST.form.rental_duration}", "patient_name": "${screen.EQUIPMENT_DETAILS.form.patient_name}", "city": "${screen.EQUIPMENT_DETAILS.form.city}", "mobile_number": "${screen.EQUIPMENT_DETAILS.form.mobile_number}", "prescription_reference": "${screen.EQUIPMENT_DETAILS.form.prescription_reference}", "special_instructions": "${screen.EQUIPMENT_DETAILS.form.special_instructions}" } } }
+      ] }
+    },
+    {
+      "id": "EQUIPMENT_SUCCESS",
+      "title": "Submitted",
+      "terminal": true,
+      "success": true,
+      "data": { "request_id": { "type": "string", "__example__": "EQ-20260807-001" } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Equipment request submitted" },
+        { "type": "TextCaption", "text": "Reference: ${data.request_id}" },
+        { "type": "Footer", "label": "Done", "on-click-action": { "name": "complete", "payload": { "flow_name": "equipment", "request_id": "${data.request_id}" } } }
+      ] }
+    },
+    {
+      "id": "EQUIPMENT_FAILURE",
+      "title": "Submission Error",
+      "terminal": true,
+      "success": false,
+      "data": { "error_message": { "type": "string", "__example__": "Unable to submit the equipment request." } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Unable to submit" },
+        { "type": "TextBody", "text": "${data.error_message}" },
+        { "type": "Footer", "label": "Close", "on-click-action": { "name": "complete", "payload": { "flow_name": "equipment", "outcome": "failed" } } }
+      ] }
+    }
+  ]
+}

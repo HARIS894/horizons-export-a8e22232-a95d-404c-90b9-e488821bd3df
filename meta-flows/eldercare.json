@@ -1,0 +1,185 @@
+{
+  "version": "6.2",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "ELDERCARE_INTRO": ["ELDERCARE_PROFILE"],
+    "ELDERCARE_PROFILE": ["ELDERCARE_CARE_PLAN"],
+    "ELDERCARE_CARE_PLAN": ["ELDERCARE_SUMMARY", "ELDERCARE_FAILURE"],
+    "ELDERCARE_SUMMARY": ["ELDERCARE_SUCCESS", "ELDERCARE_FAILURE"],
+    "ELDERCARE_SUCCESS": [],
+    "ELDERCARE_FAILURE": []
+  },
+  "screens": [
+    {
+      "id": "ELDERCARE_INTRO",
+      "title": "Senior Citizen Care",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Senior and dependent care" },
+          { "type": "TextBody", "text": "Plan long-duration elder care, live-in caregiving, mobility support and condition-specific supervision." },
+          {
+            "type": "Footer",
+            "label": "Start",
+            "on-click-action": {
+              "name": "navigate",
+              "next": { "type": "screen", "name": "ELDERCARE_PROFILE" },
+              "payload": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "ELDERCARE_PROFILE",
+      "title": "Patient Profile",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Patient details" },
+          { "type": "TextInput", "name": "patient_name", "label": "Patient name", "required": true, "helper-text": "Senior citizen or dependent patient name" },
+          { "type": "TextInput", "name": "age", "label": "Age", "input-type": "number", "required": true, "helper-text": "Age in years", "pattern": "^(?:[0-9]|[1-9][0-9]|1[01][0-9]|120)$" },
+          { "type": "TextInput", "name": "city", "label": "City", "required": true, "helper-text": "Service city" },
+          { "type": "TextInput", "name": "mobile_number", "label": "Family mobile number", "input-type": "phone", "required": true, "helper-text": "Primary family contact" },
+          { "type": "TextArea", "name": "patient_condition", "label": "Condition summary", "required": true, "helper-text": "Mention diagnosis, routines, medication or fall risk", "max-length": "600" },
+          {
+            "type": "Footer",
+            "label": "Next",
+            "on-click-action": {
+              "name": "navigate",
+              "next": { "type": "screen", "name": "ELDERCARE_CARE_PLAN" },
+              "payload": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "ELDERCARE_CARE_PLAN",
+      "title": "Care Plan",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          {
+            "type": "Dropdown",
+            "name": "need_duration",
+            "label": "Need duration",
+            "required": true,
+            "data-source": [
+              { "id": "24_hours", "title": "24 Hours", "description": "Round-the-clock caregiving", "metadata": "24x7", "enabled": true },
+              { "id": "12_hours", "title": "12 Hours", "description": "Extended day or night shift", "metadata": "12h", "enabled": true },
+              { "id": "8_hours", "title": "8 Hours", "description": "Standard shift caregiving", "metadata": "8h", "enabled": true },
+              { "id": "day_care", "title": "Day Care", "description": "Daytime support only", "metadata": "Day", "enabled": true },
+              { "id": "night_care", "title": "Night Care", "description": "Night supervision and support", "metadata": "Night", "enabled": true },
+              { "id": "live_in_caregiver", "title": "Live In Caregiver", "description": "Residential caregiver arrangement", "metadata": "Live-in", "enabled": true }
+            ]
+          },
+          {
+            "type": "RadioButtonsGroup",
+            "name": "patient_mobility",
+            "label": "Patient mobility",
+            "required": true,
+            "data-source": [
+              { "id": "bedridden", "title": "Bedridden", "description": "Full bed support and repositioning needed", "metadata": "Mobility", "enabled": true },
+              { "id": "walking", "title": "Walking", "description": "Ambulates with or without supervision", "metadata": "Mobility", "enabled": true },
+              { "id": "wheelchair", "title": "Wheelchair", "description": "Wheelchair transfers and support", "metadata": "Mobility", "enabled": true }
+            ]
+          },
+          {
+            "type": "CheckboxGroup",
+            "name": "care_conditions",
+            "label": "Care conditions",
+            "description": "Select all conditions that apply",
+            "required": true,
+            "min-selected-items": 1,
+            "data-source": [
+              { "id": "dementia", "title": "Dementia", "description": "Memory care and routine supervision", "metadata": "Neuro", "enabled": true },
+              { "id": "alzheimer", "title": "Alzheimer", "description": "Progressive cognitive support", "metadata": "Neuro", "enabled": true },
+              { "id": "parkinson", "title": "Parkinson", "description": "Mobility and medication support", "metadata": "Neuro", "enabled": true },
+              { "id": "stroke", "title": "Stroke", "description": "Rehab and assisted living support", "metadata": "Neuro", "enabled": true },
+              { "id": "fall_risk", "title": "Fall Risk", "description": "High supervision and safety support", "metadata": "Safety", "enabled": true },
+              { "id": "post_hospital", "title": "Post Hospital", "description": "Recovery support after discharge", "metadata": "Recovery", "enabled": true }
+            ]
+          },
+          {
+            "type": "Footer",
+            "label": "Review",
+            "on-click-action": {
+              "name": "data_exchange",
+              "payload": {
+                "flow_action": "eldercare_prepare_summary",
+                "patient_name": "${screen.ELDERCARE_PROFILE.form.patient_name}",
+                "age": "${screen.ELDERCARE_PROFILE.form.age}",
+                "city": "${screen.ELDERCARE_PROFILE.form.city}",
+                "mobile_number": "${screen.ELDERCARE_PROFILE.form.mobile_number}",
+                "patient_condition": "${screen.ELDERCARE_PROFILE.form.patient_condition}",
+                "need_duration": "${form.need_duration}",
+                "patient_mobility": "${form.patient_mobility}",
+                "care_conditions": "${form.care_conditions}"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "ELDERCARE_SUMMARY",
+      "title": "Summary",
+      "data": {
+        "summary_markdown": { "type": "string", "__example__": "# Elder Care Summary\n- Duration: 24 Hours\n- Mobility: Wheelchair\n- Conditions: Dementia, Fall Risk" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "RichText", "text": "${data.summary_markdown}" },
+          {
+            "type": "Footer",
+            "label": "Submit request",
+            "on-click-action": {
+              "name": "data_exchange",
+              "payload": {
+                "flow_action": "submit_eldercare_request",
+                "patient_name": "${screen.ELDERCARE_PROFILE.form.patient_name}",
+                "age": "${screen.ELDERCARE_PROFILE.form.age}",
+                "city": "${screen.ELDERCARE_PROFILE.form.city}",
+                "mobile_number": "${screen.ELDERCARE_PROFILE.form.mobile_number}",
+                "patient_condition": "${screen.ELDERCARE_PROFILE.form.patient_condition}",
+                "need_duration": "${screen.ELDERCARE_CARE_PLAN.form.need_duration}",
+                "patient_mobility": "${screen.ELDERCARE_CARE_PLAN.form.patient_mobility}",
+                "care_conditions": "${screen.ELDERCARE_CARE_PLAN.form.care_conditions}"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "ELDERCARE_SUCCESS",
+      "title": "Submitted",
+      "terminal": true,
+      "success": true,
+      "data": {
+        "request_id": { "type": "string", "__example__": "EC-20260807-001" },
+        "message": { "type": "string", "__example__": "Your elder care request has been submitted for coordinator review." }
+      },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Elder care request submitted" },
+        { "type": "TextBody", "text": "${data.message}" },
+        { "type": "TextCaption", "text": "Reference: ${data.request_id}" },
+        { "type": "Footer", "label": "Done", "on-click-action": { "name": "complete", "payload": { "flow_name": "eldercare", "request_id": "${data.request_id}" } } }
+      ] }
+    },
+    {
+      "id": "ELDERCARE_FAILURE",
+      "title": "Submission Error",
+      "terminal": true,
+      "success": false,
+      "data": { "error_message": { "type": "string", "__example__": "Unable to submit the elder care request right now." } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Submission issue" },
+        { "type": "TextBody", "text": "${data.error_message}" },
+        { "type": "Footer", "label": "Close", "on-click-action": { "name": "complete", "payload": { "flow_name": "eldercare", "outcome": "failed" } } }
+      ] }
+    }
+  ]
+}

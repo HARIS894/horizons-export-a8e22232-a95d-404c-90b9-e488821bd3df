@@ -1,0 +1,89 @@
+{
+  "version": "6.2",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "NRI_INTRO": ["NRI_FAMILY"],
+    "NRI_FAMILY": ["NRI_CARE_PLAN"],
+    "NRI_CARE_PLAN": ["NRI_SUMMARY", "NRI_FAILURE"],
+    "NRI_SUMMARY": ["NRI_SUCCESS", "NRI_FAILURE"],
+    "NRI_SUCCESS": [],
+    "NRI_FAILURE": []
+  },
+  "screens": [
+    {
+      "id": "NRI_INTRO",
+      "title": "NRI Family Support",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "NRI family healthcare management" },
+        { "type": "TextBody", "text": "Register a patient under remote family supervision with reporting, coordinator and care plan support." },
+        { "type": "Footer", "label": "Start", "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "NRI_FAMILY" }, "payload": {} } }
+      ] }
+    },
+    {
+      "id": "NRI_FAMILY",
+      "title": "Family And Patient",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextInput", "name": "family_contact_name", "label": "Family contact name", "required": true, "helper-text": "NRI family member or guardian" },
+        { "type": "TextInput", "name": "family_mobile_number", "label": "Family mobile number", "input-type": "phone", "required": true, "helper-text": "WhatsApp-enabled family contact number" },
+        { "type": "TextInput", "name": "patient_name", "label": "Patient name", "required": true, "helper-text": "Patient in India" },
+        { "type": "TextInput", "name": "city", "label": "Patient city", "required": true, "helper-text": "Patient service location" },
+        { "type": "TextArea", "name": "patient_condition", "label": "Patient condition", "required": true, "helper-text": "Current diagnosis, frailty or chronic condition summary", "max-length": "600" },
+        { "type": "Footer", "label": "Next", "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "NRI_CARE_PLAN" }, "payload": {} } }
+      ] }
+    },
+    {
+      "id": "NRI_CARE_PLAN",
+      "title": "Support Model",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "CheckboxGroup", "name": "support_modules", "label": "Required support modules", "description": "Select all required management services", "required": true, "min-selected-items": 1, "data-source": [
+          { "id": "caregiver_management", "title": "Caregiver Management", "description": "Staffing, rosters and caregiver oversight", "metadata": "Caregiver", "enabled": true },
+          { "id": "medical_coordinator_support", "title": "Medical Coordinator Support", "description": "Dedicated operations and care coordination", "metadata": "Coordinator", "enabled": true },
+          { "id": "doctor_followup", "title": "Doctor Follow-Up", "description": "Doctor scheduling and follow-up tracking", "metadata": "Doctor", "enabled": true },
+          { "id": "lab_and_medicine", "title": "Lab and Medicine Management", "description": "Diagnostics and medicine coordination", "metadata": "Diagnostics", "enabled": true },
+          { "id": "daily_reporting", "title": "Daily Reporting", "description": "Daily update and summary reporting", "metadata": "Reporting", "enabled": true },
+          { "id": "emergency_response_plan", "title": "Emergency Response Plan", "description": "Escalation tree and response management", "metadata": "Emergency", "enabled": true }
+        ] },
+        { "type": "Dropdown", "name": "reporting_frequency", "label": "Reporting frequency", "required": true, "data-source": [
+          { "id": "daily", "title": "Daily", "description": "Daily operational update", "metadata": "Daily", "enabled": true },
+          { "id": "weekly", "title": "Weekly", "description": "Weekly consolidated summary", "metadata": "Weekly", "enabled": true },
+          { "id": "event_based", "title": "Event Based", "description": "Important-event updates only", "metadata": "Event", "enabled": true }
+        ] },
+        { "type": "TextArea", "name": "special_expectations", "label": "Special expectations", "helper-text": "Reporting, billing, emergency or family communication requirements", "max-length": "500" },
+        { "type": "Footer", "label": "Review", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "nri_prepare_summary", "family_contact_name": "${screen.NRI_FAMILY.form.family_contact_name}", "family_mobile_number": "${screen.NRI_FAMILY.form.family_mobile_number}", "patient_name": "${screen.NRI_FAMILY.form.patient_name}", "city": "${screen.NRI_FAMILY.form.city}", "patient_condition": "${screen.NRI_FAMILY.form.patient_condition}", "support_modules": "${form.support_modules}", "reporting_frequency": "${form.reporting_frequency}", "special_expectations": "${form.special_expectations}" } } }
+      ] }
+    },
+    {
+      "id": "NRI_SUMMARY",
+      "title": "Summary",
+      "data": { "summary_markdown": { "type": "string", "__example__": "# NRI Support Summary\n- Patient City: Chennai\n- Reporting: Daily\n- Modules: Caregiver Management, Daily Reporting" } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "RichText", "text": "${data.summary_markdown}" },
+        { "type": "Footer", "label": "Submit", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "submit_nri_request", "family_contact_name": "${screen.NRI_FAMILY.form.family_contact_name}", "family_mobile_number": "${screen.NRI_FAMILY.form.family_mobile_number}", "patient_name": "${screen.NRI_FAMILY.form.patient_name}", "city": "${screen.NRI_FAMILY.form.city}", "patient_condition": "${screen.NRI_FAMILY.form.patient_condition}", "support_modules": "${screen.NRI_CARE_PLAN.form.support_modules}", "reporting_frequency": "${screen.NRI_CARE_PLAN.form.reporting_frequency}", "special_expectations": "${screen.NRI_CARE_PLAN.form.special_expectations}" } } }
+      ] }
+    },
+    {
+      "id": "NRI_SUCCESS",
+      "title": "Submitted",
+      "terminal": true,
+      "success": true,
+      "data": { "request_id": { "type": "string", "__example__": "NRI-20260807-001" } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "NRI support request submitted" },
+        { "type": "TextCaption", "text": "Reference: ${data.request_id}" },
+        { "type": "Footer", "label": "Done", "on-click-action": { "name": "complete", "payload": { "flow_name": "nri", "request_id": "${data.request_id}" } } }
+      ] }
+    },
+    {
+      "id": "NRI_FAILURE",
+      "title": "Submission Error",
+      "terminal": true,
+      "success": false,
+      "data": { "error_message": { "type": "string", "__example__": "Unable to submit the NRI support request." } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Unable to submit" },
+        { "type": "TextBody", "text": "${data.error_message}" },
+        { "type": "Footer", "label": "Close", "on-click-action": { "name": "complete", "payload": { "flow_name": "nri", "outcome": "failed" } } }
+      ] }
+    }
+  ]
+}

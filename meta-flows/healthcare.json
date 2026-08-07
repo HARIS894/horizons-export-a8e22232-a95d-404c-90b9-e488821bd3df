@@ -1,0 +1,230 @@
+{
+  "version": "6.2",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "HEALTHCARE_INTRO": ["HEALTHCARE_SERVICE"],
+    "HEALTHCARE_SERVICE": ["HEALTHCARE_DETAILS", "HEALTHCARE_FAILURE"],
+    "HEALTHCARE_DETAILS": ["HEALTHCARE_SUMMARY"],
+    "HEALTHCARE_SUMMARY": ["HEALTHCARE_SUCCESS", "HEALTHCARE_FAILURE"],
+    "HEALTHCARE_SUCCESS": [],
+    "HEALTHCARE_FAILURE": []
+  },
+  "screens": [
+    {
+      "id": "HEALTHCARE_INTRO",
+      "title": "Healthcare Services",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "InstantCare Services" },
+          { "type": "TextSubheading", "text": "Clinical and home healthcare intake" },
+          { "type": "TextBody", "text": "Select a service line and share the patient context to receive the right care plan." },
+          {
+            "type": "Footer",
+            "label": "Start",
+            "on-click-action": {
+              "name": "navigate",
+              "next": { "type": "screen", "name": "HEALTHCARE_SERVICE" },
+              "payload": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "HEALTHCARE_SERVICE",
+      "title": "Select Service",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Choose required service" },
+          {
+            "type": "Dropdown",
+            "name": "required_service",
+            "label": "Required service",
+            "required": true,
+            "data-source": [
+              { "id": "home_nursing", "title": "Home Nursing", "description": "Nursing visits, procedures and monitoring", "metadata": "Nursing", "enabled": true },
+              { "id": "icu_at_home", "title": "ICU at Home", "description": "Critical care setup, equipment and staffing", "metadata": "Critical", "enabled": true },
+              { "id": "elder_care", "title": "Elder Care", "description": "Long-duration support, caregiver and supervision", "metadata": "Senior", "enabled": true },
+              { "id": "patient_attendant", "title": "Patient Attendant", "description": "Daily support, hygiene and mobility help", "metadata": "Attendant", "enabled": true },
+              { "id": "doctor_visit", "title": "Doctor Visit", "description": "Home doctor consultation and follow-up", "metadata": "Doctor", "enabled": true },
+              { "id": "physiotherapy", "title": "Physiotherapy", "description": "Rehab, pain relief and mobility recovery", "metadata": "Rehab", "enabled": true },
+              { "id": "lab_test_at_home", "title": "Lab Test at Home", "description": "Home sample collection and diagnostics", "metadata": "Diagnostics", "enabled": true },
+              { "id": "medicine_delivery", "title": "Medicine Delivery", "description": "Prescription fulfillment and delivery", "metadata": "Pharmacy", "enabled": true },
+              { "id": "ambulance", "title": "Ambulance", "description": "Emergency and scheduled transport", "metadata": "Emergency", "enabled": true },
+              { "id": "medical_equipment_rental", "title": "Medical Equipment Rental", "description": "Beds, oxygen, wheelchairs and ICU equipment", "metadata": "Equipment", "enabled": true },
+              { "id": "post_surgery_care", "title": "Post Surgery Care", "description": "Wound care, vitals and recovery support", "metadata": "Recovery", "enabled": true },
+              { "id": "cancer_care", "title": "Cancer Care", "description": "Oncology home support and symptom monitoring", "metadata": "Oncology", "enabled": true },
+              { "id": "stroke_rehabilitation", "title": "Stroke Rehabilitation", "description": "Neuro rehab and daily functional support", "metadata": "Neuro", "enabled": true },
+              { "id": "hospital_admission_assistance", "title": "Hospital Admission Assistance", "description": "Bed search, coordination and paperwork support", "metadata": "Admission", "enabled": true }
+            ]
+          },
+          {
+            "type": "RadioButtonsGroup",
+            "name": "urgency",
+            "label": "Care urgency",
+            "required": true,
+            "data-source": [
+              { "id": "immediate", "title": "Immediate", "description": "Need support within a few hours", "metadata": "Urgent", "enabled": true },
+              { "id": "same_day", "title": "Same day", "description": "Need service later today", "metadata": "Same day", "enabled": true },
+              { "id": "scheduled", "title": "Scheduled", "description": "Planned service for a future date", "metadata": "Planned", "enabled": true }
+            ]
+          },
+          {
+            "type": "Footer",
+            "label": "Next",
+            "on-click-action": {
+              "name": "navigate",
+              "next": { "type": "screen", "name": "HEALTHCARE_DETAILS" },
+              "payload": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "HEALTHCARE_DETAILS",
+      "title": "Patient Details",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Patient and location" },
+          { "type": "TextInput", "name": "patient_name", "label": "Patient name", "required": true, "min-chars": "2", "max-chars": "80", "helper-text": "Enter the full name of the patient" },
+          { "type": "TextInput", "name": "age", "label": "Age", "input-type": "number", "required": true, "helper-text": "Enter age in years", "pattern": "^(?:[0-9]|[1-9][0-9]|1[01][0-9]|120)$" },
+          {
+            "type": "Dropdown",
+            "name": "gender",
+            "label": "Gender",
+            "required": true,
+            "data-source": [
+              { "id": "male", "title": "Male", "description": "Male patient", "metadata": "Gender", "enabled": true },
+              { "id": "female", "title": "Female", "description": "Female patient", "metadata": "Gender", "enabled": true },
+              { "id": "other", "title": "Other", "description": "Other or not disclosed", "metadata": "Gender", "enabled": true }
+            ]
+          },
+          { "type": "TextInput", "name": "location", "label": "Patient location", "required": true, "helper-text": "Area, landmark or full service address" },
+          { "type": "TextInput", "name": "pin_code", "label": "Pin code", "required": true, "helper-text": "Enter 6-digit service pin code", "pattern": "^[1-9][0-9]{5}$" },
+          { "type": "TextInput", "name": "city", "label": "City", "required": true, "helper-text": "City where care is required" },
+          { "type": "TextInput", "name": "mobile_number", "label": "Mobile number", "input-type": "phone", "required": true, "helper-text": "Primary mobile number for care coordination" },
+          { "type": "TextArea", "name": "patient_condition", "label": "Patient condition", "required": true, "helper-text": "Clinical condition, diagnosis, mobility or nursing need", "max-length": "600" },
+          {
+            "type": "Footer",
+            "label": "Review",
+            "on-click-action": {
+              "name": "data_exchange",
+              "payload": {
+                "flow_action": "healthcare_prepare_summary",
+                "required_service": "${screen.HEALTHCARE_SERVICE.form.required_service}",
+                "urgency": "${screen.HEALTHCARE_SERVICE.form.urgency}",
+                "patient_name": "${form.patient_name}",
+                "age": "${form.age}",
+                "gender": "${form.gender}",
+                "location": "${form.location}",
+                "pin_code": "${form.pin_code}",
+                "city": "${form.city}",
+                "mobile_number": "${form.mobile_number}",
+                "patient_condition": "${form.patient_condition}"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "HEALTHCARE_SUMMARY",
+      "title": "Summary",
+      "refresh_on_back": true,
+      "data": {
+        "summary_markdown": {
+          "type": "string",
+          "__example__": "# Service Summary\n- Service: Home Nursing\n- City: Chennai\n- Urgency: Same day"
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Confirm care request" },
+          { "type": "RichText", "text": "${data.summary_markdown}" },
+          {
+            "type": "Footer",
+            "label": "Submit",
+            "on-click-action": {
+              "name": "data_exchange",
+              "payload": {
+                "flow_action": "submit_healthcare_request",
+                "required_service": "${screen.HEALTHCARE_SERVICE.form.required_service}",
+                "urgency": "${screen.HEALTHCARE_SERVICE.form.urgency}",
+                "patient_name": "${screen.HEALTHCARE_DETAILS.form.patient_name}",
+                "age": "${screen.HEALTHCARE_DETAILS.form.age}",
+                "gender": "${screen.HEALTHCARE_DETAILS.form.gender}",
+                "location": "${screen.HEALTHCARE_DETAILS.form.location}",
+                "pin_code": "${screen.HEALTHCARE_DETAILS.form.pin_code}",
+                "city": "${screen.HEALTHCARE_DETAILS.form.city}",
+                "mobile_number": "${screen.HEALTHCARE_DETAILS.form.mobile_number}",
+                "patient_condition": "${screen.HEALTHCARE_DETAILS.form.patient_condition}"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "HEALTHCARE_SUCCESS",
+      "title": "Request Submitted",
+      "terminal": true,
+      "success": true,
+      "data": {
+        "request_id": { "type": "string", "__example__": "HC-20260807-001" },
+        "message": { "type": "string", "__example__": "Your healthcare services request has been logged." }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Healthcare request submitted" },
+          { "type": "TextBody", "text": "${data.message}" },
+          { "type": "TextCaption", "text": "Reference: ${data.request_id}" },
+          {
+            "type": "Footer",
+            "label": "Done",
+            "on-click-action": {
+              "name": "complete",
+              "payload": {
+                "flow_name": "healthcare",
+                "request_id": "${data.request_id}",
+                "required_service": "${screen.HEALTHCARE_SERVICE.form.required_service}"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "HEALTHCARE_FAILURE",
+      "title": "Submission Error",
+      "terminal": true,
+      "success": false,
+      "data": {
+        "error_message": { "type": "string", "__example__": "We could not submit the request." }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Unable to submit" },
+          { "type": "TextBody", "text": "${data.error_message}" },
+          {
+            "type": "Footer",
+            "label": "Close",
+            "on-click-action": {
+              "name": "complete",
+              "payload": {
+                "flow_name": "healthcare",
+                "outcome": "failed"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

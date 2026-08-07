@@ -1,0 +1,89 @@
+{
+  "version": "6.2",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "EMERGENCY_INTRO": ["EMERGENCY_REQUEST"],
+    "EMERGENCY_REQUEST": ["EMERGENCY_CONTACT"],
+    "EMERGENCY_CONTACT": ["EMERGENCY_SUMMARY", "EMERGENCY_FAILURE"],
+    "EMERGENCY_SUMMARY": ["EMERGENCY_SUCCESS", "EMERGENCY_FAILURE"],
+    "EMERGENCY_SUCCESS": [],
+    "EMERGENCY_FAILURE": []
+  },
+  "screens": [
+    {
+      "id": "EMERGENCY_INTRO",
+      "title": "Emergency Services",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Emergency healthcare support" },
+        { "type": "TextBody", "text": "Use this flow for urgent ambulance, oxygen, emergency nurse, ICU setup, ventilator or hospital admission support." },
+        { "type": "Footer", "label": "Start", "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "EMERGENCY_REQUEST" }, "payload": {} } }
+      ] }
+    },
+    {
+      "id": "EMERGENCY_REQUEST",
+      "title": "Emergency Need",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "Dropdown", "name": "emergency_type", "label": "Emergency service", "required": true, "data-source": [
+          { "id": "ambulance", "title": "Ambulance", "description": "Emergency or scheduled transport", "metadata": "Transport", "enabled": true },
+          { "id": "doctor_visit", "title": "Doctor Visit", "description": "Urgent doctor consultation", "metadata": "Doctor", "enabled": true },
+          { "id": "emergency_nurse", "title": "Emergency Nurse", "description": "Urgent nursing support", "metadata": "Nurse", "enabled": true },
+          { "id": "icu_setup", "title": "ICU Setup", "description": "Rapid home ICU setup", "metadata": "ICU", "enabled": true },
+          { "id": "oxygen", "title": "Oxygen", "description": "Oxygen concentrator or cylinder", "metadata": "Respiratory", "enabled": true },
+          { "id": "ventilator", "title": "Ventilator", "description": "Ventilator requirement", "metadata": "Respiratory", "enabled": true },
+          { "id": "hospital_admission", "title": "Hospital Admission", "description": "Bed and admission assistance", "metadata": "Admission", "enabled": true }
+        ] },
+        { "type": "TextInput", "name": "patient_name", "label": "Patient name", "required": true, "helper-text": "Patient needing emergency support" },
+        { "type": "TextInput", "name": "location", "label": "Emergency location", "required": true, "helper-text": "Full address or pickup location" },
+        { "type": "TextInput", "name": "city", "label": "City", "required": true, "helper-text": "Emergency city" },
+        { "type": "TextArea", "name": "emergency_context", "label": "Emergency details", "required": true, "helper-text": "Current condition, vitals, transport or oxygen need", "max-length": "600" },
+        { "type": "Footer", "label": "Next", "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "EMERGENCY_CONTACT" }, "payload": {} } }
+      ] }
+    },
+    {
+      "id": "EMERGENCY_CONTACT",
+      "title": "Primary Contact",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextInput", "name": "mobile_number", "label": "Mobile number", "input-type": "phone", "required": true, "helper-text": "Emergency coordination number" },
+        { "type": "TextInput", "name": "alternative_number", "label": "Alternative number", "input-type": "phone", "helper-text": "Backup contact number" },
+        { "type": "RadioButtonsGroup", "name": "hospital_admission_needed", "label": "Hospital admission needed", "required": true, "data-source": [
+          { "id": "yes", "title": "Yes", "description": "Admission assistance required", "metadata": "Admission", "enabled": true },
+          { "id": "no", "title": "No", "description": "Not required at this stage", "metadata": "Admission", "enabled": true }
+        ] },
+        { "type": "Footer", "label": "Review", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "emergency_prepare_summary", "emergency_type": "${screen.EMERGENCY_REQUEST.form.emergency_type}", "patient_name": "${screen.EMERGENCY_REQUEST.form.patient_name}", "location": "${screen.EMERGENCY_REQUEST.form.location}", "city": "${screen.EMERGENCY_REQUEST.form.city}", "emergency_context": "${screen.EMERGENCY_REQUEST.form.emergency_context}", "mobile_number": "${form.mobile_number}", "alternative_number": "${form.alternative_number}", "hospital_admission_needed": "${form.hospital_admission_needed}" } } }
+      ] }
+    },
+    {
+      "id": "EMERGENCY_SUMMARY",
+      "title": "Review Emergency Request",
+      "data": { "summary_markdown": { "type": "string", "__example__": "# Emergency Summary\n- Type: Ambulance\n- City: Chennai\n- Admission: Yes" } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "RichText", "text": "${data.summary_markdown}" },
+        { "type": "Footer", "label": "Submit now", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "submit_emergency_request", "emergency_type": "${screen.EMERGENCY_REQUEST.form.emergency_type}", "patient_name": "${screen.EMERGENCY_REQUEST.form.patient_name}", "location": "${screen.EMERGENCY_REQUEST.form.location}", "city": "${screen.EMERGENCY_REQUEST.form.city}", "emergency_context": "${screen.EMERGENCY_REQUEST.form.emergency_context}", "mobile_number": "${screen.EMERGENCY_CONTACT.form.mobile_number}", "alternative_number": "${screen.EMERGENCY_CONTACT.form.alternative_number}", "hospital_admission_needed": "${screen.EMERGENCY_CONTACT.form.hospital_admission_needed}" } } }
+      ] }
+    },
+    {
+      "id": "EMERGENCY_SUCCESS",
+      "title": "Submitted",
+      "terminal": true,
+      "success": true,
+      "data": { "request_id": { "type": "string", "__example__": "ER-20260807-001" } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Emergency request dispatched" },
+        { "type": "TextCaption", "text": "Reference: ${data.request_id}" },
+        { "type": "Footer", "label": "Done", "on-click-action": { "name": "complete", "payload": { "flow_name": "emergency", "request_id": "${data.request_id}" } } }
+      ] }
+    },
+    {
+      "id": "EMERGENCY_FAILURE",
+      "title": "Submission Error",
+      "terminal": true,
+      "success": false,
+      "data": { "error_message": { "type": "string", "__example__": "Unable to dispatch the emergency request." } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Unable to submit" },
+        { "type": "TextBody", "text": "${data.error_message}" },
+        { "type": "Footer", "label": "Close", "on-click-action": { "name": "complete", "payload": { "flow_name": "emergency", "outcome": "failed" } } }
+      ] }
+    }
+  ]
+}

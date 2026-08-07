@@ -1,0 +1,76 @@
+{
+  "version": "6.2",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "FAQ_INTRO": ["FAQ_TOPIC"],
+    "FAQ_TOPIC": ["FAQ_ANSWER", "FAQ_FAILURE"],
+    "FAQ_ANSWER": ["FAQ_SUCCESS", "FAQ_FAILURE"],
+    "FAQ_SUCCESS": [],
+    "FAQ_FAILURE": []
+  },
+  "screens": [
+    {
+      "id": "FAQ_INTRO",
+      "title": "FAQ",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "InstantCare FAQ" },
+        { "type": "TextBody", "text": "Find answers on serviceability, pricing, staffing, emergency response, documents and billing." },
+        { "type": "Footer", "label": "Start", "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "FAQ_TOPIC" }, "payload": {} } }
+      ] }
+    },
+    {
+      "id": "FAQ_TOPIC",
+      "title": "Select Topic",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "Dropdown", "name": "faq_topic", "label": "FAQ topic", "required": true, "data-source": [
+          { "id": "service_coverage", "title": "Service Coverage", "description": "Cities, pin codes and availability", "metadata": "Coverage", "enabled": true },
+          { "id": "pricing_and_billing", "title": "Pricing and Billing", "description": "Rates, billing models and invoices", "metadata": "Billing", "enabled": true },
+          { "id": "caregiver_qualification", "title": "Caregiver Qualification", "description": "Staffing quality and training", "metadata": "Staff", "enabled": true },
+          { "id": "doctor_and_nurse_response", "title": "Doctor and Nurse Response", "description": "Response time and escalation", "metadata": "Response", "enabled": true },
+          { "id": "equipment_and_documents", "title": "Equipment and Documents", "description": "Prescriptions, reports and equipment approvals", "metadata": "Documents", "enabled": true },
+          { "id": "nri_reporting", "title": "NRI Reporting", "description": "Remote family updates and care summaries", "metadata": "NRI", "enabled": true }
+        ] },
+        { "type": "TextArea", "name": "question_detail", "label": "Question detail", "helper-text": "Optional detail if you need a more precise answer", "max-length": "400" },
+        { "type": "Footer", "label": "Get answer", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "faq_fetch_answer", "faq_topic": "${form.faq_topic}", "question_detail": "${form.question_detail}" } } }
+      ] }
+    },
+    {
+      "id": "FAQ_ANSWER",
+      "title": "Answer",
+      "data": {
+        "answer_markdown": { "type": "string", "__example__": "# FAQ Answer\nInstantCare serviceability is confirmed based on city, pin code, staffing and clinical requirements." },
+        "escalation_note": { "type": "string", "__example__": "If your answer needs human review, submit escalation below." }
+      },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "RichText", "text": "${data.answer_markdown}" },
+        { "type": "TextCaption", "text": "${data.escalation_note}" },
+        { "type": "OptIn", "name": "needs_human_support", "label": "Need a care coordinator follow-up" },
+        { "type": "Footer", "label": "Finish", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "faq_escalate_request", "faq_topic": "${screen.FAQ_TOPIC.form.faq_topic}", "question_detail": "${screen.FAQ_TOPIC.form.question_detail}", "needs_human_support": "${form.needs_human_support}" } } }
+      ] }
+    },
+    {
+      "id": "FAQ_SUCCESS",
+      "title": "Completed",
+      "terminal": true,
+      "success": true,
+      "data": { "message": { "type": "string", "__example__": "Your FAQ session has been completed. If coordinator support was requested, InstantCare will follow up." } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "FAQ completed" },
+        { "type": "TextBody", "text": "${data.message}" },
+        { "type": "Footer", "label": "Done", "on-click-action": { "name": "complete", "payload": { "flow_name": "faq", "faq_topic": "${screen.FAQ_TOPIC.form.faq_topic}" } } }
+      ] }
+    },
+    {
+      "id": "FAQ_FAILURE",
+      "title": "Answer Unavailable",
+      "terminal": true,
+      "success": false,
+      "data": { "error_message": { "type": "string", "__example__": "We could not load the FAQ answer right now." } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Unable to load answer" },
+        { "type": "TextBody", "text": "${data.error_message}" },
+        { "type": "Footer", "label": "Close", "on-click-action": { "name": "complete", "payload": { "flow_name": "faq", "outcome": "failed" } } }
+      ] }
+    }
+  ]
+}

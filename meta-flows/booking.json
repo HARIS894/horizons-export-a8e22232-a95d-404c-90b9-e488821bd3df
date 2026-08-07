@@ -1,0 +1,463 @@
+{
+  "version": "6.2",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "BOOKING_INTRO": ["BOOKING_PATIENT"],
+    "BOOKING_PATIENT": ["BOOKING_CONTACT"],
+    "BOOKING_CONTACT": ["BOOKING_CARE"],
+    "BOOKING_CARE": ["BOOKING_SCHEDULE"],
+    "BOOKING_SCHEDULE": ["BOOKING_SUMMARY", "BOOKING_FAILURE"],
+    "BOOKING_SUMMARY": ["BOOKING_LOADING", "BOOKING_SUCCESS", "BOOKING_FAILURE"],
+    "BOOKING_LOADING": ["BOOKING_SUCCESS", "BOOKING_FAILURE"],
+    "BOOKING_SUCCESS": [],
+    "BOOKING_FAILURE": []
+  },
+  "screens": [
+    {
+      "id": "BOOKING_INTRO",
+      "title": "Book Appointment",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "InstantCare Booking" },
+          { "type": "TextSubheading", "text": "Healthcare service request" },
+          { "type": "TextBody", "text": "Complete the booking flow to schedule a healthcare service, specialist visit, or home-care intervention." },
+          {
+            "type": "Footer",
+            "label": "Start booking",
+            "on-click-action": {
+              "name": "navigate",
+              "next": { "type": "screen", "name": "BOOKING_PATIENT" },
+              "payload": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "BOOKING_PATIENT",
+      "title": "Patient Details",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Patient profile" },
+          { "type": "TextInput", "name": "patient_name", "label": "Patient name", "required": true, "min-chars": "2", "max-chars": "80", "helper-text": "Enter the patient full name" },
+          { "type": "TextInput", "name": "age", "label": "Age", "input-type": "number", "required": true, "helper-text": "0 to 120 years", "pattern": "^(?:[0-9]|[1-9][0-9]|1[01][0-9]|120)$" },
+          {
+            "type": "Dropdown",
+            "name": "gender",
+            "label": "Gender",
+            "required": true,
+            "data-source": [
+              { "id": "male", "title": "Male", "description": "Male patient", "metadata": "Gender", "enabled": true },
+              { "id": "female", "title": "Female", "description": "Female patient", "metadata": "Gender", "enabled": true },
+              { "id": "other", "title": "Other", "description": "Other or undisclosed", "metadata": "Gender", "enabled": true }
+            ]
+          },
+          { "type": "TextInput", "name": "location", "label": "Patient location", "required": true, "helper-text": "Address, locality, or landmark" },
+          { "type": "TextInput", "name": "pin_code", "label": "Pin code", "required": true, "helper-text": "6-digit service pin code", "pattern": "^[1-9][0-9]{5}$" },
+          { "type": "TextInput", "name": "city", "label": "City", "required": true, "helper-text": "Service city" },
+          {
+            "type": "Footer",
+            "label": "Next",
+            "on-click-action": {
+              "name": "navigate",
+              "next": { "type": "screen", "name": "BOOKING_CONTACT" },
+              "payload": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "BOOKING_CONTACT",
+      "title": "Contact Details",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Coordinator contact" },
+          { "type": "TextInput", "name": "mobile_number", "label": "Mobile number", "input-type": "phone", "required": true, "helper-text": "Primary number for updates and confirmation" },
+          { "type": "TextInput", "name": "alternative_number", "label": "Alternative number", "input-type": "phone", "helper-text": "Optional backup contact" },
+          { "type": "TextArea", "name": "patient_condition", "label": "Patient condition", "required": true, "helper-text": "Diagnosis, symptoms, mobility and care requirements", "max-length": "600" },
+          {
+            "type": "Footer",
+            "label": "Next",
+            "on-click-action": {
+              "name": "navigate",
+              "next": { "type": "screen", "name": "BOOKING_CARE" },
+              "payload": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "BOOKING_CARE",
+      "title": "Service Details",
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Required healthcare service" },
+          {
+            "type": "Dropdown",
+            "name": "required_service",
+            "label": "Required service",
+            "required": true,
+            "data-source": [
+              { "id": "home_nursing", "title": "Home Nursing", "description": "Skilled nursing visits and procedures", "metadata": "Nursing", "enabled": true },
+              { "id": "icu_at_home", "title": "ICU at Home", "description": "Critical care staffing and equipment", "metadata": "Critical", "enabled": true },
+              { "id": "elder_care", "title": "Elder Care", "description": "Long-term caregiver and support", "metadata": "Senior", "enabled": true },
+              { "id": "patient_attendant", "title": "Patient Attendant", "description": "Daily attendant and mobility support", "metadata": "Attendant", "enabled": true },
+              { "id": "doctor_visit", "title": "Doctor Visit", "description": "Home visit consultation", "metadata": "Doctor", "enabled": true },
+              { "id": "physiotherapy", "title": "Physiotherapy", "description": "Rehab and pain management", "metadata": "Rehab", "enabled": true },
+              { "id": "lab_test_at_home", "title": "Lab Test at Home", "description": "Sample collection and diagnostics", "metadata": "Diagnostics", "enabled": true },
+              { "id": "medicine_delivery", "title": "Medicine Delivery", "description": "Prescription medicine delivery", "metadata": "Pharmacy", "enabled": true },
+              { "id": "ambulance", "title": "Ambulance", "description": "Emergency or planned transport", "metadata": "Transport", "enabled": true },
+              { "id": "medical_equipment_rental", "title": "Medical Equipment Rental", "description": "Beds, oxygen and clinical equipment", "metadata": "Equipment", "enabled": true },
+              { "id": "injection_service", "title": "Injection Service", "description": "At-home injection support", "metadata": "Procedure", "enabled": true },
+              { "id": "dressing_service", "title": "Dressing Service", "description": "Wound dressing and post-procedure care", "metadata": "Procedure", "enabled": true },
+              { "id": "post_surgery_care", "title": "Post Surgery Care", "description": "Recovery monitoring and nursing care", "metadata": "Recovery", "enabled": true },
+              { "id": "mother_baby_care", "title": "Mother and Baby Care", "description": "Postnatal and newborn support", "metadata": "Maternal", "enabled": true },
+              { "id": "cancer_care", "title": "Cancer Care", "description": "Oncology supportive home care", "metadata": "Oncology", "enabled": true },
+              { "id": "dementia_care", "title": "Dementia Care", "description": "Memory care and safety support", "metadata": "Neuro", "enabled": true },
+              { "id": "parkinson_care", "title": "Parkinson Care", "description": "Mobility and medication support", "metadata": "Neuro", "enabled": true },
+              { "id": "stroke_rehabilitation", "title": "Stroke Rehabilitation", "description": "Neuro rehab and recovery planning", "metadata": "Rehab", "enabled": true },
+              { "id": "bedridden_patient_care", "title": "Bedridden Patient Care", "description": "Pressure care and daily assistance", "metadata": "Dependent", "enabled": true },
+              { "id": "vaccination", "title": "Vaccination", "description": "Home vaccination scheduling", "metadata": "Preventive", "enabled": true },
+              { "id": "dietician_consultation", "title": "Dietician Consultation", "description": "Nutrition and recovery diet planning", "metadata": "Nutrition", "enabled": true },
+              { "id": "teleconsultation", "title": "Teleconsultation", "description": "Remote clinical consultation", "metadata": "Virtual", "enabled": true },
+              { "id": "home_sample_collection", "title": "Home Sample Collection", "description": "Diagnostic sample pickup", "metadata": "Diagnostics", "enabled": true },
+              { "id": "medical_coordinator_support", "title": "Medical Coordinator Support", "description": "Dedicated care coordination", "metadata": "Coordinator", "enabled": true },
+              { "id": "care_plan_management", "title": "Care Plan Management", "description": "Ongoing care roadmap and oversight", "metadata": "Care plan", "enabled": true },
+              { "id": "hospital_admission_assistance", "title": "Hospital Admission Assistance", "description": "Admission coordination and paperwork", "metadata": "Admission", "enabled": true }
+            ]
+          },
+          { "type": "TextInput", "name": "hospital_name", "label": "Hospital", "helper-text": "Optional hospital or facility name" },
+          { "type": "TextInput", "name": "doctor_name", "label": "Doctor name", "helper-text": "Optional treating doctor" },
+          {
+            "type": "RadioButtonsGroup",
+            "name": "emergency",
+            "label": "Emergency?",
+            "required": true,
+            "data-source": [
+              { "id": "yes", "title": "Yes", "description": "Immediate response or rapid escalation required", "metadata": "Emergency", "enabled": true },
+              { "id": "no", "title": "No", "description": "Planned or routine service request", "metadata": "Scheduled", "enabled": true }
+            ]
+          },
+          {
+            "type": "Footer",
+            "label": "Next",
+            "on-click-action": {
+              "name": "navigate",
+              "next": { "type": "screen", "name": "BOOKING_SCHEDULE" },
+              "payload": {}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "BOOKING_SCHEDULE",
+      "title": "Schedule And Documents",
+      "data": {
+        "available_slots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "description": { "type": "string" },
+              "metadata": { "type": "string" },
+              "enabled": { "type": "boolean" }
+            }
+          },
+          "__example__": [
+            { "id": "09:00", "title": "09:00 AM", "description": "Morning slot", "metadata": "IST", "enabled": true },
+            { "id": "11:00", "title": "11:00 AM", "description": "Late morning slot", "metadata": "IST", "enabled": true }
+          ]
+        },
+        "is_slot_visible": {
+          "type": "boolean",
+          "__example__": true
+        },
+        "upload_note": {
+          "type": "string",
+          "__example__": "Secure document upload references can be added if prescription or reports are available."
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Schedule and upload references" },
+          {
+            "type": "DatePicker",
+            "name": "preferred_date",
+            "label": "Preferred date",
+            "required": true,
+            "helper-text": "Choose the preferred service date",
+            "on-select-action": {
+              "name": "data_exchange",
+              "payload": {
+                "flow_action": "booking_fetch_slots",
+                "preferred_date": "${form.preferred_date}",
+                "required_service": "${screen.BOOKING_CARE.form.required_service}",
+                "city": "${screen.BOOKING_PATIENT.form.city}",
+                "pin_code": "${screen.BOOKING_PATIENT.form.pin_code}"
+              }
+            }
+          },
+          {
+            "type": "Dropdown",
+            "name": "preferred_time",
+            "label": "Preferred time",
+            "required": true,
+            "visible": "${data.is_slot_visible}",
+            "data-source": "${data.available_slots}"
+          },
+          { "type": "TextCaption", "text": "${data.upload_note}" },
+          {
+            "type": "RadioButtonsGroup",
+            "name": "payment_mode",
+            "label": "Payment mode",
+            "required": true,
+            "data-source": [
+              { "id": "upi", "title": "UPI", "description": "UPI payment collection", "metadata": "UPI", "enabled": true },
+              { "id": "card", "title": "Card", "description": "Debit or credit card", "metadata": "Card", "enabled": true },
+              { "id": "bank_transfer", "title": "Bank Transfer", "description": "NEFT, IMPS or bank transfer", "metadata": "Bank", "enabled": true },
+              { "id": "cash", "title": "Cash", "description": "Cash on service confirmation where allowed", "metadata": "Cash", "enabled": true },
+              { "id": "corporate", "title": "Corporate Billing", "description": "Corporate or institutional billing", "metadata": "Corporate", "enabled": true }
+            ]
+          },
+          {
+            "type": "OptIn",
+            "name": "has_prescription",
+            "label": "Prescription available for this request"
+          },
+          {
+            "type": "If",
+            "condition": "${form.has_prescription} == true",
+            "then": [
+              {
+                "type": "TextInput",
+                "name": "prescription_upload_reference",
+                "label": "Prescription upload reference",
+                "helper-text": "Enter the secure upload reference issued by InstantCare"
+              }
+            ],
+            "else": [
+              {
+                "type": "TextCaption",
+                "text": "No prescription reference will be attached."
+              }
+            ]
+          },
+          {
+            "type": "OptIn",
+            "name": "has_medical_reports",
+            "label": "Medical reports available"
+          },
+          {
+            "type": "If",
+            "condition": "${form.has_medical_reports} == true",
+            "then": [
+              {
+                "type": "TextInput",
+                "name": "medical_reports_reference",
+                "label": "Medical reports reference",
+                "helper-text": "Enter the secure upload reference for reports"
+              }
+            ],
+            "else": [
+              {
+                "type": "TextCaption",
+                "text": "No medical reports reference will be attached."
+              }
+            ]
+          },
+          { "type": "TextArea", "name": "special_instructions", "label": "Special instructions", "helper-text": "Access notes, infection control, nursing requirements or service restrictions", "max-length": "600" },
+          {
+            "type": "Footer",
+            "label": "Review booking",
+            "on-click-action": {
+              "name": "data_exchange",
+              "payload": {
+                "flow_action": "booking_prepare_summary",
+                "patient_name": "${screen.BOOKING_PATIENT.form.patient_name}",
+                "age": "${screen.BOOKING_PATIENT.form.age}",
+                "gender": "${screen.BOOKING_PATIENT.form.gender}",
+                "location": "${screen.BOOKING_PATIENT.form.location}",
+                "pin_code": "${screen.BOOKING_PATIENT.form.pin_code}",
+                "city": "${screen.BOOKING_PATIENT.form.city}",
+                "mobile_number": "${screen.BOOKING_CONTACT.form.mobile_number}",
+                "alternative_number": "${screen.BOOKING_CONTACT.form.alternative_number}",
+                "patient_condition": "${screen.BOOKING_CONTACT.form.patient_condition}",
+                "required_service": "${screen.BOOKING_CARE.form.required_service}",
+                "hospital_name": "${screen.BOOKING_CARE.form.hospital_name}",
+                "doctor_name": "${screen.BOOKING_CARE.form.doctor_name}",
+                "emergency": "${screen.BOOKING_CARE.form.emergency}",
+                "preferred_date": "${form.preferred_date}",
+                "preferred_time": "${form.preferred_time}",
+                "payment_mode": "${form.payment_mode}",
+                "has_prescription": "${form.has_prescription}",
+                "prescription_upload_reference": "${form.prescription_upload_reference}",
+                "has_medical_reports": "${form.has_medical_reports}",
+                "medical_reports_reference": "${form.medical_reports_reference}",
+                "special_instructions": "${form.special_instructions}"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "BOOKING_SUMMARY",
+      "title": "Booking Summary",
+      "refresh_on_back": true,
+      "data": {
+        "summary_markdown": {
+          "type": "string",
+          "__example__": "# Booking Summary\n- Patient: Arun Kumar\n- Service: Home Nursing\n- Date: 2026-08-10\n- Time: 09:00 AM\n- Emergency: No"
+        },
+        "confirmation_note": {
+          "type": "string",
+          "__example__": "Review the request carefully before submission."
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Confirm booking" },
+          { "type": "RichText", "text": "${data.summary_markdown}" },
+          { "type": "TextCaption", "text": "${data.confirmation_note}" },
+          {
+            "type": "Footer",
+            "label": "Submit booking",
+            "on-click-action": {
+              "name": "data_exchange",
+              "payload": {
+                "flow_action": "submit_booking_request",
+                "patient_name": "${screen.BOOKING_PATIENT.form.patient_name}",
+                "age": "${screen.BOOKING_PATIENT.form.age}",
+                "gender": "${screen.BOOKING_PATIENT.form.gender}",
+                "location": "${screen.BOOKING_PATIENT.form.location}",
+                "pin_code": "${screen.BOOKING_PATIENT.form.pin_code}",
+                "city": "${screen.BOOKING_PATIENT.form.city}",
+                "mobile_number": "${screen.BOOKING_CONTACT.form.mobile_number}",
+                "alternative_number": "${screen.BOOKING_CONTACT.form.alternative_number}",
+                "patient_condition": "${screen.BOOKING_CONTACT.form.patient_condition}",
+                "required_service": "${screen.BOOKING_CARE.form.required_service}",
+                "hospital_name": "${screen.BOOKING_CARE.form.hospital_name}",
+                "doctor_name": "${screen.BOOKING_CARE.form.doctor_name}",
+                "emergency": "${screen.BOOKING_CARE.form.emergency}",
+                "preferred_date": "${screen.BOOKING_SCHEDULE.form.preferred_date}",
+                "preferred_time": "${screen.BOOKING_SCHEDULE.form.preferred_time}",
+                "payment_mode": "${screen.BOOKING_SCHEDULE.form.payment_mode}",
+                "has_prescription": "${screen.BOOKING_SCHEDULE.form.has_prescription}",
+                "prescription_upload_reference": "${screen.BOOKING_SCHEDULE.form.prescription_upload_reference}",
+                "has_medical_reports": "${screen.BOOKING_SCHEDULE.form.has_medical_reports}",
+                "medical_reports_reference": "${screen.BOOKING_SCHEDULE.form.medical_reports_reference}",
+                "special_instructions": "${screen.BOOKING_SCHEDULE.form.special_instructions}"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "BOOKING_LOADING",
+      "title": "Booking In Progress",
+      "data": {
+        "status_message": {
+          "type": "string",
+          "__example__": "We are assigning a coordinator and validating service availability."
+        },
+        "booking_request_id": {
+          "type": "string",
+          "__example__": "BK-20260807-001"
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Processing booking" },
+          { "type": "TextBody", "text": "${data.status_message}" },
+          { "type": "TextCaption", "text": "Reference: ${data.booking_request_id}" },
+          {
+            "type": "Footer",
+            "label": "Refresh status",
+            "on-click-action": {
+              "name": "data_exchange",
+              "payload": {
+                "flow_action": "refresh_booking_status",
+                "booking_request_id": "${data.booking_request_id}"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "BOOKING_SUCCESS",
+      "title": "Booking Confirmed",
+      "terminal": true,
+      "success": true,
+      "data": {
+        "booking_request_id": { "type": "string", "__example__": "BK-20260807-001" },
+        "success_markdown": { "type": "string", "__example__": "# Booking Confirmed\n- Coordinator: Priya Menon\n- Callback window: 15 minutes\n- Reference: BK-20260807-001" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Booking confirmed" },
+          { "type": "RichText", "text": "${data.success_markdown}" },
+          {
+            "type": "Footer",
+            "label": "Done",
+            "on-click-action": {
+              "name": "complete",
+              "payload": {
+                "flow_name": "booking",
+                "booking_request_id": "${data.booking_request_id}",
+                "required_service": "${screen.BOOKING_CARE.form.required_service}",
+                "patient_name": "${screen.BOOKING_PATIENT.form.patient_name}",
+                "preferred_date": "${screen.BOOKING_SCHEDULE.form.preferred_date}",
+                "preferred_time": "${screen.BOOKING_SCHEDULE.form.preferred_time}"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "BOOKING_FAILURE",
+      "title": "Booking Issue",
+      "terminal": true,
+      "success": false,
+      "data": {
+        "error_title": { "type": "string", "__example__": "Unable to complete booking" },
+        "error_message": { "type": "string", "__example__": "Service capacity or required data validation failed." },
+        "next_step": { "type": "string", "__example__": "InstantCare can retry this request through a coordinator callback." }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "${data.error_title}" },
+          { "type": "TextBody", "text": "${data.error_message}" },
+          { "type": "TextCaption", "text": "${data.next_step}" },
+          {
+            "type": "Footer",
+            "label": "Close",
+            "on-click-action": {
+              "name": "complete",
+              "payload": {
+                "flow_name": "booking",
+                "outcome": "failed"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

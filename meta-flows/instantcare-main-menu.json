@@ -1,0 +1,179 @@
+{
+  "version": "6.2",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "MAIN_MENU": ["MAIN_MENU_SUMMARY", "MAIN_MENU_FAILURE"],
+    "MAIN_MENU_SUMMARY": ["MAIN_MENU_SUCCESS", "MAIN_MENU_FAILURE"],
+    "MAIN_MENU_SUCCESS": [],
+    "MAIN_MENU_FAILURE": []
+  },
+  "screens": [
+    {
+      "id": "MAIN_MENU",
+      "title": "InstantCare Main Menu",
+      "data": {
+        "menu_intro": {
+          "type": "string",
+          "__example__": "Select the healthcare journey you need right now."
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "InstantCare Healthcare" },
+          { "type": "TextSubheading", "text": "Choose a care journey" },
+          { "type": "TextBody", "text": "${data.menu_intro}", "markdown": true },
+          {
+            "type": "RadioButtonsGroup",
+            "name": "journey",
+            "label": "Main menu",
+            "description": "Select one healthcare path to continue",
+            "required": true,
+            "data-source": [
+              { "id": "healthcare_services", "title": "Healthcare Services", "description": "Home care, rehab, elder support and specialty care", "metadata": "Core services", "enabled": true },
+              { "id": "emergency_services", "title": "Emergency Services", "description": "Ambulance, oxygen, ICU setup and admission help", "metadata": "Urgent", "enabled": true },
+              { "id": "health_checkups", "title": "Health Checkups", "description": "Preventive, executive and diagnostic packages", "metadata": "Packages", "enabled": true },
+              { "id": "book_appointment", "title": "Book Appointment", "description": "Schedule nursing, doctor, rehab or procedures", "metadata": "Booking", "enabled": true },
+              { "id": "existing_booking", "title": "Existing Booking", "description": "Reschedule, update or review an open care request", "metadata": "Support", "enabled": true },
+              { "id": "talk_to_care_coordinator", "title": "Talk to Care Coordinator", "description": "Live care planning and service matching", "metadata": "Coordinator", "enabled": true },
+              { "id": "talk_to_doctor", "title": "Talk to Doctor", "description": "Doctor visit or teleconsultation request", "metadata": "Doctor", "enabled": true },
+              { "id": "senior_citizen_care", "title": "Senior Citizen Care", "description": "Long-duration elder care and companion support", "metadata": "Eldercare", "enabled": true },
+              { "id": "medical_equipment", "title": "Medical Equipment", "description": "Beds, oxygen, wheelchairs and ICU equipment", "metadata": "Equipment", "enabled": true },
+              { "id": "nri_family_support", "title": "NRI Family Support", "description": "Remote care oversight and family updates", "metadata": "NRI", "enabled": true },
+              { "id": "cancer_care", "title": "Cancer Care", "description": "Oncology home support and infusion coordination", "metadata": "Specialty", "enabled": true },
+              { "id": "home_icu", "title": "Home ICU", "description": "Critical care setup, monitoring and clinical teams", "metadata": "Critical", "enabled": true },
+              { "id": "patient_attendant", "title": "Patient Attendant", "description": "Attendant support for daily care and mobility", "metadata": "Attendant", "enabled": true },
+              { "id": "contact_support", "title": "Contact Support", "description": "Service desk, callback, and operational help", "metadata": "Support", "enabled": true },
+              { "id": "faq", "title": "FAQ", "description": "Policies, coverage, timelines and service FAQs", "metadata": "FAQ", "enabled": true }
+            ]
+          },
+          {
+            "type": "TextArea",
+            "name": "brief_context",
+            "label": "Brief requirement",
+            "helper-text": "Short note for triage and coordinator routing",
+            "max-length": "400"
+          },
+          {
+            "type": "Footer",
+            "label": "Continue",
+            "on-click-action": {
+              "name": "data_exchange",
+              "payload": {
+                "flow_action": "resolve_main_menu",
+                "journey": "${form.journey}",
+                "brief_context": "${form.brief_context}"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "MAIN_MENU_SUMMARY",
+      "title": "Request Summary",
+      "refresh_on_back": true,
+      "data": {
+        "summary_markdown": {
+          "type": "string",
+          "__example__": "# InstantCare Request\n- Journey: Healthcare Services\n- Next step: Coordinator triage"
+        },
+        "next_step": {
+          "type": "string",
+          "__example__": "A care coordinator will review and route this request."
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Review your request" },
+          { "type": "RichText", "text": "${data.summary_markdown}" },
+          { "type": "TextCaption", "text": "${data.next_step}" },
+          {
+            "type": "Footer",
+            "label": "Submit",
+            "on-click-action": {
+              "name": "data_exchange",
+              "payload": {
+                "flow_action": "submit_main_menu_request",
+                "journey": "${screen.MAIN_MENU.form.journey}",
+                "brief_context": "${screen.MAIN_MENU.form.brief_context}"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "MAIN_MENU_SUCCESS",
+      "title": "Request Submitted",
+      "terminal": true,
+      "success": true,
+      "data": {
+        "request_id": {
+          "type": "string",
+          "__example__": "MC-20260807-001"
+        },
+        "success_message": {
+          "type": "string",
+          "__example__": "Your healthcare request has been submitted to InstantCare operations."
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Request submitted" },
+          { "type": "TextBody", "text": "${data.success_message}" },
+          { "type": "TextCaption", "text": "Reference: ${data.request_id}" },
+          {
+            "type": "Footer",
+            "label": "Done",
+            "on-click-action": {
+              "name": "complete",
+              "payload": {
+                "flow_name": "instantcare-main-menu",
+                "request_id": "${data.request_id}",
+                "journey": "${screen.MAIN_MENU.form.journey}"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "MAIN_MENU_FAILURE",
+      "title": "Unable to Submit",
+      "terminal": true,
+      "success": false,
+      "data": {
+        "error_message": {
+          "type": "string",
+          "__example__": "We could not route your request right now."
+        },
+        "fallback_message": {
+          "type": "string",
+          "__example__": "Please retry or request a callback from the InstantCare coordinator desk."
+        }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Submission issue" },
+          { "type": "TextBody", "text": "${data.error_message}" },
+          { "type": "TextCaption", "text": "${data.fallback_message}" },
+          {
+            "type": "Footer",
+            "label": "Close",
+            "on-click-action": {
+              "name": "complete",
+              "payload": {
+                "flow_name": "instantcare-main-menu",
+                "outcome": "failed"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

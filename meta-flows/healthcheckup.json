@@ -1,0 +1,94 @@
+{
+  "version": "6.2",
+  "data_api_version": "3.0",
+  "routing_model": {
+    "HCHECK_INTRO": ["HCHECK_PACKAGE"],
+    "HCHECK_PACKAGE": ["HCHECK_DETAILS"],
+    "HCHECK_DETAILS": ["HCHECK_SUMMARY", "HCHECK_FAILURE"],
+    "HCHECK_SUMMARY": ["HCHECK_SUCCESS", "HCHECK_FAILURE"],
+    "HCHECK_SUCCESS": [],
+    "HCHECK_FAILURE": []
+  },
+  "screens": [
+    {
+      "id": "HCHECK_INTRO",
+      "title": "Health Checkups",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Health checkup packages" },
+        { "type": "TextBody", "text": "Choose the right preventive or diagnostic package and request home collection or center coordination." },
+        { "type": "Footer", "label": "Start", "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "HCHECK_PACKAGE" }, "payload": {} } }
+      ] }
+    },
+    {
+      "id": "HCHECK_PACKAGE",
+      "title": "Select Package",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "Dropdown", "name": "package_name", "label": "Checkup package", "required": true, "data-source": [
+          { "id": "basic_checkup", "title": "Basic Checkup", "description": "General preventive package", "metadata": "Basic", "enabled": true },
+          { "id": "executive_checkup", "title": "Executive Checkup", "description": "Comprehensive executive screening", "metadata": "Executive", "enabled": true },
+          { "id": "female_package", "title": "Female Package", "description": "Women-focused preventive screening", "metadata": "Female", "enabled": true },
+          { "id": "male_package", "title": "Male Package", "description": "Men-focused preventive screening", "metadata": "Male", "enabled": true },
+          { "id": "senior_citizen_package", "title": "Senior Citizen Package", "description": "Age-sensitive preventive screening", "metadata": "Senior", "enabled": true },
+          { "id": "cancer_screening", "title": "Cancer Screening", "description": "Cancer risk and screening package", "metadata": "Oncology", "enabled": true },
+          { "id": "heart_screening", "title": "Heart Screening", "description": "Cardiac diagnostics package", "metadata": "Cardiac", "enabled": true },
+          { "id": "diabetes_package", "title": "Diabetes Package", "description": "Diabetes monitoring profile", "metadata": "Endocrine", "enabled": true },
+          { "id": "liver_package", "title": "Liver Package", "description": "Liver profile and monitoring", "metadata": "Liver", "enabled": true },
+          { "id": "kidney_package", "title": "Kidney Package", "description": "Renal screening and profile", "metadata": "Kidney", "enabled": true },
+          { "id": "vitamin_package", "title": "Vitamin Package", "description": "Vitamin deficiency profile", "metadata": "Vitamin", "enabled": true },
+          { "id": "custom_package", "title": "Custom Package", "description": "Coordinator-built test panel", "metadata": "Custom", "enabled": true }
+        ] },
+        { "type": "RadioButtonsGroup", "name": "collection_mode", "label": "Collection mode", "required": true, "data-source": [
+          { "id": "home_sample_collection", "title": "Home Sample Collection", "description": "Collection from patient location", "metadata": "Home", "enabled": true },
+          { "id": "visit_diagnostic_center", "title": "Visit Diagnostic Center", "description": "Schedule center visit", "metadata": "Center", "enabled": true }
+        ] },
+        { "type": "Footer", "label": "Next", "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "HCHECK_DETAILS" }, "payload": {} } }
+      ] }
+    },
+    {
+      "id": "HCHECK_DETAILS",
+      "title": "Patient Details",
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextInput", "name": "patient_name", "label": "Patient name", "required": true, "helper-text": "Name for test booking" },
+        { "type": "TextInput", "name": "age", "label": "Age", "input-type": "number", "required": true, "helper-text": "Age in years", "pattern": "^(?:[0-9]|[1-9][0-9]|1[01][0-9]|120)$" },
+        { "type": "TextInput", "name": "city", "label": "City", "required": true, "helper-text": "Service city" },
+        { "type": "TextInput", "name": "mobile_number", "label": "Mobile number", "input-type": "phone", "required": true, "helper-text": "Primary contact" },
+        { "type": "DatePicker", "name": "preferred_date", "label": "Preferred date", "required": true, "helper-text": "Preferred sample collection or visit date" },
+        { "type": "TextArea", "name": "special_instructions", "label": "Special instructions", "helper-text": "Fasting requirement, morning slot, mobility support or package customization note", "max-length": "400" },
+        { "type": "Footer", "label": "Review", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "healthcheckup_prepare_summary", "package_name": "${screen.HCHECK_PACKAGE.form.package_name}", "collection_mode": "${screen.HCHECK_PACKAGE.form.collection_mode}", "patient_name": "${form.patient_name}", "age": "${form.age}", "city": "${form.city}", "mobile_number": "${form.mobile_number}", "preferred_date": "${form.preferred_date}", "special_instructions": "${form.special_instructions}" } } }
+      ] }
+    },
+    {
+      "id": "HCHECK_SUMMARY",
+      "title": "Summary",
+      "data": { "summary_markdown": { "type": "string", "__example__": "# Health Checkup Summary\n- Package: Executive Checkup\n- Collection: Home Sample Collection\n- Date: 2026-08-10" } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "RichText", "text": "${data.summary_markdown}" },
+        { "type": "Footer", "label": "Submit", "on-click-action": { "name": "data_exchange", "payload": { "flow_action": "submit_healthcheckup_request", "package_name": "${screen.HCHECK_PACKAGE.form.package_name}", "collection_mode": "${screen.HCHECK_PACKAGE.form.collection_mode}", "patient_name": "${screen.HCHECK_DETAILS.form.patient_name}", "age": "${screen.HCHECK_DETAILS.form.age}", "city": "${screen.HCHECK_DETAILS.form.city}", "mobile_number": "${screen.HCHECK_DETAILS.form.mobile_number}", "preferred_date": "${screen.HCHECK_DETAILS.form.preferred_date}", "special_instructions": "${screen.HCHECK_DETAILS.form.special_instructions}" } } }
+      ] }
+    },
+    {
+      "id": "HCHECK_SUCCESS",
+      "title": "Submitted",
+      "terminal": true,
+      "success": true,
+      "data": { "request_id": { "type": "string", "__example__": "HCU-20260807-001" } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Checkup request submitted" },
+        { "type": "TextCaption", "text": "Reference: ${data.request_id}" },
+        { "type": "Footer", "label": "Done", "on-click-action": { "name": "complete", "payload": { "flow_name": "healthcheckup", "request_id": "${data.request_id}" } } }
+      ] }
+    },
+    {
+      "id": "HCHECK_FAILURE",
+      "title": "Submission Error",
+      "terminal": true,
+      "success": false,
+      "data": { "error_message": { "type": "string", "__example__": "Unable to submit the package request." } },
+      "layout": { "type": "SingleColumnLayout", "children": [
+        { "type": "TextHeading", "text": "Unable to submit" },
+        { "type": "TextBody", "text": "${data.error_message}" },
+        { "type": "Footer", "label": "Close", "on-click-action": { "name": "complete", "payload": { "flow_name": "healthcheckup", "outcome": "failed" } } }
+      ] }
+    }
+  ]
+}
