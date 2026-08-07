@@ -57,6 +57,15 @@ const toErrorDetails = (error) => {
   return { error: 'Unknown error' };
 };
 
+const isMissingColumnError = (error) => {
+  const code = error?.code || error?.details?.code || null;
+  const message = error?.message || error?.details?.message || '';
+
+  return code === '42703'
+    || code === 'PGRST204'
+    || /column/i.test(message);
+};
+
 const buildNotificationPayload = ({ recipientUserId, patientId, appointmentId, subject, message, metadata }) => ({
   recipient_user_id: recipientUserId || null,
   patient_id: patientId || null,
@@ -87,9 +96,6 @@ const buildWhatsAppLogPayload = ({
   direction = 'outbound',
   webhookPayload = {},
   providerResponse = {},
-  sentAt = null,
-  deliveredAt = null,
-  readAt = null,
 }) => ({
   notification_id: notificationId || null,
   patient_id: patientId || null,
@@ -111,9 +117,6 @@ const buildWhatsAppLogPayload = ({
   direction,
   webhook_payload: webhookPayload,
   provider_response: providerResponse,
-  sent_at: sentAt,
-  delivered_at: deliveredAt,
-  read_at: readAt,
 });
 
 const parseWebhookPayload = (payload) => {
@@ -378,18 +381,33 @@ const sendViaWhatsappCloud = async ({ to, body, context = {} }) => {
   }
 };
 
-const createOutboundNotification = async ({ recipientUserId, patientId, appointmentId, subject, message, metadata }) => (
-  resourceServices.notifications.create(
-    buildNotificationPayload({
-      recipientUserId,
-      patientId,
-      appointmentId,
+const createOutboundNotification = async ({ recipientUserId, patientId, appointmentId, subject, message, metadata }) => {
+  try {
+    return await resourceServices.notifications.create(
+      buildNotificationPayload({
+        recipientUserId,
+        patientId,
+        appointmentId,
+        subject,
+        message,
+        metadata,
+      }),
+    );
+  } catch (error) {
+    if (!isMissingColumnError(error)) {
+      throw error;
+    }
+
+    logWhatsapp('warn', 'NOTIFICATION SAVE SKIPPED', {
       subject,
-      message,
-      metadata,
-    }),
-  )
-);
+      reason: 'notification-schema-mismatch',
+      error: error.message,
+      details: error.details,
+    });
+
+    return null;
+  }
+};
 
 const createOutboundLogFromDelivery = async ({
   notification,
@@ -411,7 +429,7 @@ const createOutboundLogFromDelivery = async ({
   const canRetry = error ? attemptCount < env.whatsappMaxRetries : false;
 
   const logPayload = buildWhatsAppLogPayload({
-    notificationId: notification.id,
+    notificationId: notification?.id || null,
     patientId,
     appointmentId,
     invoiceId,
@@ -438,7 +456,7 @@ const createOutboundLogFromDelivery = async ({
   logWhatsapp('info', 'OUTBOUND SAVED', {
     templateType,
     recipientPhone,
-    notificationId: notification.id,
+    notificationId: notification?.id || null,
     whatsappLogId: log.id,
     status: log.status,
     providerMessageId,
@@ -448,6 +466,10 @@ const createOutboundLogFromDelivery = async ({
 };
 
 const updateNotificationFromDelivery = async ({ notification, delivery, error }) => {
+  if (!notification?.id) {
+    return null;
+  }
+
   const providerMessageId = getProviderMessageId(delivery);
   const sentAt = delivery?.sent ? nowIso() : null;
 
@@ -511,7 +533,7 @@ const deliverOutboundMessage = async ({
       body: messageBody,
       context: {
         templateType,
-        notificationId: notification.id,
+        notificationId: notification?.id || null,
       },
     });
   } catch (error) {
@@ -578,7 +600,6 @@ const ensureInboundLog = async ({ message, value }) => {
         rawMessage: message,
       },
       providerResponse: value || {},
-      readAt: nowIso(),
     }),
   );
 
@@ -636,7 +657,6 @@ const buildRetryOutcome = ({ log, delivery, error }) => {
       attempt_count: attemptCount,
       last_error: null,
       next_retry_at: null,
-      sent_at: sentAt,
       provider_message_id: providerMessageId,
       provider_response: delivery.response,
     },
@@ -681,7 +701,6 @@ const processStatusUpdate = async (statusEnvelope, summary) => {
     whatsappLogPayload: {
       status: mappedStatus,
       provider_response: status,
-      ...timestamps,
     },
   });
 
