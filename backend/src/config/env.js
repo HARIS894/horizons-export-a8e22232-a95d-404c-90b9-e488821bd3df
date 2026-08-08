@@ -7,6 +7,8 @@ const toNumber = (value, fallback) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+const normalizeMultilineSecret = (value) => (value ? value.replace(/\\n/g, '\n') : '');
+
 const normalizeSupabaseUrl = (value) => {
   if (!value) {
     return '';
@@ -45,6 +47,11 @@ export const env = {
   whatsappBusinessAccountId: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID || '',
   whatsappApiVersion: process.env.WHATSAPP_API_VERSION || 'v20.0',
   whatsappWebhookVerifyToken: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || '',
+  whatsappFlowAppSecret: process.env.WHATSAPP_FLOW_APP_SECRET || '',
+  whatsappFlowAppSecretPrevious: process.env.WHATSAPP_FLOW_APP_SECRET_PREVIOUS || '',
+  whatsappFlowPrivateKey: normalizeMultilineSecret(process.env.WHATSAPP_FLOW_PRIVATE_KEY || ''),
+  whatsappFlowPrivateKeyPassphrase: process.env.WHATSAPP_FLOW_PRIVATE_KEY_PASSPHRASE || '',
+  whatsappFlowRequestPrefix: process.env.WHATSAPP_FLOW_REQUEST_PREFIX || 'MC',
   whatsappMaxRetries: toNumber(process.env.WHATSAPP_MAX_RETRIES, 3),
   whatsappRetryDelayMinutes: toNumber(process.env.WHATSAPP_RETRY_DELAY_MINUTES, 10),
   demoAdminEmail: process.env.DEMO_ADMIN_EMAIL || 'admin@instantcare.com',

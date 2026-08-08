@@ -66,6 +66,15 @@ All flows are intended to use the WhatsApp Flows Data Endpoint with `data_exchan
 ### Core Endpoint
 
 - `POST /api/v1/flows/meta`
+- Production endpoint URI for the published InstantCare flow: `https://instantcare.in/api/v1/flows/meta`
+
+### Required Backend Environment Variables
+
+- `WHATSAPP_FLOW_APP_SECRET`: Meta app secret used to validate `X-Hub-Signature-256`
+- `WHATSAPP_FLOW_APP_SECRET_PREVIOUS`: optional fallback secret during app-secret rotation
+- `WHATSAPP_FLOW_PRIVATE_KEY`: PEM private key matching the public key uploaded for the WABA Flow endpoint
+- `WHATSAPP_FLOW_PRIVATE_KEY_PASSPHRASE`: optional passphrase for encrypted PEM keys
+- `WHATSAPP_FLOW_REQUEST_PREFIX`: optional business reference prefix, defaults to `MC`
 
 ### Required Request Envelope
 
@@ -218,6 +227,12 @@ All flows are intended to use the WhatsApp Flows Data Endpoint with `data_exchan
 - Support idempotent completion handling.
 - Emit audit logs for every `data_exchange` and completion event.
 - Apply rate limits and abuse detection for emergency and callback flows.
+
+## InstantCare Main Menu Endpoint Notes
+
+- `resolve_main_menu` returns `MAIN_MENU_SUMMARY` with a rendered request summary and coordinator next-step text.
+- `submit_main_menu_request` creates an InstantCare reference ID, persists an operational notification record, and returns `MAIN_MENU_SUCCESS`.
+- Business failures fall back to `MAIN_MENU_FAILURE` while transport failures still return Meta-compatible HTTP error codes.
 
 ## Validation Rules
 

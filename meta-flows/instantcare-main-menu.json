@@ -52,7 +52,7 @@
             "name": "brief_context",
             "label": "Brief requirement",
             "helper-text": "Short note for triage and coordinator routing",
-            "max-length": "400"
+            "max-length": 400
           },
           {
             "type": "Footer",
@@ -87,7 +87,7 @@
         "type": "SingleColumnLayout",
         "children": [
           { "type": "TextHeading", "text": "Review your request" },
-          { "type": "RichText", "text": "${data.summary_markdown}" },
+          { "type": "TextBody", "text": "${data.summary_markdown}", "markdown": true },
           { "type": "TextCaption", "text": "${data.next_step}" },
           {
             "type": "Footer",
