@@ -240,6 +240,39 @@ export const instantcareApi = {
     return request('/whatsapp/logs', { query: normalizedQuery });
   },
 
+  async listWhatsappConversations(query = {}) {
+    const normalizedQuery = {
+      page: query.page || 1,
+      limit: query.limit || 25,
+      sortBy: query.sortBy || 'last_message_at',
+      sortOrder: query.sortOrder || 'desc',
+    };
+
+    if (query.search) {
+      normalizedQuery.search = query.search;
+    }
+
+    return request('/whatsapp/conversations', { query: normalizedQuery });
+  },
+
+  async getWhatsappConversationMessages(conversationId, query = {}) {
+    return request(`/whatsapp/conversations/${conversationId}/messages`, {
+      query: {
+        page: query.page || 1,
+        limit: query.limit || 25,
+        sortBy: query.sortBy || 'created_at',
+        sortOrder: query.sortOrder || 'desc',
+      },
+    });
+  },
+
+  async createWhatsappContact(payload) {
+    return request('/whatsapp/contacts', {
+      method: 'POST',
+      body: payload,
+    });
+  },
+
   async getWhatsappLogById(id) {
     return request(`/whatsapp/logs/${id}`);
   },

@@ -4,6 +4,7 @@ import {
   Loader2,
   MessageSquareText,
   Phone,
+  Plus,
   RefreshCw,
   RotateCcw,
   Search,
@@ -13,12 +14,21 @@ import { instantcareApi } from '@/api/instantcareApi';
 import { GlassPanel } from '@/components/admin/AdminDashboardSections';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 
-const CONVERSATION_LOG_PAGE_SIZE = 80;
+const CONVERSATION_PAGE_SIZE = 50;
 const MESSAGE_PAGE_SIZE = 25;
 
 const getLogTimestamp = (log) => log?.created_at || log?.createdAt || log?.updated_at || log?.updatedAt || null;
@@ -62,58 +72,18 @@ const sortLogsAscending = (logs) => {
   });
 };
 
-const buildConversationSummaries = (logs) => {
-  const grouped = new Map();
-
-  logs.forEach((log) => {
-    const phone = String(log?.recipient_phone || '').trim();
-    if (!phone) {
-      return;
-    }
-
-    const timestamp = getLogTimestamp(log);
-    const existing = grouped.get(phone);
-
-    if (!existing) {
-      grouped.set(phone, {
-        phone,
-        latestLog: log,
-        lastMessageAt: timestamp,
-        lastMessagePreview: getPreviewText(log),
-        latestDirection: log?.direction || 'outbound',
-        latestStatus: log?.status || null,
-      });
-      return;
-    }
-
-    const existingTime = new Date(existing.lastMessageAt || 0).getTime();
-    const currentTime = new Date(timestamp || 0).getTime();
-
-    if (currentTime >= existingTime) {
-      grouped.set(phone, {
-        ...existing,
-        latestLog: log,
-        lastMessageAt: timestamp,
-        lastMessagePreview: getPreviewText(log),
-        latestDirection: log?.direction || existing.latestDirection,
-        latestStatus: log?.status || existing.latestStatus,
-      });
-    }
-  });
-
-  return [...grouped.values()].sort((left, right) => {
-    const leftTime = new Date(left.lastMessageAt || 0).getTime();
-    const rightTime = new Date(right.lastMessageAt || 0).getTime();
-    return rightTime - leftTime;
-  });
-};
-
 const getFriendlyError = (error, fallback) => {
   if (typeof error?.message === 'string' && error.message.trim()) {
     return error.message;
   }
 
   return fallback;
+};
+
+const emptyClientForm = {
+  name: '',
+  phoneNumber: '',
+  notes: '',
 };
 
 const MessageBubble = ({ log, onRetry, retryingId }) => {
@@ -157,10 +127,12 @@ const MessageBubble = ({ log, onRetry, retryingId }) => {
 };
 
 const ConversationListItem = ({ conversation, isActive, onSelect }) => {
+  const unreadCount = Number(conversation?.unread_count || 0);
+
   return (
     <button
       type="button"
-      onClick={() => onSelect(conversation.phone)}
+      onClick={() => onSelect(conversation.id)}
       className={cn(
         'w-full rounded-[22px] border p-4 text-left transition-colors',
         isActive
@@ -170,14 +142,20 @@ const ConversationListItem = ({ conversation, isActive, onSelect }) => {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate font-semibold text-slate-950 dark:text-white">{conversation.phone}</p>
-          <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">{conversation.lastMessagePreview}</p>
+          <p className="truncate font-semibold text-slate-950 dark:text-white">{conversation.display_name}</p>
+          <p className="mt-1 truncate text-xs text-slate-400 dark:text-slate-500">{conversation.phone_number}</p>
+          <p className="mt-2 truncate text-sm text-slate-500 dark:text-slate-400">{conversation.last_message_preview || 'No messages yet'}</p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-xs text-slate-500 dark:text-slate-400">{formatConversationTime(conversation.lastMessageAt)}</p>
-          {conversation.latestDirection === 'inbound' ? (
+          <p className="text-xs text-slate-500 dark:text-slate-400">{formatConversationTime(conversation.last_message_at)}</p>
+          {conversation.latest_log?.direction === 'inbound' ? (
             <Badge variant="outline" className="mt-2 rounded-full border-cyan-300 bg-cyan-500/10 px-2 py-0 text-[10px] font-medium uppercase tracking-[0.18em] text-cyan-700 dark:border-cyan-800 dark:text-cyan-200">
               Incoming
+            </Badge>
+          ) : null}
+          {unreadCount > 0 ? (
+            <Badge className="mt-2 rounded-full bg-rose-500 px-2 py-0 text-[10px] font-medium text-white hover:bg-rose-500">
+              {unreadCount} new
             </Badge>
           ) : null}
         </div>
@@ -190,12 +168,13 @@ const WhatsAppInbox = () => {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search.trim());
-  const [conversationLogs, setConversationLogs] = useState([]);
+  const [conversations, setConversations] = useState([]);
   const [conversationPage, setConversationPage] = useState(1);
-  const [conversationMeta, setConversationMeta] = useState({ page: 1, limit: CONVERSATION_LOG_PAGE_SIZE, total: 0 });
+  const [conversationMeta, setConversationMeta] = useState({ page: 1, limit: CONVERSATION_PAGE_SIZE, total: 0 });
   const [conversationLoading, setConversationLoading] = useState(false);
   const [conversationError, setConversationError] = useState('');
-  const [selectedPhone, setSelectedPhone] = useState('');
+  const [selectedConversationId, setSelectedConversationId] = useState('');
+  const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messagePage, setMessagePage] = useState(1);
   const [messageMeta, setMessageMeta] = useState({ page: 1, limit: MESSAGE_PAGE_SIZE, total: 0 });
@@ -205,23 +184,21 @@ const WhatsAppInbox = () => {
   const [sending, setSending] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [retryingId, setRetryingId] = useState('');
-  const conversationLogsRef = useRef([]);
-  const selectedPhoneRef = useRef('');
+  const [isAddClientOpen, setIsAddClientOpen] = useState(false);
+  const [clientForm, setClientForm] = useState(emptyClientForm);
+  const [savingClient, setSavingClient] = useState(false);
+  const conversationsRef = useRef([]);
+  const selectedConversationIdRef = useRef('');
 
-  const conversations = useMemo(() => buildConversationSummaries(conversationLogs), [conversationLogs]);
-  const selectedConversation = useMemo(
-    () => conversations.find((conversation) => conversation.phone === selectedPhone) || null,
-    [conversations, selectedPhone],
-  );
   const orderedMessages = useMemo(() => sortLogsAscending(messages), [messages]);
 
   useEffect(() => {
-    conversationLogsRef.current = conversationLogs;
-  }, [conversationLogs]);
+    conversationsRef.current = conversations;
+  }, [conversations]);
 
   useEffect(() => {
-    selectedPhoneRef.current = selectedPhone;
-  }, [selectedPhone]);
+    selectedConversationIdRef.current = selectedConversationId;
+  }, [selectedConversationId]);
 
   const loadConversationList = useCallback(async ({ page = 1, append = false, keepSelection = true } = {}) => {
     if (!append) {
@@ -230,28 +207,27 @@ const WhatsAppInbox = () => {
     }
 
     try {
-      const result = await instantcareApi.listWhatsappLogs({
+      const result = await instantcareApi.listWhatsappConversations({
         page,
-        limit: CONVERSATION_LOG_PAGE_SIZE,
-        sortBy: 'created_at',
+        limit: CONVERSATION_PAGE_SIZE,
+        sortBy: 'last_message_at',
         sortOrder: 'desc',
         ...(deferredSearch ? { search: deferredSearch } : {}),
       });
 
       setConversationPage(page);
-      setConversationMeta(result.meta || { page, limit: CONVERSATION_LOG_PAGE_SIZE, total: 0 });
-      const mergedLogs = append ? [...conversationLogsRef.current, ...result.items] : result.items;
+      setConversationMeta(result.meta || { page, limit: CONVERSATION_PAGE_SIZE, total: 0 });
+      const mergedConversations = append ? [...conversationsRef.current, ...result.items] : result.items;
       const uniqueById = new Map();
-      mergedLogs.forEach((item) => {
+      mergedConversations.forEach((item) => {
         uniqueById.set(item.id, item);
       });
-      const nextLogs = [...uniqueById.values()];
+      const nextConversations = [...uniqueById.values()];
 
-      setConversationLogs(nextLogs);
+      setConversations(nextConversations);
 
-      const nextConversations = buildConversationSummaries(nextLogs);
-      if (!keepSelection || !nextConversations.some((conversation) => conversation.phone === selectedPhoneRef.current)) {
-        setSelectedPhone(nextConversations[0]?.phone || '');
+      if (!keepSelection || !nextConversations.some((conversation) => conversation.id === selectedConversationIdRef.current)) {
+        setSelectedConversationId(nextConversations[0]?.id || '');
       }
     } catch (error) {
       setConversationError(getFriendlyError(error, 'Unable to load WhatsApp conversations right now.'));
@@ -261,8 +237,9 @@ const WhatsAppInbox = () => {
     }
   }, [deferredSearch]);
 
-  const loadConversationMessages = useCallback(async (phone, { page = 1, append = false } = {}) => {
-    if (!phone) {
+  const loadConversationMessages = useCallback(async (conversationId, { page = 1, append = false } = {}) => {
+    if (!conversationId) {
+      setSelectedConversation(null);
       setMessages([]);
       setMessagePage(1);
       setMessageMeta({ page: 1, limit: MESSAGE_PAGE_SIZE, total: 0 });
@@ -275,14 +252,25 @@ const WhatsAppInbox = () => {
     }
 
     try {
-      const result = await instantcareApi.listWhatsappLogs({
+      const result = await instantcareApi.getWhatsappConversationMessages(conversationId, {
         page,
         limit: MESSAGE_PAGE_SIZE,
         sortBy: 'created_at',
         sortOrder: 'desc',
-        recipientPhone: phone,
       });
 
+      setSelectedConversation(result.conversation || null);
+      setConversations((current) => current.map((item) => {
+        if (item.id !== conversationId) {
+          return item;
+        }
+
+        return {
+          ...item,
+          ...(result.conversation || {}),
+          unread_count: 0,
+        };
+      }));
       setMessagePage(page);
       setMessageMeta(result.meta || { page, limit: MESSAGE_PAGE_SIZE, total: 0 });
       setMessages((current) => {
@@ -306,42 +294,43 @@ const WhatsAppInbox = () => {
   }, [deferredSearch, loadConversationList]);
 
   useEffect(() => {
-    if (!selectedPhone) {
+    if (!selectedConversationId) {
+      setSelectedConversation(null);
       setMessages([]);
       return;
     }
 
-    loadConversationMessages(selectedPhone, { page: 1, append: false });
-  }, [loadConversationMessages, selectedPhone]);
+    loadConversationMessages(selectedConversationId, { page: 1, append: false });
+  }, [loadConversationMessages, selectedConversationId]);
 
-  const hasMoreConversationLogs = conversationPage * (conversationMeta.limit || CONVERSATION_LOG_PAGE_SIZE) < (conversationMeta.total || 0);
+  const hasMoreConversationLogs = conversationPage * (conversationMeta.limit || CONVERSATION_PAGE_SIZE) < (conversationMeta.total || 0);
   const hasMoreMessages = messagePage * (messageMeta.limit || MESSAGE_PAGE_SIZE) < (messageMeta.total || 0);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await Promise.all([
       loadConversationList({ page: 1, append: false }),
-      selectedPhone ? loadConversationMessages(selectedPhone, { page: 1, append: false }) : Promise.resolve(),
+      selectedConversationId ? loadConversationMessages(selectedConversationId, { page: 1, append: false }) : Promise.resolve(),
     ]);
   };
 
   const handleSend = async () => {
     const trimmedReply = reply.trim();
 
-    if (!selectedPhone || !trimmedReply) {
+    if (!selectedConversation?.phone_number || !trimmedReply) {
       return;
     }
 
     setSending(true);
     try {
       await instantcareApi.sendWhatsappMessage({
-        to: selectedPhone,
+        to: selectedConversation.phone_number,
         message: trimmedReply,
       });
       setReply('');
       await Promise.all([
         loadConversationList({ page: 1, append: false }),
-        loadConversationMessages(selectedPhone, { page: 1, append: false }),
+        loadConversationMessages(selectedConversationId, { page: 1, append: false }),
       ]);
       toast({
         title: 'Reply sent',
@@ -364,7 +353,7 @@ const WhatsAppInbox = () => {
       await instantcareApi.retryWhatsappLog(logId);
       await Promise.all([
         loadConversationList({ page: 1, append: false }),
-        selectedPhone ? loadConversationMessages(selectedPhone, { page: 1, append: false }) : Promise.resolve(),
+        selectedConversationId ? loadConversationMessages(selectedConversationId, { page: 1, append: false }) : Promise.resolve(),
       ]);
       toast({
         title: 'Retry started',
@@ -381,6 +370,35 @@ const WhatsAppInbox = () => {
     }
   };
 
+  const handleClientFieldChange = (field, value) => {
+    setClientForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleCreateClient = async () => {
+    setSavingClient(true);
+    try {
+      const result = await instantcareApi.createWhatsappContact(clientForm);
+      setIsAddClientOpen(false);
+      setClientForm(emptyClientForm);
+      await loadConversationList({ page: 1, append: false, keepSelection: false });
+      if (result?.conversation?.id) {
+        setSelectedConversationId(result.conversation.id);
+      }
+      toast({
+        title: 'Client saved',
+        description: 'The contact is available in the WhatsApp inbox and ready for messaging.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Unable to save client',
+        description: getFriendlyError(error, 'Please check the WhatsApp number and try again.'),
+        variant: 'destructive',
+      });
+    } finally {
+      setSavingClient(false);
+    }
+  };
+
   return (
     <GlassPanel>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
@@ -391,10 +409,16 @@ const WhatsAppInbox = () => {
             Review customer messages, open a conversation, reply through the existing WhatsApp send API, and retry failed outbound messages without changing the current Meta integration.
           </p>
         </div>
-        <Button type="button" variant="outline" className="rounded-full" onClick={handleRefresh} disabled={refreshing || conversationLoading || messageLoading}>
-          {refreshing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-          Refresh inbox
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button type="button" variant="outline" className="rounded-full" onClick={() => setIsAddClientOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Client
+          </Button>
+          <Button type="button" variant="outline" className="rounded-full" onClick={handleRefresh} disabled={refreshing || conversationLoading || messageLoading}>
+            {refreshing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+            Refresh inbox
+          </Button>
+        </div>
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
@@ -404,7 +428,7 @@ const WhatsAppInbox = () => {
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by phone number"
+              placeholder="Search by client, notes, or phone"
               className="h-11 rounded-full border-slate-200 bg-white pl-10 dark:border-slate-700 dark:bg-slate-950"
             />
           </div>
@@ -441,10 +465,10 @@ const WhatsAppInbox = () => {
 
             {conversations.map((conversation) => (
               <ConversationListItem
-                key={conversation.phone}
+                key={conversation.id}
                 conversation={conversation}
-                isActive={conversation.phone === selectedPhone}
-                onSelect={setSelectedPhone}
+                isActive={conversation.id === selectedConversationId}
+                onSelect={setSelectedConversationId}
               />
             ))}
           </div>
@@ -470,16 +494,19 @@ const WhatsAppInbox = () => {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Selected Customer</p>
-                    <h4 className="mt-2 text-xl font-semibold text-slate-950 dark:text-white">{selectedConversation.phone}</h4>
+                    <h4 className="mt-2 text-xl font-semibold text-slate-950 dark:text-white">{selectedConversation.display_name}</h4>
+                    {selectedConversation.contact?.notes ? (
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">{selectedConversation.contact.notes}</p>
+                    ) : null}
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                     <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 dark:border-slate-700">
                       <Phone className="h-3.5 w-3.5" />
-                      {selectedConversation.phone}
+                      {selectedConversation.phone_number}
                     </span>
-                    {selectedConversation.latestStatus ? (
+                    {selectedConversation.latest_log?.status ? (
                       <Badge variant="outline" className="rounded-full border-slate-300 bg-transparent px-3 py-1 capitalize dark:border-slate-700">
-                        {selectedConversation.latestStatus}
+                        {selectedConversation.latest_log.status}
                       </Badge>
                     ) : null}
                   </div>
@@ -503,7 +530,7 @@ const WhatsAppInbox = () => {
                       variant="outline"
                       className="rounded-full"
                       disabled={messageLoading}
-                      onClick={() => loadConversationMessages(selectedPhone, { page: messagePage + 1, append: true })}
+                      onClick={() => loadConversationMessages(selectedConversationId, { page: messagePage + 1, append: true })}
                     >
                       {messageLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                       Load older messages
@@ -548,7 +575,7 @@ const WhatsAppInbox = () => {
                   <Button
                     type="button"
                     className="rounded-full bg-cyan-600 text-white hover:bg-cyan-700"
-                    disabled={sending || !reply.trim() || !selectedPhone}
+                    disabled={sending || !reply.trim() || !selectedConversation?.phone_number}
                     onClick={handleSend}
                   >
                     {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <SendHorizontal className="mr-2 h-4 w-4" />}
@@ -568,6 +595,44 @@ const WhatsAppInbox = () => {
           )}
         </div>
       </div>
+
+      <Dialog open={isAddClientOpen} onOpenChange={setIsAddClientOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add Client</DialogTitle>
+            <DialogDescription>
+              Save a WhatsApp contact once, prevent duplicates by normalized number, and make the conversation available immediately in the inbox.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="client-name">Client name</Label>
+              <Input id="client-name" value={clientForm.name} onChange={(event) => handleClientFieldChange('name', event.target.value)} placeholder="Enter client name" />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="client-phone">WhatsApp number</Label>
+              <Input id="client-phone" value={clientForm.phoneNumber} onChange={(event) => handleClientFieldChange('phoneNumber', event.target.value)} placeholder="e.g. +919876543210" />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="client-notes">Notes</Label>
+              <Textarea id="client-notes" value={clientForm.notes} onChange={(event) => handleClientFieldChange('notes', event.target.value)} placeholder="Optional care notes or contact context" className="min-h-[110px]" />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setIsAddClientOpen(false)} disabled={savingClient}>
+              Cancel
+            </Button>
+            <Button type="button" className="bg-cyan-600 text-white hover:bg-cyan-700" onClick={handleCreateClient} disabled={savingClient}>
+              {savingClient ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+              Save client
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </GlassPanel>
   );
 };

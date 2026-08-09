@@ -8,6 +8,18 @@ export const whatsappController = {
     sendSuccess(res, whatsappService.getTemplateTypes());
   }),
 
+  listConversations: asyncHandler(async (req, res) => {
+    sendSuccess(res, await whatsappService.listConversations(req.query));
+  }),
+
+  getConversationMessages: asyncHandler(async (req, res) => {
+    sendSuccess(res, await whatsappService.getConversationMessages(req.params.id, req.query));
+  }),
+
+  upsertContact: asyncHandler(async (req, res) => {
+    sendSuccess(res, await whatsappService.createOrUpdateContact(req.body), 201);
+  }),
+
   manualSend: asyncHandler(async (req, res) => {
     const result = await whatsappService.sendManualMessage(req.body);
     sendSuccess(res, result, 201);

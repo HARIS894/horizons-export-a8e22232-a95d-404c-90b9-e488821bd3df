@@ -111,7 +111,7 @@ const AdminDashboard = () => {
 
               <SummaryStrip dashboard={dashboard} />
 
-              <Tabs defaultValue="overview" className="space-y-6">
+              <Tabs defaultValue="whatsapp" className="space-y-6">
                 <div className="overflow-x-auto pb-1">
                   <TabsList className="h-auto min-w-max gap-2 rounded-full bg-white/70 p-2 backdrop-blur dark:bg-slate-900/60">
                     {adminDashboardTabs.map((tab) => {

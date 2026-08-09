@@ -24,3 +24,17 @@ export const sendWhatsappValidator = [
 export const retryFailedWhatsappValidator = [
   body('limit').optional().isInt({ min: 1, max: 100 }).withMessage('limit must be between 1 and 100.'),
 ];
+
+export const createWhatsappContactValidator = [
+  body('name').trim().isLength({ min: 2 }).withMessage('Client name is required.'),
+  body('phoneNumber').isString().trim().notEmpty().withMessage('WhatsApp number is required.'),
+  body('notes').optional().isString(),
+];
+
+export const manualWhatsappMessageValidator = [
+  body('to').isString().trim().notEmpty().withMessage('WhatsApp recipient number is required.'),
+  body('message').isString().trim().notEmpty().withMessage('WhatsApp message is required.'),
+  body('recipientUserId').optional().isUUID().withMessage('recipientUserId must be a UUID.'),
+  body('patientId').optional().isUUID().withMessage('patientId must be a UUID.'),
+  body('appointmentId').optional().isUUID().withMessage('appointmentId must be a UUID.'),
+];

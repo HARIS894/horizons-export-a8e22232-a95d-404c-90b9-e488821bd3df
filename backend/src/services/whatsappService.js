@@ -2,9 +2,12 @@ import { randomUUID } from 'node:crypto';
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
 import { isSupabaseEnabled, supabaseAdmin } from '../config/supabase.js';
+import { whatsappContactModel } from '../models/whatsappContactModel.js';
+import { whatsappConversationModel } from '../models/whatsappConversationModel.js';
 import { whatsappLogModel } from '../models/whatsappLogModel.js';
 import { resourceServices } from './resourceServices.js';
 import { ApiError } from '../utils/ApiError.js';
+import { normalizeWhatsappPhoneNumber } from '../utils/phoneNumber.js';
 import { renderWhatsappTemplate, supportedWhatsappTemplateTypes } from '../templates/whatsappTemplates.js';
 
 const META_TIMEOUT_MS = 15000;
@@ -35,6 +38,8 @@ const getRetryTimestamp = (attemptCount) => {
 const getMessageText = (message) => (message?.text?.body || '').trim();
 
 const getStoredInboundBody = (message) => getMessageText(message) || `[${message?.type || 'unknown'}]`;
+
+const getConversationStatus = (status) => status || 'open';
 
 const mergeMetadata = (record, extra) => ({
   ...(record?.metadata || {}),
@@ -91,6 +96,8 @@ const buildWhatsAppLogPayload = ({
   appointmentId,
   invoiceId,
   recipientUserId,
+  contactId,
+  conversationId,
   templateType,
   to,
   messageBody,
@@ -109,6 +116,8 @@ const buildWhatsAppLogPayload = ({
   appointment_id: appointmentId || null,
   invoice_id: invoiceId || null,
   recipient_user_id: recipientUserId || null,
+  contact_id: contactId || null,
+  conversation_id: conversationId || null,
   whatsapp_type: templateType,
   phone_number_id: env.whatsappPhoneNumberId || null,
   recipient_phone: to,
@@ -125,6 +134,105 @@ const buildWhatsAppLogPayload = ({
   webhook_payload: webhookPayload,
   provider_response: providerResponse,
 });
+
+const getContactDisplayName = (contact, phoneNumber) => {
+  const name = String(contact?.name || '').trim();
+  return name || phoneNumber;
+};
+
+const ensureWhatsappContact = async ({ phoneNumber, name = '', notes, autoCreateName = true }) => {
+  const normalizedPhoneNumber = normalizeWhatsappPhoneNumber(phoneNumber);
+  const existing = await whatsappContactModel.findByPhoneNumber(normalizedPhoneNumber);
+  const nextName = String(name || '').trim() || existing?.name || (autoCreateName ? normalizedPhoneNumber : '');
+
+  if (existing) {
+    const updatePayload = {};
+
+    if (nextName && nextName !== existing.name) {
+      updatePayload.name = nextName;
+    }
+
+    if (notes !== undefined && (notes || null) !== (existing.notes || null)) {
+      updatePayload.notes = notes || null;
+    }
+
+    if (!Object.keys(updatePayload).length) {
+      return existing;
+    }
+
+    return whatsappContactModel.update(existing.id, updatePayload);
+  }
+
+  return whatsappContactModel.create({
+    name: nextName || normalizedPhoneNumber,
+    phone_number: normalizedPhoneNumber,
+    notes: notes || null,
+  });
+};
+
+const ensureWhatsappConversation = async ({ contactId = null, phoneNumber, unreadDelta = 0, status = 'open', lastMessageAt = nowIso() }) => {
+  const normalizedPhoneNumber = normalizeWhatsappPhoneNumber(phoneNumber);
+  const existing = await whatsappConversationModel.findByPhoneNumber(normalizedPhoneNumber);
+
+  if (existing) {
+    const nextUnreadCount = Math.max(0, Number(existing.unread_count || 0) + Number(unreadDelta || 0));
+    return whatsappConversationModel.update(existing.id, {
+      contact_id: contactId || existing.contact_id || null,
+      status: getConversationStatus(status),
+      unread_count: nextUnreadCount,
+      last_message_at: lastMessageAt,
+    });
+  }
+
+  return whatsappConversationModel.create({
+    contact_id: contactId || null,
+    phone_number: normalizedPhoneNumber,
+    status: getConversationStatus(status),
+    unread_count: Math.max(0, Number(unreadDelta || 0)),
+    last_message_at: lastMessageAt,
+  });
+};
+
+const ensureWhatsappThread = async ({ phoneNumber, name = '', notes, unreadDelta = 0, autoCreateName = true, lastMessageAt = nowIso() }) => {
+  const contact = await ensureWhatsappContact({ phoneNumber, name, notes, autoCreateName });
+  const conversation = await ensureWhatsappConversation({
+    contactId: contact.id,
+    phoneNumber: contact.phone_number,
+    unreadDelta,
+    lastMessageAt,
+  });
+
+  return {
+    contact,
+    conversation,
+    phoneNumber: contact.phone_number,
+  };
+};
+
+const getLatestLogForPhoneNumber = async (phoneNumber) => {
+  const result = await whatsappLogModel.list({
+    page: 1,
+    limit: 1,
+    recipient_phone: phoneNumber,
+    sortBy: 'created_at',
+    sortOrder: 'desc',
+  });
+
+  return result.items[0] || null;
+};
+
+const buildConversationSummary = async (conversation, contactsById) => {
+  const latestLog = await getLatestLogForPhoneNumber(conversation.phone_number);
+  const contact = conversation.contact_id ? contactsById.get(conversation.contact_id) || null : null;
+
+  return {
+    ...conversation,
+    contact,
+    display_name: getContactDisplayName(contact, conversation.phone_number),
+    last_message_preview: latestLog ? latestLog.message_body : '',
+    latest_log: latestLog,
+  };
+};
 
 const parseWebhookPayload = (payload) => {
   const changes = Array.isArray(payload?.entry)
@@ -435,6 +543,8 @@ const createOutboundLogFromDelivery = async ({
   appointmentId,
   invoiceId,
   recipientUserId,
+  contactId,
+  conversationId,
   templateType,
   recipientPhone,
   messageBody,
@@ -454,6 +564,8 @@ const createOutboundLogFromDelivery = async ({
     appointmentId,
     invoiceId,
     recipientUserId,
+    contactId,
+    conversationId,
     templateType,
     to: recipientPhone,
     messageBody,
@@ -532,9 +644,29 @@ const deliverOutboundMessage = async ({
   patientId = null,
   appointmentId = null,
   invoiceId = null,
+  contactId = null,
+  conversationId = null,
   notificationMetadata = {},
   webhookPayload = {},
 }) => {
+  const thread = conversationId && contactId
+    ? {
+        phoneNumber: normalizeWhatsappPhoneNumber(recipientPhone),
+        contact: {
+          id: contactId,
+          phone_number: normalizeWhatsappPhoneNumber(recipientPhone),
+        },
+        conversation: {
+          id: conversationId,
+        },
+      }
+    : await ensureWhatsappThread({
+        phoneNumber: recipientPhone,
+        unreadDelta: 0,
+        autoCreateName: true,
+        lastMessageAt: nowIso(),
+      });
+
   const notification = await createOutboundNotification({
     recipientUserId,
     patientId,
@@ -543,7 +675,7 @@ const deliverOutboundMessage = async ({
     message: messageBody,
     metadata: notificationMetadata,
     templateType,
-    recipientPhone,
+    recipientPhone: thread.phoneNumber,
   });
 
   let delivery = null;
@@ -551,7 +683,7 @@ const deliverOutboundMessage = async ({
 
   try {
     delivery = await sendViaWhatsappCloud({
-      to: recipientPhone,
+      to: thread.phoneNumber,
       body: messageBody,
       context: {
         templateType,
@@ -568,8 +700,10 @@ const deliverOutboundMessage = async ({
     appointmentId,
     invoiceId,
     recipientUserId,
+    contactId: thread.contact.id,
+    conversationId: thread.conversation.id,
     templateType,
-    recipientPhone,
+    recipientPhone: thread.phoneNumber,
     messageBody,
     delivery,
     error: sendError,
@@ -589,7 +723,7 @@ const deliverOutboundMessage = async ({
   };
 };
 
-const ensureInboundLog = async ({ message, value }) => {
+const ensureInboundLog = async ({ message, value, phoneNumber, contactId, conversationId }) => {
   const inboundMessageId = message?.id || null;
   const existingLog = await findInboundLogByMessageId(inboundMessageId);
 
@@ -608,8 +742,10 @@ const ensureInboundLog = async ({ message, value }) => {
   const messageBody = getStoredInboundBody(message);
   const log = await whatsappLogModel.create(
     buildWhatsAppLogPayload({
+      contactId,
+      conversationId,
       templateType: INBOUND_TEMPLATE_TYPE,
-      to: message?.from || 'unknown',
+      to: phoneNumber || message?.from || 'unknown',
       messageBody,
       status: 'read',
       attemptCount: 1,
@@ -741,18 +877,6 @@ const processInboundMessage = async (messageEnvelope, summary) => {
   const messageType = message?.type || 'unknown';
   const messageBody = getMessageText(message);
 
-  logWhatsapp('info', 'MESSAGE RECEIVED', {
-    inboundMessageId,
-    recipientPhone: contactNumber,
-    messageType,
-  });
-
-  const inboundLogResult = await ensureInboundLog({ message, value });
-
-  if (!inboundLogResult.duplicate) {
-    summary.inboundSaved += 1;
-  }
-
   if (!contactNumber) {
     summary.skipped.missingContact += 1;
     logWhatsapp('warn', 'DONE', {
@@ -763,10 +887,37 @@ const processInboundMessage = async (messageEnvelope, summary) => {
     return;
   }
 
+  const thread = await ensureWhatsappThread({
+    phoneNumber: contactNumber,
+    unreadDelta: 1,
+    autoCreateName: true,
+    lastMessageAt: nowIso(),
+  });
+
+  const normalizedContactNumber = thread.phoneNumber;
+
+  logWhatsapp('info', 'MESSAGE RECEIVED', {
+    inboundMessageId,
+    recipientPhone: normalizedContactNumber,
+    messageType,
+  });
+
+  const inboundLogResult = await ensureInboundLog({
+    message,
+    value,
+    phoneNumber: normalizedContactNumber,
+    contactId: thread.contact.id,
+    conversationId: thread.conversation.id,
+  });
+
+  if (!inboundLogResult.duplicate) {
+    summary.inboundSaved += 1;
+  }
+
   if (!inboundMessageId) {
     summary.skipped.missingMessageId += 1;
     logWhatsapp('warn', 'DONE', {
-      recipientPhone: contactNumber,
+      recipientPhone: normalizedContactNumber,
       outcome: 'skipped',
       reason: 'missing-message-id',
     });
@@ -777,7 +928,7 @@ const processInboundMessage = async (messageEnvelope, summary) => {
     summary.skipped.unsupportedMessage += 1;
     logWhatsapp('info', 'DONE', {
       inboundMessageId,
-      recipientPhone: contactNumber,
+      recipientPhone: normalizedContactNumber,
       outcome: 'skipped',
       reason: 'unsupported-message',
       messageType,
@@ -787,7 +938,7 @@ const processInboundMessage = async (messageEnvelope, summary) => {
 
   logWhatsapp('info', 'DUPLICATE CHECK', {
     inboundMessageId,
-    recipientPhone: contactNumber,
+    recipientPhone: normalizedContactNumber,
     messageType,
   });
 
@@ -795,7 +946,7 @@ const processInboundMessage = async (messageEnvelope, summary) => {
 
   logWhatsapp('info', 'DUPLICATE CHECK', {
     inboundMessageId,
-    recipientPhone: contactNumber,
+    recipientPhone: normalizedContactNumber,
     duplicate: Boolean(existingReply),
     existingReplyLogId: existingReply?.id || null,
   });
@@ -804,7 +955,7 @@ const processInboundMessage = async (messageEnvelope, summary) => {
     summary.skipped.duplicateReply += 1;
     logWhatsapp('info', 'DONE', {
       inboundMessageId,
-      recipientPhone: contactNumber,
+      recipientPhone: normalizedContactNumber,
       outcome: 'skipped',
       reason: 'duplicate-reply',
       existingReplyLogId: existingReply.id,
@@ -816,15 +967,17 @@ const processInboundMessage = async (messageEnvelope, summary) => {
 
   logWhatsapp('info', 'REPLY GENERATED', {
     inboundMessageId,
-    recipientPhone: contactNumber,
+    recipientPhone: normalizedContactNumber,
     replyLength: reply.length,
   });
 
   const outbound = await deliverOutboundMessage({
-    recipientPhone: contactNumber,
+    recipientPhone: normalizedContactNumber,
     subject: 'InstantCare WhatsApp message',
     messageBody: reply,
     templateType: INBOUND_REPLY_TEMPLATE_TYPE,
+    contactId: thread.contact.id,
+    conversationId: thread.conversation.id,
     notificationMetadata: {
       supportEmail: env.supportEmail,
       inboundMessageId,
@@ -842,7 +995,7 @@ const processInboundMessage = async (messageEnvelope, summary) => {
     summary.failed += 1;
     logWhatsapp('error', 'DONE', {
       inboundMessageId,
-      recipientPhone: contactNumber,
+      recipientPhone: normalizedContactNumber,
       outcome: 'failed',
       whatsappLogId: outbound.log.id,
       error: outbound.error.message,
@@ -855,7 +1008,7 @@ const processInboundMessage = async (messageEnvelope, summary) => {
     summary.queued += 1;
     logWhatsapp('warn', 'DONE', {
       inboundMessageId,
-      recipientPhone: contactNumber,
+      recipientPhone: normalizedContactNumber,
       outcome: 'queued',
       whatsappLogId: outbound.log.id,
       reason: outbound.delivery.reason,
@@ -866,7 +1019,7 @@ const processInboundMessage = async (messageEnvelope, summary) => {
   summary.replied += 1;
   logWhatsapp('info', 'DONE', {
     inboundMessageId,
-    recipientPhone: contactNumber,
+    recipientPhone: normalizedContactNumber,
     outcome: 'replied',
     whatsappLogId: outbound.log.id,
     providerMessageId: outbound.log.provider_message_id,
@@ -884,7 +1037,7 @@ async sendManualMessage({
   patientId = null,
   appointmentId = null,
 }) {
-  const recipientPhone = String(to || '').trim();
+  const recipientPhone = normalizeWhatsappPhoneNumber(to);
   const messageBody = String(message || '').trim();
 
   if (!recipientPhone) {
@@ -895,14 +1048,23 @@ async sendManualMessage({
     throw new ApiError(400, 'WhatsApp message is required.');
   }
 
+  const thread = await ensureWhatsappThread({
+    phoneNumber: recipientPhone,
+    unreadDelta: 0,
+    autoCreateName: true,
+    lastMessageAt: nowIso(),
+  });
+
   const outcome = await deliverOutboundMessage({
-    recipientPhone,
+    recipientPhone: thread.phoneNumber,
     subject: 'InstantCare Manual WhatsApp Message',
     messageBody,
     templateType: 'manual',
     recipientUserId,
     patientId,
     appointmentId,
+    contactId: thread.contact.id,
+    conversationId: thread.conversation.id,
     notificationMetadata: {
       source: 'manual-inbox',
     },
@@ -916,12 +1078,101 @@ async sendManualMessage({
   }
 
   return {
-    recipientPhone,
+    recipientPhone: thread.phoneNumber,
     message: messageBody,
     delivery: outcome.delivery,
     log: outcome.log,
   };
 },
+  async listConversations(query = {}) {
+    const page = Number(query.page || 1);
+    const limit = Number(query.limit || 25);
+    const fetchLimit = query.search ? Math.max(limit * 4, 100) : limit;
+    const result = await whatsappConversationModel.list({
+      page: query.search ? 1 : page,
+      limit: fetchLimit,
+      sortBy: query.sortBy || 'last_message_at',
+      sortOrder: query.sortOrder || 'desc',
+    });
+
+    const contacts = await whatsappContactModel.findManyByIds(result.items.map((item) => item.contact_id).filter(Boolean));
+    const contactsById = new Map(contacts.map((contact) => [contact.id, contact]));
+    const summaries = await Promise.all(result.items.map((conversation) => buildConversationSummary(conversation, contactsById)));
+    const searchTerm = String(query.search || '').trim().toLowerCase();
+    const filtered = searchTerm
+      ? summaries.filter((item) => {
+          const fields = [
+            item.phone_number,
+            item.display_name,
+            item.contact?.notes || '',
+            item.last_message_preview || '',
+          ];
+
+          return fields.some((value) => String(value || '').toLowerCase().includes(searchTerm));
+        })
+      : summaries;
+
+    return {
+      items: query.search
+        ? filtered.slice((page - 1) * limit, (page - 1) * limit + limit)
+        : filtered,
+      meta: {
+        page,
+        limit,
+        total: query.search ? filtered.length : result.meta?.total || filtered.length,
+      },
+    };
+  },
+
+  async getConversationMessages(conversationId, query = {}) {
+    const conversation = await whatsappConversationModel.findById(conversationId);
+    const contact = conversation.contact_id
+      ? await whatsappContactModel.findById(conversation.contact_id).catch(() => null)
+      : null;
+
+    const logs = await whatsappLogModel.list({
+      page: query.page || 1,
+      limit: query.limit || 25,
+      sortBy: query.sortBy || 'created_at',
+      sortOrder: query.sortOrder || 'desc',
+      recipient_phone: conversation.phone_number,
+    });
+
+    if (Number(conversation.unread_count || 0) > 0) {
+      await whatsappConversationModel.update(conversation.id, { unread_count: 0 });
+    }
+
+    return {
+      conversation: {
+        ...conversation,
+        unread_count: 0,
+        contact,
+        display_name: getContactDisplayName(contact, conversation.phone_number),
+      },
+      items: logs.items,
+      meta: logs.meta,
+    };
+  },
+
+  async createOrUpdateContact({ name, phoneNumber, notes }) {
+    const thread = await ensureWhatsappThread({
+      phoneNumber,
+      name,
+      notes,
+      unreadDelta: 0,
+      autoCreateName: true,
+      lastMessageAt: nowIso(),
+    });
+
+    return {
+      contact: thread.contact,
+      conversation: {
+        ...thread.conversation,
+        contact: thread.contact,
+        display_name: getContactDisplayName(thread.contact, thread.phoneNumber),
+      },
+    };
+  },
   async listLogs(query = {}) {
     return whatsappLogModel.list(query);
   },
