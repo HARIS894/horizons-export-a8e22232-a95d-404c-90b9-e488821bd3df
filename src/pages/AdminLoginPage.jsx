@@ -55,7 +55,7 @@ const AdminLoginPage = () => {
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const result = loginAdmin(formData.email, formData.password);
+      const result = await loginAdmin(formData.email, formData.password);
       
       if (result.success) {
         toast({
