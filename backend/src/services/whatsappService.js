@@ -11,11 +11,14 @@ import { normalizeWhatsappPhoneNumber } from '../utils/phoneNumber.js';
 import { renderWhatsappTemplate, supportedWhatsappTemplateTypes } from '../templates/whatsappTemplates.js';
 
 const META_TIMEOUT_MS = 15000;
+const CUSTOMER_SERVICE_WINDOW_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_AUTO_REPLY = 'Hello! Thank you for contacting InstantCare. How can we help you today?';
 const INBOUND_TEMPLATE_TYPE = 'inbound-message';
 const INBOUND_REPLY_TEMPLATE_TYPE = 'inbound-reply';
 const SUCCESSFUL_REPLY_STATUSES = new Set(['sent', 'delivered', 'read']);
 const RETRIABLE_LOG_STATUSES = new Set(['queued', 'failed']);
+const NON_RETRIABLE_META_ERROR_CODES = new Set(['131047']);
+const APPROVED_META_TEMPLATE_CONFIG = {};
 
 const nowIso = () => new Date().toISOString();
 
@@ -41,12 +44,73 @@ const getStoredInboundBody = (message) => getMessageText(message) || `[${message
 
 const getConversationStatus = (status) => status || 'open';
 
+const isTemplateType = (value) => supportedWhatsappTemplateTypes.includes(value);
+
 const mergeMetadata = (record, extra) => ({
   ...(record?.metadata || {}),
   ...extra,
 });
 
 const getProviderMessageId = (delivery) => delivery?.response?.messages?.[0]?.id || null;
+
+const getMetaErrorPayload = (payload) => payload?.error || payload?.errors?.[0] || null;
+
+const getFailureDetails = (payload) => {
+  const error = getMetaErrorPayload(payload);
+  if (!error) {
+    return null;
+  }
+
+  const code = error.code || error.error_code || null;
+  const details = error.error_data?.details || error.details || null;
+  const message = details || error.message || error.title || null;
+
+  if (!message && !code) {
+    return null;
+  }
+
+  return {
+    code: code ? String(code) : null,
+    message: message || 'WhatsApp delivery failed.',
+    details: details || null,
+  };
+};
+
+const formatFailureMessage = (failure) => {
+  if (!failure) {
+    return null;
+  }
+
+  if (failure.code && failure.message) {
+    return `${failure.message} (code ${failure.code})`;
+  }
+
+  return failure.message || (failure.code ? `WhatsApp delivery failed (code ${failure.code})` : null);
+};
+
+const isTemplateRequiredFailure = (failure) => {
+  if (!failure) {
+    return false;
+  }
+
+  if (failure.code && NON_RETRIABLE_META_ERROR_CODES.has(String(failure.code))) {
+    return true;
+  }
+
+  return /customer(?: |-)?service window|24\s*hour|24-hour|re-engagement|template/i.test(`${failure.message || ''} ${failure.details || ''}`);
+};
+
+const buildTemplateRequiredError = () => new ApiError(
+  409,
+  'This customer has not opened a WhatsApp conversation. Please send an approved template first.',
+  {
+    code: 'WHATSAPP_TEMPLATE_REQUIRED',
+    activeConversationWindow: false,
+    approvedTemplateAvailable: false,
+  },
+);
+
+const getApprovedMetaTemplateConfig = (templateType) => APPROVED_META_TEMPLATE_CONFIG[templateType] || null;
 
 const toErrorMessage = (error) => (error instanceof Error ? error.message : 'Unknown error');
 
@@ -221,16 +285,86 @@ const getLatestLogForPhoneNumber = async (phoneNumber) => {
   return result.items[0] || null;
 };
 
+const getLatestInboundLogForPhoneNumber = async (phoneNumber) => {
+  const result = await whatsappLogModel.list({
+    page: 1,
+    limit: 1,
+    recipient_phone: phoneNumber,
+    direction: 'inbound',
+    sortBy: 'created_at',
+    sortOrder: 'desc',
+  });
+
+  return result.items[0] || null;
+};
+
+const getConversationWindowState = async (phoneNumber) => {
+  const normalizedPhoneNumber = normalizeWhatsappPhoneNumber(phoneNumber);
+  const latestInboundLog = await getLatestInboundLogForPhoneNumber(normalizedPhoneNumber);
+  const lastInboundAt = latestInboundLog ? getLogTimestamp(latestInboundLog) : null;
+
+  if (!lastInboundAt) {
+    return {
+      active: false,
+      lastInboundAt: null,
+      expiresAt: null,
+      templateRequired: true,
+      approvedTemplateAvailable: false,
+    };
+  }
+
+  const openedAtMs = new Date(lastInboundAt).getTime();
+  const expiresAtMs = openedAtMs + CUSTOMER_SERVICE_WINDOW_MS;
+  const active = Number.isFinite(openedAtMs) && expiresAtMs > Date.now();
+
+  return {
+    active,
+    lastInboundAt,
+    expiresAt: new Date(expiresAtMs).toISOString(),
+    templateRequired: !active,
+    approvedTemplateAvailable: false,
+  };
+};
+
+const getLogTimestamp = (log) => log?.created_at || log?.createdAt || log?.updated_at || log?.updatedAt || null;
+
+const annotateLog = (log, { activeConversationWindow }) => {
+  const failure = getFailureDetails(log?.provider_response) || (log?.last_error ? { code: null, message: log.last_error, details: null } : null);
+  const isManualFreeform = log?.template_name === 'manual';
+  const canRetry = RETRIABLE_LOG_STATUSES.has(log?.status)
+    && !(isManualFreeform && !activeConversationWindow)
+    && !isTemplateRequiredFailure(failure);
+
+  return {
+    ...log,
+    message_kind: isTemplateType(log?.template_name) ? 'template' : isManualFreeform ? 'freeform' : log?.direction === 'inbound' ? 'inbound' : 'freeform',
+    delivery_failure_code: failure?.code || null,
+    delivery_failure_reason: formatFailureMessage(failure),
+    can_retry: canRetry,
+    retry_block_reason: canRetry
+      ? null
+      : isManualFreeform && !activeConversationWindow
+        ? 'Outside the active customer-service window.'
+        : isTemplateRequiredFailure(failure)
+          ? 'This free-form message requires an approved template first.'
+          : null,
+  };
+};
+
 const buildConversationSummary = async (conversation, contactsById) => {
   const latestLog = await getLatestLogForPhoneNumber(conversation.phone_number);
   const contact = conversation.contact_id ? contactsById.get(conversation.contact_id) || null : null;
+  const customerServiceWindow = await getConversationWindowState(conversation.phone_number);
 
   return {
     ...conversation,
     contact,
     display_name: getContactDisplayName(contact, conversation.phone_number),
     last_message_preview: latestLog ? latestLog.message_body : '',
-    latest_log: latestLog,
+    latest_log: latestLog ? annotateLog(latestLog, { activeConversationWindow: customerServiceWindow.active }) : null,
+    customer_service_window: customerServiceWindow,
+    can_send_freeform: customerServiceWindow.active,
+    can_send_template: customerServiceWindow.approvedTemplateAvailable,
   };
 };
 
@@ -556,7 +690,8 @@ const createOutboundLogFromDelivery = async ({
   const sentAt = delivery?.sent ? nowIso() : null;
   const attempted = Boolean(delivery?.sent || error);
   const attemptCount = attempted ? 1 : 0;
-  const canRetry = error ? attemptCount < env.whatsappMaxRetries : false;
+  const failure = error ? getFailureDetails(toErrorDetails(error)) : null;
+  const canRetry = error ? attemptCount < env.whatsappMaxRetries && !isTemplateRequiredFailure(failure) : false;
 
   const logPayload = buildWhatsAppLogPayload({
     notificationId: notification?.id || null,
@@ -572,7 +707,7 @@ const createOutboundLogFromDelivery = async ({
     status: error ? 'failed' : delivery.sent ? 'sent' : 'queued',
     attemptCount,
     nextRetryAt: error && canRetry ? getRetryTimestamp(attemptCount) : null,
-    lastError: error ? error.message : null,
+    lastError: error ? formatFailureMessage(failure) || error.message : null,
     providerMessageId,
     direction: 'outbound',
     webhookPayload,
@@ -606,11 +741,13 @@ const updateNotificationFromDelivery = async ({ notification, delivery, error })
   const sentAt = delivery?.sent ? nowIso() : null;
 
   if (error) {
+    const failure = getFailureDetails(toErrorDetails(error));
     return resourceServices.notifications.update(notification.id, {
       status: 'failed',
       metadata: mergeMetadata(notification, {
         provider: 'whatsapp-cloud-api',
-        lastError: error.message,
+        lastError: formatFailureMessage(failure) || error.message,
+        errorCode: failure?.code || null,
       }),
     });
   }
@@ -774,7 +911,8 @@ const ensureInboundLog = async ({ message, value, phoneNumber, contactId, conver
 
 const buildRetryOutcome = ({ log, delivery, error }) => {
   const attemptCount = Number(log.attempt_count || 0) + (delivery?.sent || error ? 1 : 0);
-  const canRetry = attemptCount < Number(log.max_attempts || env.whatsappMaxRetries);
+  const failure = error ? getFailureDetails(toErrorDetails(error)) : null;
+  const canRetry = attemptCount < Number(log.max_attempts || env.whatsappMaxRetries) && !isTemplateRequiredFailure(failure);
   const providerMessageId = getProviderMessageId(delivery);
   const sentAt = delivery?.sent ? nowIso() : null;
 
@@ -783,7 +921,7 @@ const buildRetryOutcome = ({ log, delivery, error }) => {
       logPayload: {
         status: 'failed',
         attempt_count: attemptCount,
-        last_error: error.message,
+        last_error: formatFailureMessage(failure) || error.message,
         next_retry_at: canRetry ? getRetryTimestamp(attemptCount) : null,
         provider_response: toErrorDetails(error),
       },
@@ -848,6 +986,7 @@ const processStatusUpdate = async (statusEnvelope, summary) => {
 
   const mappedStatus = mapWebhookStatus(status.status);
   const timestamps = buildStatusTimestamps(mappedStatus);
+  const failure = getFailureDetails(status);
 
   await updateStatuses({
     notificationId: existingLog.notification_id,
@@ -858,6 +997,10 @@ const processStatusUpdate = async (statusEnvelope, summary) => {
     },
     whatsappLogPayload: {
       status: mappedStatus,
+      last_error: mappedStatus === 'failed' ? formatFailureMessage(failure) : null,
+      next_retry_at: mappedStatus === 'failed' && !isTemplateRequiredFailure(failure)
+        ? existingLog.next_retry_at
+        : null,
       provider_response: status,
     },
   });
@@ -1048,6 +1191,12 @@ async sendManualMessage({
     throw new ApiError(400, 'WhatsApp message is required.');
   }
 
+  const customerServiceWindow = await getConversationWindowState(recipientPhone);
+
+  if (!customerServiceWindow.active) {
+    throw buildTemplateRequiredError();
+  }
+
   const thread = await ensureWhatsappThread({
     phoneNumber: recipientPhone,
     unreadDelta: 0,
@@ -1081,7 +1230,7 @@ async sendManualMessage({
     recipientPhone: thread.phoneNumber,
     message: messageBody,
     delivery: outcome.delivery,
-    log: outcome.log,
+    log: annotateLog(outcome.log, { activeConversationWindow: true }),
   };
 },
   async listConversations(query = {}) {
@@ -1129,6 +1278,8 @@ async sendManualMessage({
     const contact = conversation.contact_id
       ? await whatsappContactModel.findById(conversation.contact_id).catch(() => null)
       : null;
+    const customerServiceWindow = await getConversationWindowState(conversation.phone_number);
+    const latestLog = await getLatestLogForPhoneNumber(conversation.phone_number);
 
     const logs = await whatsappLogModel.list({
       page: query.page || 1,
@@ -1148,8 +1299,13 @@ async sendManualMessage({
         unread_count: 0,
         contact,
         display_name: getContactDisplayName(contact, conversation.phone_number),
+        last_message_preview: latestLog ? latestLog.message_body : '',
+        latest_log: latestLog ? annotateLog(latestLog, { activeConversationWindow: customerServiceWindow.active }) : null,
+        customer_service_window: customerServiceWindow,
+        can_send_freeform: customerServiceWindow.active,
+        can_send_template: customerServiceWindow.approvedTemplateAvailable,
       },
-      items: logs.items,
+      items: logs.items.map((log) => annotateLog(log, { activeConversationWindow: customerServiceWindow.active })),
       meta: logs.meta,
     };
   },
@@ -1182,6 +1338,10 @@ async sendManualMessage({
   },
 
   async sendTemplateMessage(payload) {
+    if (!getApprovedMetaTemplateConfig(payload.templateType)) {
+      throw buildTemplateRequiredError();
+    }
+
     const template = renderWhatsappTemplate(payload.templateType, payload.templateData || {});
     const recipients = normalizeRecipients(payload.to);
 
@@ -1232,9 +1392,18 @@ async sendManualMessage({
 
   async retryMessage(logId) {
     const log = await whatsappLogModel.findById(logId);
+    const customerServiceWindow = await getConversationWindowState(log.recipient_phone);
+    const annotated = annotateLog(log, { activeConversationWindow: customerServiceWindow.active });
 
     if (!RETRIABLE_LOG_STATUSES.has(log.status)) {
       throw new ApiError(400, 'Only queued or failed WhatsApp messages can be retried.');
+    }
+
+    if (!annotated.can_retry) {
+      throw new ApiError(400, annotated.retry_block_reason || 'This WhatsApp message cannot be retried.', {
+        code: 'WHATSAPP_RETRY_BLOCKED',
+        reason: annotated.retry_block_reason || null,
+      });
     }
 
     if (Number(log.attempt_count || 0) >= Number(log.max_attempts || env.whatsappMaxRetries)) {

@@ -80,6 +80,36 @@ const getFriendlyError = (error, fallback) => {
   return fallback;
 };
 
+const getMessageKindLabel = (log) => {
+  if (log?.message_kind === 'template') {
+    return 'Template';
+  }
+
+  if (log?.message_kind === 'inbound' || log?.direction === 'inbound') {
+    return 'Inbound';
+  }
+
+  return 'Free-form';
+};
+
+const formatWindowDeadline = (value) => {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
+};
+
 const emptyClientForm = {
   name: '',
   phoneNumber: '',
@@ -88,7 +118,7 @@ const emptyClientForm = {
 
 const MessageBubble = ({ log, onRetry, retryingId }) => {
   const isInbound = log?.direction === 'inbound';
-  const canRetry = !isInbound && ['failed', 'queued'].includes(log?.status);
+  const canRetry = !isInbound && Boolean(log?.can_retry);
 
   return (
     <div className={cn('flex', isInbound ? 'justify-start' : 'justify-end')}>
@@ -102,9 +132,18 @@ const MessageBubble = ({ log, onRetry, retryingId }) => {
       >
         <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
           <span>{isInbound ? 'Customer' : 'InstantCare'}</span>
+          <Badge variant="outline" className="rounded-full border-slate-300 bg-transparent px-2 py-0 text-[10px] font-medium text-slate-500 dark:border-slate-700 dark:text-slate-300">
+            {getMessageKindLabel(log)}
+          </Badge>
           {log?.status ? <Badge variant="outline" className="rounded-full border-slate-300 bg-transparent px-2 py-0 text-[10px] font-medium capitalize text-slate-500 dark:border-slate-700 dark:text-slate-300">{log.status}</Badge> : null}
         </div>
         <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6">{getPreviewText(log)}</p>
+        {log?.delivery_failure_reason ? (
+          <div className="mt-3 rounded-2xl border border-red-200 bg-red-50/80 px-3 py-2 text-xs leading-5 text-red-700 dark:border-red-900/60 dark:bg-red-950/20 dark:text-red-200">
+            <p>{log.delivery_failure_reason}</p>
+            {log?.retry_block_reason ? <p className="mt-1 text-red-600 dark:text-red-300">{log.retry_block_reason}</p> : null}
+          </div>
+        ) : null}
         <div className="mt-3 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
           <span>{formatConversationTime(getLogTimestamp(log))}</span>
           {canRetry ? (
@@ -128,6 +167,7 @@ const MessageBubble = ({ log, onRetry, retryingId }) => {
 
 const ConversationListItem = ({ conversation, isActive, onSelect }) => {
   const unreadCount = Number(conversation?.unread_count || 0);
+  const serviceWindowOpen = Boolean(conversation?.can_send_freeform);
 
   return (
     <button
@@ -153,6 +193,17 @@ const ConversationListItem = ({ conversation, isActive, onSelect }) => {
               Incoming
             </Badge>
           ) : null}
+          <Badge
+            variant="outline"
+            className={cn(
+              'mt-2 rounded-full px-2 py-0 text-[10px] font-medium uppercase tracking-[0.18em]',
+              serviceWindowOpen
+                ? 'border-emerald-300 bg-emerald-500/10 text-emerald-700 dark:border-emerald-900 dark:text-emerald-200'
+                : 'border-amber-300 bg-amber-500/10 text-amber-700 dark:border-amber-900 dark:text-amber-200',
+            )}
+          >
+            {serviceWindowOpen ? '24h open' : 'Template required'}
+          </Badge>
           {unreadCount > 0 ? (
             <Badge className="mt-2 rounded-full bg-rose-500 px-2 py-0 text-[10px] font-medium text-white hover:bg-rose-500">
               {unreadCount} new
@@ -305,6 +356,9 @@ const WhatsAppInbox = () => {
 
   const hasMoreConversationLogs = conversationPage * (conversationMeta.limit || CONVERSATION_PAGE_SIZE) < (conversationMeta.total || 0);
   const hasMoreMessages = messagePage * (messageMeta.limit || MESSAGE_PAGE_SIZE) < (messageMeta.total || 0);
+  const serviceWindowOpen = Boolean(selectedConversation?.can_send_freeform);
+  const templateAvailable = Boolean(selectedConversation?.can_send_template);
+  const serviceWindowExpiresAt = formatWindowDeadline(selectedConversation?.customer_service_window?.expiresAt);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -318,6 +372,17 @@ const WhatsAppInbox = () => {
     const trimmedReply = reply.trim();
 
     if (!selectedConversation?.phone_number || !trimmedReply) {
+      return;
+    }
+
+    if (!serviceWindowOpen) {
+      toast({
+        title: 'Template required',
+        description: templateAvailable
+          ? 'This conversation is outside the 24-hour service window. Send an approved WhatsApp template first.'
+          : 'This conversation is outside the 24-hour service window and no approved WhatsApp template is configured yet.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -345,6 +410,16 @@ const WhatsAppInbox = () => {
     } finally {
       setSending(false);
     }
+  };
+
+  const handleTemplateAction = () => {
+    toast({
+      title: templateAvailable ? 'Template send unavailable' : 'No approved template configured',
+      description: templateAvailable
+        ? 'An approved template exists in the conversation state, but this inbox does not yet have a configured outbound template picker.'
+        : 'Free-form replies are blocked outside the 24-hour service window until a real Meta-approved template is configured for this workspace.',
+      variant: 'destructive',
+    });
   };
 
   const handleRetry = async (logId) => {
@@ -495,6 +570,22 @@ const WhatsAppInbox = () => {
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Selected Customer</p>
                     <h4 className="mt-2 text-xl font-semibold text-slate-950 dark:text-white">{selectedConversation.display_name}</h4>
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          'rounded-full px-3 py-1 uppercase tracking-[0.18em]',
+                          serviceWindowOpen
+                            ? 'border-emerald-300 bg-emerald-500/10 text-emerald-700 dark:border-emerald-900 dark:text-emerald-200'
+                            : 'border-amber-300 bg-amber-500/10 text-amber-700 dark:border-amber-900 dark:text-amber-200',
+                        )}
+                      >
+                        {serviceWindowOpen ? 'Free-form allowed' : 'Template required'}
+                      </Badge>
+                      {!serviceWindowOpen && serviceWindowExpiresAt ? (
+                        <span>Last customer window ended {serviceWindowExpiresAt}</span>
+                      ) : null}
+                    </div>
                     {selectedConversation.contact?.notes ? (
                       <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">{selectedConversation.contact.notes}</p>
                     ) : null}
@@ -562,20 +653,40 @@ const WhatsAppInbox = () => {
                 <label className="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
                   Reply to customer
                 </label>
+                {!serviceWindowOpen ? (
+                  <div className="mt-3 rounded-[22px] border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/20 dark:text-amber-200">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="font-medium">Free-form replies are blocked outside WhatsApp's 24-hour customer-service window.</p>
+                        <p className="mt-1 text-amber-700 dark:text-amber-300">
+                          {templateAvailable
+                            ? 'Send an approved template first to reopen the conversation.'
+                            : 'No approved Meta template is configured for this workspace yet.'}
+                        </p>
+                      </div>
+                      <Button type="button" variant="outline" className="rounded-full border-amber-300 bg-transparent text-amber-800 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-200 dark:hover:bg-amber-950/40" onClick={handleTemplateAction}>
+                        Send template
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
                 <Textarea
                   value={reply}
                   onChange={(event) => setReply(event.target.value)}
-                  placeholder="Type your WhatsApp reply here"
+                  placeholder={serviceWindowOpen ? 'Type your WhatsApp reply here' : 'An approved template must be sent before a free-form reply is allowed'}
                   className="mt-3 min-h-[120px] rounded-[22px] border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-950"
+                  disabled={!serviceWindowOpen}
                 />
                 <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    This sends through the existing authenticated WhatsApp inbox endpoint.
+                    {serviceWindowOpen
+                      ? 'This sends a free-form reply through the existing authenticated WhatsApp inbox endpoint.'
+                      : 'The inbox will reject free-form sends here until the customer reopens the conversation or an approved template is configured.'}
                   </p>
                   <Button
                     type="button"
                     className="rounded-full bg-cyan-600 text-white hover:bg-cyan-700"
-                    disabled={sending || !reply.trim() || !selectedConversation?.phone_number}
+                    disabled={sending || !reply.trim() || !selectedConversation?.phone_number || !serviceWindowOpen}
                     onClick={handleSend}
                   >
                     {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <SendHorizontal className="mr-2 h-4 w-4" />}
