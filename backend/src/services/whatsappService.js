@@ -877,7 +877,51 @@ export const whatsappService = {
   getTemplateTypes() {
     return supportedWhatsappTemplateTypes;
   },
+async sendManualMessage({
+  to,
+  message,
+  recipientUserId = null,
+  patientId = null,
+  appointmentId = null,
+}) {
+  const recipientPhone = String(to || '').trim();
+  const messageBody = String(message || '').trim();
 
+  if (!recipientPhone) {
+    throw new ApiError(400, 'WhatsApp recipient number is required.');
+  }
+
+  if (!messageBody) {
+    throw new ApiError(400, 'WhatsApp message is required.');
+  }
+
+  const outcome = await deliverOutboundMessage({
+    recipientPhone,
+    subject: 'InstantCare Manual WhatsApp Message',
+    messageBody,
+    templateType: 'manual',
+    recipientUserId,
+    patientId,
+    appointmentId,
+    notificationMetadata: {
+      source: 'manual-inbox',
+    },
+    webhookPayload: {
+      source: 'manual-inbox',
+    },
+  });
+
+  if (outcome.error) {
+    throw outcome.error;
+  }
+
+  return {
+    recipientPhone,
+    message: messageBody,
+    delivery: outcome.delivery,
+    log: outcome.log,
+  };
+},
   async listLogs(query = {}) {
     return whatsappLogModel.list(query);
   },

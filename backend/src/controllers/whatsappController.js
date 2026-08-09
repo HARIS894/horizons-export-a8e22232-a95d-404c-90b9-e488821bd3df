@@ -4,12 +4,21 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { sendSuccess } from '../utils/response.js';
 
 export const whatsappController = {
-  templateTypes: asyncHandler(async (_req, res) => {
+  templateTypes: asyncHandler(async (req, res) => {
     sendSuccess(res, whatsappService.getTemplateTypes());
   }),
 
+  manualSend: asyncHandler(async (req, res) => {
+    const result = await whatsappService.sendManualMessage(req.body);
+    sendSuccess(res, result, 201);
+  }),
+
   send: asyncHandler(async (req, res) => {
-    sendSuccess(res, await whatsappService.sendTemplateMessage(req.body), 201);
+    sendSuccess(
+      res,
+      await whatsappService.sendTemplateMessage(req.body),
+      201,
+    );
   }),
 
   listLogs: asyncHandler(async (req, res) => {
@@ -25,7 +34,10 @@ export const whatsappController = {
   }),
 
   retryFailed: asyncHandler(async (req, res) => {
-    sendSuccess(res, await whatsappService.retryFailedMessages(req.body.limit));
+    sendSuccess(
+      res,
+      await whatsappService.retryFailedMessages(req.body.limit),
+    );
   }),
 
   verifyWebhook: asyncHandler(async (req, res) => {
@@ -35,13 +47,26 @@ export const whatsappController = {
       req.query['hub.challenge'],
     );
 
-    logger.info({ event: 'WEBHOOK VERIFIED', channel: 'whatsapp' }, 'WEBHOOK VERIFIED');
+    logger.info(
+      { event: 'WEBHOOK VERIFIED', channel: 'whatsapp' },
+      'WEBHOOK VERIFIED',
+    );
+
     res.status(200).send(challenge);
   }),
 
   webhook: asyncHandler(async (req, res) => {
     const result = await whatsappService.processWebhook(req.body);
-    logger.info({ event: 'WEBHOOK DONE', channel: 'whatsapp', result }, 'WEBHOOK DONE');
+
+    logger.info(
+      {
+        event: 'WEBHOOK DONE',
+        channel: 'whatsapp',
+        result,
+      },
+      'WEBHOOK DONE',
+    );
+
     sendSuccess(res, result);
   }),
 };
