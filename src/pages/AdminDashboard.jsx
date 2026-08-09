@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import WhatsAppInbox from '@/components/admin/WhatsAppInbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { adminDashboardTabs, buildAdminDashboardViewModel, getAdminDashboardData } from '@/data/adminDashboardData';
@@ -163,7 +164,10 @@ const AdminDashboard = () => {
                 </TabsContent>
 
                 <TabsContent value="whatsapp">
-                  <WhatsAppSection whatsappCentre={dashboard.whatsappCentre} onAction={handleAction} />
+                  <div className="space-y-6">
+                    <WhatsAppSection whatsappCentre={dashboard.whatsappCentre} onAction={handleAction} />
+                    <WhatsAppInbox />
+                  </div>
                 </TabsContent>
 
                 <TabsContent value="reports">

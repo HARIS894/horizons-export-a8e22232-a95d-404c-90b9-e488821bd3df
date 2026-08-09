@@ -213,6 +213,50 @@ export const instantcareApi = {
     };
   },
 
+  async listWhatsappLogs(query = {}) {
+    const normalizedQuery = {
+      page: query.page || 1,
+      limit: query.limit || 25,
+      sortBy: query.sortBy || 'created_at',
+      sortOrder: query.sortOrder || 'desc',
+    };
+
+    if (query.search) {
+      normalizedQuery.search = query.search;
+    }
+
+    if (query.recipientPhone) {
+      normalizedQuery.recipient_phone = query.recipientPhone;
+    }
+
+    if (query.direction) {
+      normalizedQuery.direction = query.direction;
+    }
+
+    if (query.status) {
+      normalizedQuery.status = query.status;
+    }
+
+    return request('/whatsapp/logs', { query: normalizedQuery });
+  },
+
+  async getWhatsappLogById(id) {
+    return request(`/whatsapp/logs/${id}`);
+  },
+
+  async sendWhatsappMessage(payload) {
+    return request('/whatsapp/messages', {
+      method: 'POST',
+      body: payload,
+    });
+  },
+
+  async retryWhatsappLog(id) {
+    return request(`/whatsapp/logs/${id}/retry`, {
+      method: 'POST',
+    });
+  },
+
   async getHealthcareLibraryDataset(search = '') {
     return request('/content/healthcare-library', { query: { search } }, false);
   },
