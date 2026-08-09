@@ -14,6 +14,7 @@ import {
   PhoneCall,
   ShieldCheck,
   Sparkles,
+  Stethoscope,
   UserRound,
   Users2,
   WalletCards,
