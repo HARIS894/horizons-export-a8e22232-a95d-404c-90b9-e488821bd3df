@@ -55,6 +55,17 @@ const getProviderMessageId = (delivery) => delivery?.response?.messages?.[0]?.id
 
 const getMetaErrorPayload = (payload) => payload?.error || payload?.errors?.[0] || null;
 
+const isMetaAuthenticationFailure = (payload) => {
+  const error = getMetaErrorPayload(payload);
+  const code = error?.code || error?.error_code || null;
+  const type = String(error?.type || '').trim();
+  const message = String(error?.message || '').trim();
+
+  return String(code || '') === '190'
+    || type === 'OAuthException'
+    || /authentication error/i.test(message);
+};
+
 const getFailureDetails = (payload) => {
   const error = getMetaErrorPayload(payload);
   if (!error) {
@@ -606,7 +617,13 @@ const sendViaWhatsappCloud = async ({ to, body, context = {} }) => {
     });
 
     if (!response.ok) {
-      throw new ApiError(502, 'WhatsApp Cloud API request failed.', responseBody);
+      throw new ApiError(
+        502,
+        isMetaAuthenticationFailure(responseBody)
+          ? 'WhatsApp authentication failed. Please verify the server-side WhatsApp access token.'
+          : 'WhatsApp Cloud API request failed.',
+        responseBody,
+      );
     }
 
     return {

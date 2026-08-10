@@ -9,6 +9,11 @@ const routeMeta = {
     description: 'Enterprise command center for operations, integrations, business workflows, and admin governance.',
     breadcrumb: ['WhatsApp Admin', 'Dashboard'],
   },
+  '/admin/whatsapp-platform/inbox': {
+    title: 'Inbox',
+    description: 'Review conversations, reuse existing WhatsApp send and retry behavior, and work from a structured agent workspace.',
+    breadcrumb: ['WhatsApp Admin', 'Inbox'],
+  },
   '/admin/whatsapp-platform/templates': {
     title: 'Templates',
     description: 'Manage healthcare template drafts, AI-assisted creation, preview, lifecycle, and readiness workflows.',

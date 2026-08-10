@@ -26,6 +26,7 @@ import CustomerDashboard from '@/pages/CustomerDashboard';
 import HealthcareCrmPortalPage from '@/pages/HealthcareCrmPortalPage';
 import NriFamilyPortalPage from '@/pages/NriFamilyPortalPage';
 import WhatsAppAdminPlatformPage from '@/features/whatsapp-admin/pages/WhatsAppAdminPlatformPage';
+import WhatsAppInboxWorkspacePage from '@/features/whatsapp-admin/inbox/pages/WhatsAppInboxWorkspacePage';
 import WhatsAppIntegrationsPage from '@/features/whatsapp-admin/integrations/pages/WhatsAppIntegrationsPage';
 import WhatsAppTemplatesFoundationPage from '@/features/whatsapp-admin/templates/pages/WhatsAppTemplatesFoundationPage';
 
@@ -109,6 +110,15 @@ function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <WhatsAppAdminPlatformPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/whatsapp-platform/inbox"
+              element={
+                <ProtectedRoute adminOnly>
+                  <WhatsAppInboxWorkspacePage />
                 </ProtectedRoute>
               }
             />
