@@ -14,6 +14,16 @@ const routeMeta = {
     description: 'Review conversations, reuse existing WhatsApp send and retry behavior, and work from a structured agent workspace.',
     breadcrumb: ['WhatsApp Admin', 'Inbox'],
   },
+  '/admin/whatsapp-platform/contacts': {
+    title: 'Contacts',
+    description: 'Manage contact operations, import and export planning, and launch patient onboarding without touching live provider integrations.',
+    breadcrumb: ['WhatsApp Admin', 'Contacts'],
+  },
+  '/admin/whatsapp-platform/patients': {
+    title: 'Patients',
+    description: 'Coordinate healthcare operations, patient status, services, appointments, payments, and contact relationships from a dedicated workspace.',
+    breadcrumb: ['WhatsApp Admin', 'Patients'],
+  },
   '/admin/whatsapp-platform/templates': {
     title: 'Templates',
     description: 'Manage healthcare template drafts, AI-assisted creation, preview, lifecycle, and readiness workflows.',

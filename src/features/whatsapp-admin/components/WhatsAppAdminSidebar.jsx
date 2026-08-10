@@ -19,8 +19,8 @@ import { cn } from '@/lib/utils';
 const navigationItems = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/admin/whatsapp-platform' },
   { label: 'Inbox', icon: MessageSquareText, to: '/admin/whatsapp-platform/inbox' },
-  { label: 'Contacts', icon: UserSquare2, badge: 'Future' },
-  { label: 'Patients', icon: Users, badge: 'Future' },
+  { label: 'Contacts', icon: UserSquare2, to: '/admin/whatsapp-platform/contacts' },
+  { label: 'Patients', icon: Users, to: '/admin/whatsapp-platform/patients' },
   { label: 'Templates', icon: FileText, to: '/admin/whatsapp-platform/templates' },
   { label: 'Flows', icon: Workflow, badge: 'Future' },
   { label: 'Integrations', icon: Link2, to: '/admin/whatsapp-platform/integrations' },
