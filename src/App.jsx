@@ -27,10 +27,12 @@ import HealthcareCrmPortalPage from '@/pages/HealthcareCrmPortalPage';
 import NriFamilyPortalPage from '@/pages/NriFamilyPortalPage';
 import WhatsAppAdminPlatformPage from '@/features/whatsapp-admin/pages/WhatsAppAdminPlatformPage';
 import WhatsAppContactsWorkspacePage from '@/features/whatsapp-admin/contacts/pages/WhatsAppContactsWorkspacePage';
+import WhatsAppFlowsWorkspacePage from '@/features/whatsapp-admin/flows/pages/WhatsAppFlowsWorkspacePage';
 import WhatsAppInboxWorkspacePage from '@/features/whatsapp-admin/inbox/pages/WhatsAppInboxWorkspacePage';
 import WhatsAppIntegrationsPage from '@/features/whatsapp-admin/integrations/pages/WhatsAppIntegrationsPage';
 import WhatsAppPatientsWorkspacePage from '@/features/whatsapp-admin/patients/pages/WhatsAppPatientsWorkspacePage';
 import WhatsAppTemplatesFoundationPage from '@/features/whatsapp-admin/templates/pages/WhatsAppTemplatesFoundationPage';
+import WhatsAppTriggersWorkspacePage from '@/features/whatsapp-admin/triggers/pages/WhatsAppTriggersWorkspacePage';
 
 function App() {
   return (
@@ -148,6 +150,24 @@ function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <WhatsAppTemplatesFoundationPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/whatsapp-platform/flows"
+              element={
+                <ProtectedRoute adminOnly>
+                  <WhatsAppFlowsWorkspacePage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/whatsapp-platform/triggers"
+              element={
+                <ProtectedRoute adminOnly>
+                  <WhatsAppTriggersWorkspacePage />
                 </ProtectedRoute>
               }
             />

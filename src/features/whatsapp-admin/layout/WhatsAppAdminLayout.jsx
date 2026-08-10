@@ -29,9 +29,19 @@ const routeMeta = {
     description: 'Manage healthcare template drafts, AI-assisted creation, preview, lifecycle, and readiness workflows.',
     breadcrumb: ['WhatsApp Admin', 'Templates'],
   },
+  '/admin/whatsapp-platform/flows': {
+    title: 'Flows',
+    description: 'Build visual automation flows with stable Template Codes, execution logs, and schema-driven import/export foundations.',
+    breadcrumb: ['WhatsApp Admin', 'Flows'],
+  },
+  '/admin/whatsapp-platform/triggers': {
+    title: 'Triggers',
+    description: 'Prepare stable Trigger Code registries, flow routing, and inbox-safe automation handoff controls without enabling live execution.',
+    breadcrumb: ['WhatsApp Admin', 'Triggers'],
+  },
   '/admin/whatsapp-platform/integrations': {
-    title: 'Integration Hub',
-    description: 'Prepare Google, Excel, Meta, webhook, and API integrations without activating live provider connections.',
+    title: 'Integration Control Center',
+    description: 'Manage Google Sheets, Calendar, Apps Script, VBA / Excel, and Razorpay integration readiness without activating live provider connections.',
     breadcrumb: ['WhatsApp Admin', 'Integrations'],
   },
 };
