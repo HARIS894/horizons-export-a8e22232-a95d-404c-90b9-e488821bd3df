@@ -143,9 +143,7 @@ const TemplateListPanel = ({
       </div>
 
       <div className="mt-6 overflow-hidden rounded-[24px] border border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-950/40">
-        {templates.length ? templates.map((template) => {
-          return null;
-        }) : (
+        {!templates.length ? (
           <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50/70 px-6 py-10 text-center dark:border-slate-700 dark:bg-slate-900/40">
             <p className="text-lg font-semibold text-slate-950 dark:text-white">No templates yet</p>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Start from a Healthcare starter, create from scratch, or use AI.</p>
@@ -153,7 +151,7 @@ const TemplateListPanel = ({
               Create Template
             </Button>
           </div>
-        )}
+        ) : null}
         {templates.length ? (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">

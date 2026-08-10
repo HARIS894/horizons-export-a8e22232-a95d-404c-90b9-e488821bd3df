@@ -1,22 +1,34 @@
 import React, { useState } from 'react';
-import { AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, Plus, Sparkles, Trash2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, GripVertical, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import TemplatePreview from './TemplatePreview';
 import TemplateStatusBadge from './TemplateStatusBadge';
 import { TEMPLATE_BUTTON_TYPES } from '../types/templateTypes';
 
-const stepLabels = [
-  'Basic information',
-  'Message content',
-  'Variables',
-  'Buttons',
-  'Preview',
-  'Validation / Meta readiness',
-  'Save draft / prepare submission',
-];
+const blockMeta = {
+  header: {
+    title: 'Header / Media',
+    description: 'Choose whether this Meta header slot uses text, image, video, or document content.',
+  },
+  body: {
+    title: 'Body',
+    description: 'Write the core WhatsApp template body and keep variable tokens sequential.',
+  },
+  variables: {
+    title: 'Variables',
+    description: 'Map sample values for every placeholder token used in the body.',
+  },
+  buttons: {
+    title: 'Buttons',
+    description: 'Add up to 3 CTA buttons while keeping values Meta-compatible.',
+  },
+  footer: {
+    title: 'Footer',
+    description: 'Optional footer text shown beneath the message body.',
+  },
+};
 
 const FieldMessage = ({ message }) => {
   if (!message) {
@@ -48,8 +60,6 @@ const TemplateBuilderWizard = ({
   languages,
   metaCategories,
   assessment,
-  previewMode,
-  onPreviewModeChange,
   unsavedChanges,
   onSaveDraft,
   onMarkReady,
@@ -58,11 +68,14 @@ const TemplateBuilderWizard = ({
   onResetDraft,
   onDeleteDraft,
   showAiQuality,
+  componentOrder,
+  onMoveComponent,
+  onRemoveComponent,
+  activeSourceLabel,
 }) => {
-  const [step, setStep] = useState(0);
+  const [draggingKey, setDraggingKey] = useState(null);
   const errors = assessment.fieldErrors;
   const lifecycleStatus = draft.localStatus || assessment.lifecycleStatus;
-  const readinessLabel = assessment.readinessLabel;
   const header = draft.header || { type: draft.headerType || 'None', content: draft.headerContent || '' };
 
   const updateField = (key, value) => {
@@ -144,139 +157,55 @@ const TemplateBuilderWizard = ({
     }));
   };
 
-  const nextStep = () => setStep((current) => Math.min(current + 1, stepLabels.length - 1));
-  const previousStep = () => setStep((current) => Math.max(current - 1, 0));
+  const handleDrop = (targetKey) => {
+    if (draggingKey && draggingKey !== targetKey) {
+      onMoveComponent?.(draggingKey, targetKey);
+    }
+    setDraggingKey(null);
+  };
 
-  return (
-    <div className="rounded-[28px] border border-white/70 bg-white/85 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-slate-950/45">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+  const renderComponentEditor = (key) => {
+    if (key === 'header') {
+      return (
+        <div className="grid gap-5 lg:grid-cols-2">
+          <div>
+            <label className="text-sm font-medium text-slate-950 dark:text-white">Header type</label>
+            <NativeSelect value={header.type} onChange={(value) => updateHeaderField('type', value)} options={headerTypes} />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-950 dark:text-white">Header content</label>
+            <Input value={header.content} onChange={(event) => updateHeaderField('content', event.target.value)} placeholder={header.type === 'Text' ? 'Header text' : 'Media URL or reference'} className="mt-2 h-11 rounded-2xl" />
+            <FieldMessage message={errors.headerContent} />
+          </div>
+        </div>
+      );
+    }
+
+    if (key === 'body') {
+      return (
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-emerald-700 dark:text-emerald-200">Create Template</p>
-          <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">Guided template builder</h3>
-          <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">
-            Local drafting, preview, readiness validation, and reusable admin workflows only. Meta remains the final authority on approval.
-          </p>
-        </div>
-        <TemplateStatusBadge status={lifecycleStatus} />
-      </div>
-
-      <div className="sticky top-20 z-10 mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-slate-200/70 bg-white/90 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
-        <div className="flex items-center gap-2">
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${unsavedChanges ? 'bg-amber-500/10 text-amber-700 dark:text-amber-200' : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-200'}`}>
-            {unsavedChanges ? 'Unsaved changes' : 'Saved locally'}
-          </span>
-          <span className="text-xs text-slate-500 dark:text-slate-400">Preview only. Meta approval is not implied anywhere in this builder.</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" className="rounded-full" onClick={onSaveDraft}>Save Draft</Button>
-          <Button type="button" variant="outline" className="rounded-full" onClick={onCloneDraft}>Clone</Button>
-          <Button type="button" variant="outline" className="rounded-full" onClick={onResetDraft}>Reset Draft</Button>
-          <Button type="button" variant="outline" className="rounded-full" onClick={() => setStep(4)}>Preview</Button>
-          <Button type="button" className="rounded-full bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200" onClick={onMarkReady}>
-            Prepare for Meta Submission
-          </Button>
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
-        {stepLabels.map((label, index) => (
-          <button
-            key={label}
-            type="button"
-            onClick={() => setStep(index)}
-            className={`rounded-[20px] border px-3 py-3 text-left ${index === step ? 'border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950' : 'border-slate-200 bg-white text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300'}`}
-          >
-            <p className="text-[11px] uppercase tracking-[0.22em]">Step {index + 1}</p>
-            <p className="mt-2 text-sm font-semibold">{label}</p>
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-8 space-y-6">
-        {step === 0 ? (
-          <div className="grid gap-5 lg:grid-cols-2">
-            <div>
-              <label className="text-sm font-medium text-slate-950 dark:text-white">Template name</label>
-              <Input value={draft.name} onChange={(event) => updateField('name', event.target.value)} placeholder="Appointment Reminder India" className="mt-2 h-11 rounded-2xl" />
-              <FieldMessage message={errors.name} />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-950 dark:text-white">Internal name</label>
-              <Input value={draft.internalName} onChange={(event) => updateField('internalName', event.target.value)} placeholder="appointment_reminder_india" className="mt-2 h-11 rounded-2xl" />
-              <FieldMessage message={errors.internalName} />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-950 dark:text-white">Meta category</label>
-              <NativeSelect value={draft.metaCategory} onChange={(value) => updateField('metaCategory', value)} options={metaCategories} />
-              <FieldMessage message={errors.metaCategory} />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-950 dark:text-white">Language</label>
-              <NativeSelect value={draft.language} onChange={(value) => updateField('language', value)} options={languages} />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-950 dark:text-white">Internal category</label>
-              <NativeSelect value={draft.internalCategory} onChange={(value) => updateField('internalCategory', value)} options={categories} />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-950 dark:text-white">Healthcare use case</label>
-              <Input value={draft.healthcareUseCase} onChange={(event) => updateField('healthcareUseCase', event.target.value)} placeholder="Appointment reminder" className="mt-2 h-11 rounded-2xl" />
-            </div>
-            <div className="lg:col-span-2">
-              <label className="text-sm font-medium text-slate-950 dark:text-white">Purpose</label>
-              <Textarea value={draft.purpose} onChange={(event) => updateField('purpose', event.target.value)} placeholder="Describe what this template is intended to communicate." className="mt-2 min-h-[100px] rounded-2xl" />
-            </div>
-            <div className="lg:col-span-2">
-              <label className="text-sm font-medium text-slate-950 dark:text-white">Internal tags</label>
-              <Input value={(draft.tags || []).join(', ')} onChange={(event) => updateTags(event.target.value)} placeholder="appointments, reminder, family" className="mt-2 h-11 rounded-2xl" />
-            </div>
+          <div className="flex items-center justify-between gap-3">
+            <label className="text-sm font-medium text-slate-950 dark:text-white">Message body</label>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{(draft.body || '').length} characters</span>
           </div>
-        ) : null}
+          <Textarea value={draft.body} onChange={(event) => updateField('body', event.target.value)} placeholder="Hello {{1}}, your scheduled service is confirmed for {{2}}." className="mt-2 min-h-[220px] rounded-2xl" />
+          <FieldMessage message={errors.body} />
+        </div>
+      );
+    }
 
-        {step === 1 ? (
-          <div className="grid gap-5">
-            <div className="grid gap-5 lg:grid-cols-2">
-              <div>
-                <label className="text-sm font-medium text-slate-950 dark:text-white">Header type</label>
-                <NativeSelect value={header.type} onChange={(value) => updateHeaderField('type', value)} options={headerTypes} />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-950 dark:text-white">Header content</label>
-                <Input value={header.content} onChange={(event) => updateHeaderField('content', event.target.value)} placeholder="Header placeholder or sample content" className="mt-2 h-11 rounded-2xl" />
-                <FieldMessage message={errors.headerContent} />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between gap-3">
-                <label className="text-sm font-medium text-slate-950 dark:text-white">Body</label>
-                <span className="text-xs text-slate-500 dark:text-slate-400">{(draft.body || '').length} characters</span>
-              </div>
-              <Textarea value={draft.body} onChange={(event) => updateField('body', event.target.value)} placeholder="Hello {{1}}, your scheduled service is confirmed for {{2}}." className="mt-2 min-h-[180px] rounded-2xl" />
-              <FieldMessage message={errors.body} />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-950 dark:text-white">Footer</label>
-              <Input value={draft.footer} onChange={(event) => updateField('footer', event.target.value)} placeholder="Footer text is optional" className="mt-2 h-11 rounded-2xl" />
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Keep footer neutral. Do not imply approval, treatment outcome, or policy guarantees.</p>
-            </div>
+    if (key === 'variables') {
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-slate-950 dark:text-white">Variable mapping</p>
+            <Button type="button" variant="outline" className="rounded-full" onClick={addVariable}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Variable
+            </Button>
           </div>
-        ) : null}
-
-        {step === 2 ? (
-          <div className="rounded-[24px] border border-slate-200/70 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/40">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-slate-950 dark:text-white">Variable mapping</p>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="rounded-full border-cyan-300 bg-cyan-500/10 px-2.5 py-0.5 text-[10px] text-cyan-700 dark:border-cyan-900 dark:text-cyan-200">
-                  Smart variables
-                </Badge>
-                <Button type="button" variant="outline" className="rounded-full" onClick={addVariable}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Variable
-                </Button>
-              </div>
-            </div>
-            <div className="mt-4 space-y-4">
+          {(draft.variables || []).length ? (
+            <div className="space-y-4">
               {(draft.variables || []).map((variable) => (
                 <div key={variable.id} className="rounded-2xl border border-slate-200/70 bg-white p-4 dark:border-slate-800 dark:bg-slate-950/40">
                   <div className="grid gap-4 lg:grid-cols-[130px_1fr_1fr_auto]">
@@ -305,20 +234,28 @@ const TemplateBuilderWizard = ({
                 </div>
               ))}
             </div>
-            <FieldMessage message={errors.variables} />
-          </div>
-        ) : null}
-
-        {step === 3 ? (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-slate-950 dark:text-white">Visual button builder</p>
-              <Button type="button" variant="outline" className="rounded-full" onClick={addButton}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Button
-              </Button>
+          ) : (
+            <div className="rounded-[22px] border border-dashed border-slate-300 bg-slate-50/70 px-5 py-6 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-300">
+              No variables added yet. Add placeholders once the body contains sequential tokens like {'{{1}}'}, {'{{2}}'}, and {'{{3}}'}.
             </div>
-            {(draft.buttons || []).map((button) => (
+          )}
+          <FieldMessage message={errors.variables} />
+        </div>
+      );
+    }
+
+    if (key === 'buttons') {
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-slate-950 dark:text-white">Buttons</p>
+            <Button type="button" variant="outline" className="rounded-full" onClick={addButton}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Button
+            </Button>
+          </div>
+          {(draft.buttons || []).length ? (
+            (draft.buttons || []).map((button) => (
               <div key={button.id} className="rounded-[24px] border border-slate-200/70 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/40">
                 <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1fr_auto]">
                   <div>
@@ -342,114 +279,150 @@ const TemplateBuilderWizard = ({
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : null}
-
-        {step === 4 ? (
-          <TemplatePreview draft={draft} readinessLabel={readinessLabel} previewMode={previewMode} onPreviewModeChange={onPreviewModeChange} />
-        ) : null}
-
-        {step === 5 ? (
-          <div className="space-y-5">
-            <div className="rounded-[24px] border border-slate-200/70 bg-slate-50/80 p-5 dark:border-slate-800 dark:bg-slate-900/40">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-slate-950 dark:text-white">Local validation and Meta readiness</p>
-                <Button type="button" variant="outline" className="rounded-full" onClick={onRunQualityCheck}>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Run AI Quality Check
-                </Button>
-              </div>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div><p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Template name</p><p className="mt-1 text-sm text-slate-950 dark:text-white">{draft.name || 'Not set'}</p></div>
-                <div><p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Recommended Meta category</p><p className="mt-1 text-sm text-slate-950 dark:text-white">{assessment.recommendedMetaCategory}</p></div>
-                <div className="md:col-span-2"><p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Readiness</p><p className="mt-1 text-sm text-slate-950 dark:text-white">{readinessLabel}</p></div>
-              </div>
+            ))
+          ) : (
+            <div className="rounded-[22px] border border-dashed border-slate-300 bg-slate-50/70 px-5 py-6 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-300">
+              No buttons configured yet. Add up to 3 CTAs only when the template purpose genuinely needs them.
             </div>
+          )}
+        </div>
+      );
+    }
 
-            <div className="grid gap-4 lg:grid-cols-3">
-              <div className="rounded-[24px] border border-emerald-200 bg-emerald-500/5 p-4 dark:border-emerald-900/30 dark:bg-emerald-950/15">
-                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-200">PASS</p>
-                <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                  {assessment.passes.length ? assessment.passes.map((item) => <li key={item}>{item}</li>) : <li>No pass signals yet.</li>}
-                </ul>
-              </div>
-              <div className="rounded-[24px] border border-amber-200 bg-amber-500/5 p-4 dark:border-amber-900/30 dark:bg-amber-950/15">
-                <p className="text-sm font-semibold text-amber-700 dark:text-amber-200">WARNING</p>
-                <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                  {assessment.warnings.length ? assessment.warnings.map((item) => <li key={item}>{item}</li>) : <li>No warnings detected.</li>}
-                </ul>
-              </div>
-              <div className="rounded-[24px] border border-rose-200 bg-rose-500/5 p-4 dark:border-rose-900/30 dark:bg-rose-950/15">
-                <p className="text-sm font-semibold text-rose-700 dark:text-rose-200">BLOCKING</p>
-                <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                  {assessment.blockingIssues.length ? assessment.blockingIssues.map((item) => <li key={item}>{item}</li>) : <li>No blocking issues.</li>}
-                </ul>
-              </div>
-            </div>
+    if (key === 'footer') {
+      return (
+        <div>
+          <label className="text-sm font-medium text-slate-950 dark:text-white">Footer</label>
+          <Input value={draft.footer} onChange={(event) => updateField('footer', event.target.value)} placeholder="Footer text is optional" className="mt-2 h-11 rounded-2xl" />
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Keep footer operational and avoid claims, guarantees, or clinical promises.</p>
+        </div>
+      );
+    }
 
-            {showAiQuality ? (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {Object.entries(assessment.qualityChecks).map(([key, value]) => (
-                  <div key={key} className="rounded-2xl border border-slate-200/70 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950/40">
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{key.replace(/([A-Z])/g, ' $1')}</p>
-                    <p className="mt-2 text-sm font-semibold text-slate-950 dark:text-white">{value}</p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+    return null;
+  };
 
-        {step === 6 ? (
-          <div className="space-y-5">
-            <div className="rounded-[24px] border border-slate-200/70 bg-slate-50/80 p-5 dark:border-slate-800 dark:bg-slate-900/40">
-              <p className="text-sm font-semibold text-slate-950 dark:text-white">Finalize local draft</p>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div><p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Current local status</p><p className="mt-1 text-sm text-slate-950 dark:text-white">{lifecycleStatus}</p></div>
-                <div><p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Meta status</p><p className="mt-1 text-sm text-slate-950 dark:text-white">{draft.metaStatus}</p></div>
-                <div className="md:col-span-2"><p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Submission note</p><p className="mt-1 text-sm text-slate-950 dark:text-white">Ready for Meta submission is a local readiness outcome only. Submission and approval remain future provider-backed workflows.</p></div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" className="rounded-full" onClick={onSaveDraft}>Save Draft</Button>
-              <Button type="button" variant="outline" className="rounded-full" onClick={onCloneDraft}>Clone</Button>
-              <Button type="button" variant="outline" className="rounded-full" onClick={onResetDraft}>Reset Draft</Button>
-              <Button type="button" variant="outline" className="rounded-full" onClick={onDeleteDraft}>Delete Draft</Button>
-              <Button type="button" className="rounded-full bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200" onClick={onMarkReady}>
-                Save Draft / Prepare Submission
-              </Button>
-            </div>
-
-            <div className="rounded-[24px] border border-amber-300 bg-amber-500/10 p-4 text-sm leading-7 text-amber-800 dark:border-amber-900 dark:text-amber-200">
-              Local validation confirms draft readiness only. It does not imply Meta approval, policy compliance, or production eligibility until a future real provider integration confirms that state.
-            </div>
-          </div>
-        ) : null}
+  return (
+    <div className="space-y-6 rounded-[28px] border border-white/70 bg-white/85 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-slate-950/45">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-emerald-700 dark:text-emerald-200">Create Template</p>
+          <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 dark:text-white">Template canvas editor</h3>
+          <p className="mt-2 text-sm leading-7 text-slate-600 dark:text-slate-300">
+            The canvas keeps the underlying draft structured while letting admins add, remove, and reorder supported template sections with native browser drag interactions.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline" className="rounded-full border-slate-300 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-slate-600 dark:border-slate-700 dark:text-slate-300">{activeSourceLabel}</Badge>
+          <TemplateStatusBadge status={lifecycleStatus} />
+        </div>
       </div>
 
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+      <div className="sticky top-20 z-10 flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-slate-200/70 bg-white/90 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
         <div className="flex items-center gap-2">
-          <Button type="button" variant="outline" className="rounded-full" onClick={previousStep} disabled={step === 0}>
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <Button type="button" variant="outline" className="rounded-full" onClick={nextStep} disabled={step === stepLabels.length - 1}>
-            Next
-            <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${unsavedChanges ? 'bg-amber-500/10 text-amber-700 dark:text-amber-200' : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-200'}`}>
+            {unsavedChanges ? 'Unsaved changes' : 'Saved locally'}
+          </span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">Preview only. Meta approval is not implied anywhere in this builder.</span>
         </div>
-
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" className="rounded-full" onClick={onSaveDraft}>Save Draft</Button>
-          <Button type="button" variant="outline" className="rounded-full" onClick={() => setStep(4)}>Preview</Button>
           <Button type="button" variant="outline" className="rounded-full" onClick={onCloneDraft}>Clone</Button>
           <Button type="button" variant="outline" className="rounded-full" onClick={onResetDraft}>Reset Draft</Button>
+          <Button type="button" className="rounded-full bg-slate-950 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200" onClick={onMarkReady}>
+            Prepare for Meta Submission
+          </Button>
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-start gap-3 rounded-[24px] border border-slate-200/70 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+      <div className="rounded-[24px] border border-slate-200/70 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-900/40">
+        <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
+          <div>
+            <label className="text-sm font-medium text-slate-950 dark:text-white">Template name</label>
+            <Input value={draft.name} onChange={(event) => updateField('name', event.target.value)} placeholder="Appointment Reminder India" className="mt-2 h-11 rounded-2xl" />
+            <FieldMessage message={errors.name} />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-950 dark:text-white">Internal name</label>
+            <Input value={draft.internalName} onChange={(event) => updateField('internalName', event.target.value)} placeholder="appointment_reminder_india" className="mt-2 h-11 rounded-2xl" />
+            <FieldMessage message={errors.internalName} />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-950 dark:text-white">Language</label>
+            <NativeSelect value={draft.language} onChange={(value) => updateField('language', value)} options={languages} />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-950 dark:text-white">Meta category</label>
+            <NativeSelect value={draft.metaCategory} onChange={(value) => updateField('metaCategory', value)} options={metaCategories} />
+            <FieldMessage message={errors.metaCategory} />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-950 dark:text-white">Internal category</label>
+            <NativeSelect value={draft.internalCategory} onChange={(value) => updateField('internalCategory', value)} options={categories} />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-950 dark:text-white">Healthcare use case</label>
+            <Input value={draft.healthcareUseCase} onChange={(event) => updateField('healthcareUseCase', event.target.value)} placeholder="Appointment reminder" className="mt-2 h-11 rounded-2xl" />
+          </div>
+          <div className="xl:col-span-3">
+            <label className="text-sm font-medium text-slate-950 dark:text-white">Purpose</label>
+            <Textarea value={draft.purpose} onChange={(event) => updateField('purpose', event.target.value)} placeholder="Describe what this template is intended to communicate." className="mt-2 min-h-[100px] rounded-2xl" />
+          </div>
+          <div className="xl:col-span-3">
+            <label className="text-sm font-medium text-slate-950 dark:text-white">Internal tags</label>
+            <Input value={(draft.tags || []).join(', ')} onChange={(event) => updateTags(event.target.value)} placeholder="appointments, reminder, family" className="mt-2 h-11 rounded-2xl" />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-slate-950 dark:text-white">Template canvas</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Drag cards to reorder the visible template structure. Removing a card clears that part of the current local draft.</p>
+          </div>
+          <Button type="button" variant="outline" className="rounded-full" onClick={onRunQualityCheck}>
+            <Sparkles className="mr-2 h-4 w-4" />
+            Run AI Quality Check
+          </Button>
+        </div>
+
+        {componentOrder.length ? componentOrder.map((key) => (
+          <section
+            key={key}
+            draggable
+            onDragStart={() => setDraggingKey(key)}
+            onDragEnd={() => setDraggingKey(null)}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={() => handleDrop(key)}
+            className={`rounded-[24px] border p-5 transition-colors ${draggingKey === key ? 'border-emerald-400 bg-emerald-50/70 dark:border-emerald-700 dark:bg-emerald-950/20' : 'border-slate-200/70 bg-white/80 dark:border-slate-800 dark:bg-slate-950/35'}`}
+          >
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <button type="button" className="mt-0.5 inline-flex h-10 w-10 cursor-grab items-center justify-center rounded-2xl border border-slate-200 text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                  <GripVertical className="h-4 w-4" />
+                </button>
+                <div>
+                  <p className="text-sm font-semibold text-slate-950 dark:text-white">{blockMeta[key]?.title}</p>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{blockMeta[key]?.description}</p>
+                </div>
+              </div>
+              <Button type="button" variant="outline" className="rounded-full" onClick={() => onRemoveComponent?.(key)}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Remove
+              </Button>
+            </div>
+            {renderComponentEditor(key)}
+          </section>
+        )) : (
+          <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50/70 px-6 py-10 text-center dark:border-slate-700 dark:bg-slate-900/40">
+            <p className="text-lg font-semibold text-slate-950 dark:text-white">No active template components</p>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Use the left palette to add body, variables, buttons, or a header/media slot back into the canvas.</p>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-start gap-3 rounded-[24px] border border-slate-200/70 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/40">
         {assessment.blockingIssues.length ? <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-600 dark:text-amber-300" /> : <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-600 dark:text-emerald-300" />}
         <div>
           <p className="text-sm font-semibold text-slate-950 dark:text-white">Validation feedback</p>
@@ -461,6 +434,24 @@ const TemplateBuilderWizard = ({
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Client-side validation passes. This draft appears ready for a later provider-backed submission phase.</p>
           )}
         </div>
+      </div>
+
+      {showAiQuality ? (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {Object.entries(assessment.qualityChecks).map(([key, value]) => (
+            <div key={key} className="rounded-2xl border border-slate-200/70 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950/40">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{key.replace(/([A-Z])/g, ' $1')}</p>
+              <p className="mt-2 text-sm font-semibold text-slate-950 dark:text-white">{value}</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" variant="outline" className="rounded-full" onClick={onSaveDraft}>Save Draft</Button>
+        <Button type="button" variant="outline" className="rounded-full" onClick={onCloneDraft}>Clone</Button>
+        <Button type="button" variant="outline" className="rounded-full" onClick={onResetDraft}>Reset Draft</Button>
+        <Button type="button" variant="outline" className="rounded-full" onClick={onDeleteDraft}>Delete Draft</Button>
       </div>
     </div>
   );

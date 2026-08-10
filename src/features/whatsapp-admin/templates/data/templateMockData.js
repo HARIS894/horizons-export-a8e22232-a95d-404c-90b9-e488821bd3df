@@ -1,4 +1,5 @@
 import {
+  TEMPLATE_COMPONENT_KEYS,
   META_TEMPLATE_STATUSES,
   TEMPLATE_BUTTON_TYPES,
   TEMPLATE_CATEGORIES,
@@ -34,6 +35,22 @@ const toLegacyCategory = (metaCategory) => {
   return 'Utility';
 };
 
+const buildComponentOrder = (template, header) => {
+  if (Array.isArray(template.componentOrder) && template.componentOrder.length) {
+    return [...new Set(template.componentOrder.filter(Boolean))];
+  }
+
+  const order = [
+    header.type !== 'None' || String(header.content || '').trim() ? TEMPLATE_COMPONENT_KEYS.HEADER : null,
+    template.body !== undefined ? TEMPLATE_COMPONENT_KEYS.BODY : null,
+    Array.isArray(template.variables) && template.variables.length ? TEMPLATE_COMPONENT_KEYS.VARIABLES : null,
+    Array.isArray(template.buttons) && template.buttons.length ? TEMPLATE_COMPONENT_KEYS.BUTTONS : null,
+    String(template.footer || '').trim() ? TEMPLATE_COMPONENT_KEYS.FOOTER : null,
+  ].filter(Boolean);
+
+  return order.length ? order : [TEMPLATE_COMPONENT_KEYS.BODY];
+};
+
 const normalizeTemplate = (template) => {
   const header = template.header || {
     type: template.headerType || 'None',
@@ -63,6 +80,7 @@ const normalizeTemplate = (template) => {
     metaStatusLabel: template.metaStatusLabel || String(metaStatus).replace(/_/g, ' '),
     variables: template.variables || [],
     buttons: template.buttons || [],
+    componentOrder: buildComponentOrder(template, header),
     approvalHistory: history,
     history: history.map((entry) => (typeof entry === 'string' ? entry : entry.label)),
     category: template.category || toLegacyCategory(template.metaCategory || 'UTILITY'),
@@ -745,10 +763,11 @@ export const createEmptyTemplateDraft = () => {
     localStatus: TEMPLATE_STATUSES.DRAFT,
     metaStatus: META_TEMPLATE_STATUSES.NOT_SUBMITTED,
     source: TEMPLATE_SOURCE_TYPES.LOCAL,
+    componentOrder: [TEMPLATE_COMPONENT_KEYS.BODY, TEMPLATE_COMPONENT_KEYS.VARIABLES],
     header: { type: 'None', content: '' },
     body: '',
     footer: '',
-    buttons: [buildButton('btn-1', 'Quick Reply', '', '')],
+    buttons: [],
     variables: [
       buildVariable('{{1}}', 'Patient Name', 'Harish Kumar', 'Primary recipient name.'),
       buildVariable('{{2}}', 'Appointment Date', '12 August 2026', 'Date or key operational value.'),

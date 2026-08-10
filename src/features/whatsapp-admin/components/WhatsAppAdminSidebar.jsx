@@ -3,103 +3,30 @@ import { Link } from 'react-router-dom';
 import {
   Activity,
   BarChart3,
-  BriefcaseBusiness,
-  Building2,
-  CalendarRange,
-  CircleDollarSign,
-  Cpu,
-  CreditCard,
-  FileClock,
   FileText,
-  FolderKanban,
-  HandCoins,
-  KeyRound,
   LayoutDashboard,
   Link2,
   MessageSquareText,
-  Receipt,
-  Rows3,
-  ScrollText,
   Settings,
-  ShieldCheck,
-  Sheet,
-  Sparkles,
-  Stethoscope,
-  Syringe,
-  TimerReset,
   Users,
   UserSquare2,
   Wallet,
-  Webhook,
   Workflow,
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const navigationGroups = [
-  {
-    label: 'Operations',
-    items: [
-      { label: 'Overview', icon: LayoutDashboard, to: '/admin/whatsapp-platform' },
-      { label: 'Inbox', icon: MessageSquareText, badge: 'Next phase' },
-      { label: 'Contacts', icon: UserSquare2, badge: 'Next phase' },
-      { label: 'Templates', icon: FileText, to: '/admin/whatsapp-platform/templates' },
-      { label: 'Flows', icon: Workflow, badge: 'Next phase' },
-      { label: 'Campaigns', icon: BriefcaseBusiness, badge: 'Next phase' },
-    ],
-  },
-  {
-    label: 'Automation',
-    items: [
-      { label: 'Flow Builder', icon: Rows3, badge: 'Next phase' },
-      { label: 'Triggers', icon: TimerReset, badge: 'Next phase' },
-      { label: 'Schedules', icon: CalendarRange, badge: 'Next phase' },
-      { label: 'Rules', icon: ShieldCheck, badge: 'Next phase' },
-      { label: 'AI Automation', icon: Sparkles, badge: 'Next phase' },
-    ],
-  },
-  {
-    label: 'Integrations',
-    items: [
-      { label: 'Integration Hub', icon: Link2, to: '/admin/whatsapp-platform/integrations' },
-      { label: 'Google Sheets', icon: Sheet, badge: 'Demo' },
-      { label: 'Google Calendar', icon: CalendarRange, badge: 'Demo' },
-      { label: 'Apps Script', icon: Cpu, badge: 'Demo' },
-      { label: 'Excel / VBA', icon: ScrollText, badge: 'Demo' },
-      { label: 'WhatsApp / Meta', icon: MessageSquareText, badge: 'Demo' },
-      { label: 'Webhooks', icon: Webhook, badge: 'Demo' },
-      { label: 'API Keys', icon: KeyRound, badge: 'Demo' },
-    ],
-  },
-  {
-    label: 'Business',
-    items: [
-      { label: 'Staff', icon: Users, badge: 'Next phase' },
-      { label: 'Salary', icon: Wallet, badge: 'Next phase' },
-      { label: 'Clients', icon: Building2, badge: 'Next phase' },
-      { label: 'Payments', icon: HandCoins, badge: 'Next phase' },
-      { label: 'Invoices', icon: Receipt, badge: 'Next phase' },
-      { label: 'Expenses', icon: CreditCard, badge: 'Next phase' },
-      { label: 'Reports', icon: FileClock, badge: 'Next phase' },
-    ],
-  },
-  {
-    label: 'Analytics',
-    items: [
-      { label: 'Analytics', icon: BarChart3, badge: 'Next phase' },
-      { label: 'Delivery', icon: Activity, badge: 'Next phase' },
-      { label: 'Template Performance', icon: Stethoscope, badge: 'Next phase' },
-      { label: 'Automation Performance', icon: Syringe, badge: 'Next phase' },
-    ],
-  },
-  {
-    label: 'Admin',
-    items: [
-      { label: 'Audit Logs', icon: ShieldCheck, badge: 'Next phase' },
-      { label: 'Settings', icon: Settings, badge: 'Next phase' },
-      { label: 'Admin Profile', icon: FolderKanban, badge: 'Next phase' },
-    ],
-  },
+const navigationItems = [
+  { label: 'Dashboard', icon: LayoutDashboard, to: '/admin/whatsapp-platform' },
+  { label: 'Inbox', icon: MessageSquareText, badge: 'Future' },
+  { label: 'Contacts', icon: UserSquare2, badge: 'Future' },
+  { label: 'Patients', icon: Users, badge: 'Future' },
+  { label: 'Templates', icon: FileText, to: '/admin/whatsapp-platform/templates' },
+  { label: 'Flows', icon: Workflow, badge: 'Future' },
+  { label: 'Integrations', icon: Link2, to: '/admin/whatsapp-platform/integrations' },
+  { label: 'Finance', icon: Wallet, badge: 'Future' },
+  { label: 'Analytics', icon: BarChart3, badge: 'Future' },
+  { label: 'Admin', icon: Settings, badge: 'Future' },
 ];
 
 const NavItem = ({ item, currentPath, onNavigate }) => {
@@ -168,17 +95,13 @@ const WhatsAppAdminSidebar = ({ isOpen, onClose, currentPath }) => {
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
-          <div className="space-y-6">
-            {navigationGroups.map((group) => (
-              <section key={group.label}>
-                <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">{group.label}</p>
-                <div className="mt-2 space-y-1">
-                  {group.items.map((item) => (
-                    <NavItem key={item.label} item={item} currentPath={currentPath} onNavigate={onClose} />
-                  ))}
-                </div>
-              </section>
-            ))}
+          <div>
+            <p className="px-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">Workspace</p>
+            <div className="mt-2 space-y-1">
+              {navigationItems.map((item) => (
+                <NavItem key={item.label} item={item} currentPath={currentPath} onNavigate={onClose} />
+              ))}
+            </div>
           </div>
         </div>
 

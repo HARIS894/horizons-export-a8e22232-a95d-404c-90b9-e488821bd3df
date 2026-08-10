@@ -54,6 +54,47 @@ export const TEMPLATE_SOURCE_TYPES = {
   META_APPROVED: 'META_APPROVED',
 };
 
+export const TEMPLATE_COMPONENT_KEYS = {
+  HEADER: 'header',
+  BODY: 'body',
+  VARIABLES: 'variables',
+  BUTTONS: 'buttons',
+  FOOTER: 'footer',
+};
+
+export const TEMPLATE_COMPONENT_LIBRARY = [
+  {
+    key: TEMPLATE_COMPONENT_KEYS.HEADER,
+    label: 'Header / Media',
+    shortLabel: 'Header',
+    description: 'Text, image, video, or document header managed in a Meta-compatible slot.',
+  },
+  {
+    key: TEMPLATE_COMPONENT_KEYS.BODY,
+    label: 'Body',
+    shortLabel: 'Body',
+    description: 'Main WhatsApp message copy and placeholders.',
+  },
+  {
+    key: TEMPLATE_COMPONENT_KEYS.VARIABLES,
+    label: 'Variables',
+    shortLabel: 'Variables',
+    description: 'Sample values and mapping for placeholder tokens.',
+  },
+  {
+    key: TEMPLATE_COMPONENT_KEYS.BUTTONS,
+    label: 'Buttons',
+    shortLabel: 'Buttons',
+    description: 'Quick replies, website CTAs, and phone CTAs.',
+  },
+  {
+    key: TEMPLATE_COMPONENT_KEYS.FOOTER,
+    label: 'Footer',
+    shortLabel: 'Footer',
+    description: 'Optional secondary note under the message body.',
+  },
+];
+
 export const TEMPLATE_SORT_OPTIONS = [
   { value: 'updated-desc', label: 'Recently Updated' },
   { value: 'created-desc', label: 'Recently Created' },

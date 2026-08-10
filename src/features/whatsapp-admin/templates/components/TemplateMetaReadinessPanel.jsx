@@ -4,7 +4,77 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import TemplateStatusBadge from './TemplateStatusBadge';
 
-const TemplateMetaReadinessPanel = ({ draft, assessment, showAiQuality, onRunQualityCheck }) => {
+const readinessBuckets = [
+  { key: 'passes', label: 'PASS', className: 'border-emerald-200 bg-emerald-500/5 text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/15 dark:text-emerald-200' },
+  { key: 'warnings', label: 'WARNING', className: 'border-amber-200 bg-amber-500/5 text-amber-700 dark:border-amber-900/30 dark:bg-amber-950/15 dark:text-amber-200' },
+  { key: 'blockingIssues', label: 'BLOCKING', className: 'border-rose-200 bg-rose-500/5 text-rose-700 dark:border-rose-900/30 dark:bg-rose-950/15 dark:text-rose-200' },
+];
+
+const TemplateMetaReadinessPanel = ({ draft, assessment, showAiQuality, onRunQualityCheck, compact = false }) => {
+  if (compact) {
+    return (
+      <div className="space-y-4 rounded-[28px] border border-white/70 bg-white/85 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-slate-950/45">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-700 dark:text-sky-200">Meta Readiness</p>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Local guidance only. Meta approval is a separate future provider workflow.</p>
+          </div>
+          <TemplateStatusBadge status={draft.localStatus || draft.status} />
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-[22px] border border-slate-200/70 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Local Status</p>
+            <div className="mt-2"><TemplateStatusBadge status={draft.localStatus || draft.status} /></div>
+          </div>
+          <div className="rounded-[22px] border border-slate-200/70 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Meta Status</p>
+            <div className="mt-2"><TemplateStatusBadge status={draft.metaStatus} kind="meta" /></div>
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          {readinessBuckets.map((bucket) => {
+            const items = assessment[bucket.key] || [];
+            return (
+              <div key={bucket.key} className={`rounded-[22px] border p-4 ${bucket.className}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold">{bucket.label}</p>
+                  <Badge variant="outline" className="rounded-full border-current px-2.5 py-0.5 text-[10px]">{items.length}</Badge>
+                </div>
+                <ul className="mt-3 space-y-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  {(items.length ? items.slice(0, 2) : [`No ${bucket.label.toLowerCase()} items.`]).map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="rounded-[24px] border border-slate-200/70 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-slate-950 dark:text-white">AI Quality Check</p>
+            <Button type="button" variant="outline" className="rounded-full" onClick={onRunQualityCheck}>
+              <Sparkles className="mr-2 h-4 w-4" />
+              Run Check
+            </Button>
+          </div>
+          {showAiQuality ? (
+            <div className="mt-4 grid gap-2">
+              {Object.entries(assessment.qualityChecks).map(([key, value]) => (
+                <div key={key} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200/70 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950/40">
+                  <span className="text-sm text-slate-700 dark:text-slate-200">{key.replace(/([A-Z])/g, ' $1')}</span>
+                  <Badge variant="outline" className="rounded-full border-slate-300 px-2.5 py-0.5 text-[10px] text-slate-600 dark:border-slate-700 dark:text-slate-300">{value}</Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">PASS, WARNING, and BLOCKING remain local readiness signals only.</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5 rounded-[28px] border border-white/70 bg-white/85 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/10 dark:bg-slate-950/45">
       <div className="flex items-start justify-between gap-3">

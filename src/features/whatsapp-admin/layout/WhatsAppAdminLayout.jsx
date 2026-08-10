@@ -5,9 +5,9 @@ import WhatsAppAdminSidebar from '../components/WhatsAppAdminSidebar';
 
 const routeMeta = {
   '/admin/whatsapp-platform': {
-    title: 'Overview',
+    title: 'Dashboard',
     description: 'Enterprise command center for operations, integrations, business workflows, and admin governance.',
-    breadcrumb: ['WhatsApp Admin', 'Overview'],
+    breadcrumb: ['WhatsApp Admin', 'Dashboard'],
   },
   '/admin/whatsapp-platform/templates': {
     title: 'Templates',
