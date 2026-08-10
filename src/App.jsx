@@ -25,6 +25,9 @@ import AdminDashboard from '@/pages/AdminDashboard';
 import CustomerDashboard from '@/pages/CustomerDashboard';
 import HealthcareCrmPortalPage from '@/pages/HealthcareCrmPortalPage';
 import NriFamilyPortalPage from '@/pages/NriFamilyPortalPage';
+import WhatsAppAdminPlatformPage from '@/features/whatsapp-admin/pages/WhatsAppAdminPlatformPage';
+import WhatsAppIntegrationsPage from '@/features/whatsapp-admin/integrations/pages/WhatsAppIntegrationsPage';
+import WhatsAppTemplatesFoundationPage from '@/features/whatsapp-admin/templates/pages/WhatsAppTemplatesFoundationPage';
 
 function App() {
   return (
@@ -97,6 +100,33 @@ function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <HealthcareCrmPortalPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/whatsapp-platform"
+              element={
+                <ProtectedRoute adminOnly>
+                  <WhatsAppAdminPlatformPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/whatsapp-platform/templates"
+              element={
+                <ProtectedRoute adminOnly>
+                  <WhatsAppTemplatesFoundationPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/whatsapp-platform/integrations"
+              element={
+                <ProtectedRoute adminOnly>
+                  <WhatsAppIntegrationsPage />
                 </ProtectedRoute>
               }
             />

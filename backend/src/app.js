@@ -16,8 +16,12 @@ const captureRawJsonBody = (req, _res, buffer) => {
 	}
 };
 
+const corsOrigin = env.nodeEnv === 'development' && env.corsOrigin === 'http://localhost:3000'
+	? [env.corsOrigin, 'http://localhost:3001']
+	: env.corsOrigin;
+
 app.use(helmet());
-app.use(cors({ origin: env.corsOrigin, credentials: true }));
+app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json({ limit: '2mb', verify: captureRawJsonBody }));
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
