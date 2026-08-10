@@ -13,8 +13,6 @@ import {
   Users2,
   Waypoints,
 } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import WhatsAppInbox from '@/components/admin/WhatsAppInbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
@@ -73,9 +71,7 @@ const AdminDashboard = () => {
       </Helmet>
 
       <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(6,182,212,0.16),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(139,92,246,0.18),_transparent_24%),linear-gradient(180deg,_#eef8ff_0%,_#f8fafc_48%,_#ffffff_100%)] dark:bg-[linear-gradient(180deg,_#020617_0%,_#0f172a_45%,_#111827_100%)]">
-        <Navbar />
-
-        <div className="px-4 pb-16 pt-24 sm:px-6 lg:px-8">
+        <div className="px-4 pb-16 pt-8 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -181,8 +177,6 @@ const AdminDashboard = () => {
             </motion.div>
           </div>
         </div>
-
-        <Footer />
       </div>
     </>
   );
