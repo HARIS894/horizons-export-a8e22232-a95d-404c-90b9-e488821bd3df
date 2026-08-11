@@ -10,6 +10,13 @@ import {
   TEMPLATE_SOURCE_TYPES,
   TEMPLATE_STATUSES,
 } from '../types/templateTypes';
+import { automationTagLabels } from '../../automation/data/tagCatalog';
+
+const DEFAULT_TEMPLATE_CREATOR = 'WhatsApp Admin Platform';
+
+const deriveMetaTemplateName = (template) => template.metaTemplateName || template.internalName || template.name;
+
+const deriveSendContexts = (template) => template.sendContexts || ['manual', 'automation'];
 
 const buildVariable = (token, name, sampleValue, description) => ({
   id: `var-${token.replace(/[^\d]/g, '') || 'x'}`,
@@ -62,6 +69,7 @@ const normalizeTemplate = (template) => {
 
   return {
     ...template,
+    templateCode: template.templateCode || 'IC-WA-UNASSIGNED',
     internalName: template.internalName || template.name,
     internalCategory: template.internalCategory || 'Care Coordination',
     metaCategory: template.metaCategory || 'UTILITY',
@@ -71,6 +79,10 @@ const normalizeTemplate = (template) => {
     tags: template.tags || [],
     favorite: Boolean(template.favorite),
     source: template.source || TEMPLATE_SOURCE_TYPES.LOCAL,
+    metaTemplateName: deriveMetaTemplateName(template),
+    createdBy: template.createdBy || DEFAULT_TEMPLATE_CREATOR,
+    version: template.version || 'v1.0',
+    sendContexts: deriveSendContexts(template),
     header,
     headerType: header.type,
     headerContent: header.content,
@@ -85,6 +97,7 @@ const normalizeTemplate = (template) => {
     history: history.map((entry) => (typeof entry === 'string' ? entry : entry.label)),
     category: template.category || toLegacyCategory(template.metaCategory || 'UTILITY'),
     isHealthcareSafe: template.isHealthcareSafe !== false,
+    availableTags: automationTagLabels,
   };
 };
 
@@ -103,8 +116,14 @@ const makeStarterTemplate = ({
   headerContent = name,
   footer = 'InstantCare support desk',
   tags = [],
+  templateCode,
+  metaTemplateName,
+  version = 'v1.0',
+  createdBy = DEFAULT_TEMPLATE_CREATOR,
+  sendContexts = ['manual', 'automation'],
 }) => normalizeTemplate({
   id,
+  templateCode,
   name,
   internalName: id.replace(/-/g, '_'),
   purpose,
@@ -125,6 +144,10 @@ const makeStarterTemplate = ({
   variables,
   buttons,
   tags,
+  metaTemplateName,
+  version,
+  createdBy,
+  sendContexts,
   approvalHistory: [buildHistory('Starter library template prepared', 'Local only')],
 });
 
@@ -168,6 +191,7 @@ export const adminWorkspaceProfile = {
 export const starterTemplates = [
   makeStarterTemplate({
     id: 'starter-appointment-reminder',
+    templateCode: 'IC-WA-APT-001',
     name: 'Appointment Reminder',
     purpose: 'Remind patients about an upcoming appointment in a clear operational format.',
     internalCategory: 'Appointments',
@@ -183,9 +207,12 @@ export const starterTemplates = [
     ],
     buttons: [buildButton('btn-1', 'Quick Reply', 'Confirm')],
     tags: ['Reminder', 'Scheduling', 'Utility'],
+    metaTemplateName: 'appointment_reminder_india',
+    sendContexts: ['appointment_created', 'appointment_updated'],
   }),
   makeStarterTemplate({
     id: 'starter-doctor-visit-reminder',
+    templateCode: 'IC-WA-DR-002',
     name: 'Doctor Visit Reminder',
     purpose: 'Prepare the family for a doctor visit with timing and clinician details.',
     internalCategory: 'Healthcare',
@@ -199,9 +226,12 @@ export const starterTemplates = [
       buildVariable('{{4}}', 'Visit Time', '5:30 PM', 'Estimated time window.'),
     ],
     tags: ['Doctor', 'Reminder'],
+    metaTemplateName: 'doctor_visit_reminder',
+    sendContexts: ['appointment_created', 'appointment_updated'],
   }),
   makeStarterTemplate({
     id: 'starter-nurse-visit-confirmation',
+    templateCode: 'IC-WA-NURSE-003',
     name: 'Nurse Visit Confirmation',
     purpose: 'Confirm an assigned nurse visit with timing and service shift details.',
     internalCategory: 'Nursing',
@@ -215,9 +245,12 @@ export const starterTemplates = [
       buildVariable('{{4}}', 'Shift Time', '07:00 AM', 'Shift or arrival time.'),
     ],
     tags: ['Nursing', 'Confirmation'],
+    metaTemplateName: 'nurse_visit_confirmation',
+    sendContexts: ['appointment_created', 'manual'],
   }),
   makeStarterTemplate({
     id: 'starter-care-plan-update',
+    templateCode: 'IC-WA-CARE-004',
     name: 'Care Plan Update',
     purpose: 'Share an operational care update without clinical promises.',
     internalCategory: 'Care Coordination',
@@ -231,9 +264,11 @@ export const starterTemplates = [
       buildVariable('{{4}}', 'Next Step', 'doctor review at 6 PM', 'Next scheduled step.'),
     ],
     tags: ['Care Plan', 'Family Update'],
+    metaTemplateName: 'care_plan_update',
   }),
   makeStarterTemplate({
     id: 'starter-insurance-update',
+    templateCode: 'IC-WA-INS-005',
     name: 'Insurance Update',
     purpose: 'Share an insurance or pre-authorization update clearly.',
     internalCategory: 'Insurance',
@@ -246,9 +281,11 @@ export const starterTemplates = [
       buildVariable('{{3}}', 'Status Update', 'pre-authorization is under review', 'Short update.'),
     ],
     tags: ['Insurance', 'Case Update'],
+    metaTemplateName: 'insurance_update',
   }),
   makeStarterTemplate({
     id: 'starter-payment-reminder',
+    templateCode: 'IC-WA-PAY-006',
     name: 'Payment Reminder',
     purpose: 'Send a polite payment reminder for an outstanding invoice.',
     internalCategory: 'Other',
@@ -262,6 +299,8 @@ export const starterTemplates = [
     ],
     buttons: [buildButton('btn-1', 'Website CTA', 'Pay Now', 'https://instantcare.example/pay')],
     tags: ['Billing', 'Reminder'],
+    metaTemplateName: 'payment_reminder',
+    sendContexts: ['payment_created', 'payment_failed'],
   }),
   makeStarterTemplate({
     id: 'starter-doctor-appointment-confirmation',
@@ -561,6 +600,7 @@ export const starterTemplates = [
 export const mockTemplates = [
   normalizeTemplate({
     id: 'tpl-001',
+    templateCode: 'IC-WA-APT-001',
     name: 'Appointment Reminder India',
     internalName: 'appointment_reminder_india',
     internalCategory: 'Appointments',
@@ -573,6 +613,10 @@ export const mockTemplates = [
     createdAt: '02 Aug 2026, 11:10 AM',
     submittedAt: '03 Aug 2026, 10:15 AM',
     source: TEMPLATE_SOURCE_TYPES.META_APPROVED,
+    metaTemplateName: 'appointment_reminder_india',
+    createdBy: 'Care Operations Lead',
+    version: 'v2.1',
+    sendContexts: ['appointment_created', 'appointment_updated'],
     purpose: 'Reminder for scheduled appointments.',
     healthcareUseCase: 'Appointment reminder',
     body: 'Hello {{1}}, this is a reminder for your appointment with {{2}} on {{3}} at {{4}}.',
@@ -595,6 +639,7 @@ export const mockTemplates = [
   }),
   normalizeTemplate({
     id: 'tpl-002',
+    templateCode: 'IC-WA-FOLLOWUP-004',
     name: 'Family Daily Update',
     internalName: 'family_daily_update',
     internalCategory: 'Care Coordination',
@@ -606,6 +651,10 @@ export const mockTemplates = [
     updatedAt: '09 Aug 2026, 2:12 PM',
     createdAt: '08 Aug 2026, 9:00 AM',
     submittedAt: '09 Aug 2026, 9:35 AM',
+    metaTemplateName: 'family_daily_update',
+    createdBy: 'Family Experience Desk',
+    version: 'v1.4',
+    sendContexts: ['manual', 'patient_created', 'tag_added'],
     purpose: 'Daily operational update for family communication.',
     healthcareUseCase: 'Family coordination',
     body: 'Daily update for {{1}}: {{2}}. Next scheduled action: {{3}}.',
@@ -627,6 +676,7 @@ export const mockTemplates = [
   }),
   normalizeTemplate({
     id: 'tpl-003',
+    templateCode: 'IC-WA-CAMP-008',
     name: 'Health Camp Invite Chennai',
     internalName: 'healthcamp_invite_chennai',
     internalCategory: 'Other',
@@ -638,6 +688,10 @@ export const mockTemplates = [
     updatedAt: '08 Aug 2026, 8:05 PM',
     createdAt: '07 Aug 2026, 1:25 PM',
     submittedAt: '08 Aug 2026, 11:15 AM',
+    metaTemplateName: 'healthcamp_invite_chennai',
+    createdBy: 'Marketing Desk',
+    version: 'v0.9',
+    sendContexts: ['manual'],
     purpose: 'Promotional invite for a healthcare event.',
     healthcareUseCase: 'Health awareness campaign',
     body: 'Vanakkam {{1}}, join our health camp on {{2}} at {{3}}.',
@@ -658,6 +712,7 @@ export const mockTemplates = [
   }),
   normalizeTemplate({
     id: 'tpl-004',
+    templateCode: 'IC-WA-AUTH-009',
     name: 'OTP Login Authentication',
     internalName: 'otp_login_authentication',
     internalCategory: 'Other',
@@ -670,6 +725,10 @@ export const mockTemplates = [
     createdAt: '04 Aug 2026, 4:50 PM',
     submittedAt: '05 Aug 2026, 8:05 AM',
     source: TEMPLATE_SOURCE_TYPES.META_APPROVED,
+    metaTemplateName: 'otp_login_authentication',
+    createdBy: 'Security Admin',
+    version: 'v1.0',
+    sendContexts: ['manual'],
     purpose: 'Authentication OTP verification.',
     healthcareUseCase: 'Account verification',
     body: 'Your verification code is {{1}}. It expires in {{2}} minutes.',
@@ -688,6 +747,7 @@ export const mockTemplates = [
   }),
   normalizeTemplate({
     id: 'tpl-005',
+    templateCode: 'IC-WA-NRI-010',
     name: 'NRI Callback Request',
     internalName: 'nri_callback_request',
     internalCategory: 'Care Coordination',
@@ -700,6 +760,10 @@ export const mockTemplates = [
     createdAt: '10 Aug 2026, 9:05 AM',
     submittedAt: null,
     source: TEMPLATE_SOURCE_TYPES.AI,
+    metaTemplateName: 'nri_callback_request',
+    createdBy: 'AI Draft Assistant',
+    version: 'v0.3',
+    sendContexts: ['manual', 'tag_added'],
     purpose: 'Coordinate callback for NRI family members.',
     healthcareUseCase: 'Family coordination',
     body: 'Namaste {{1}}, hamari care team aapse {{2}} par sampark karegi.',
@@ -715,6 +779,7 @@ export const mockTemplates = [
   }),
   normalizeTemplate({
     id: 'tpl-006',
+    templateCode: 'IC-WA-DISCHARGE-011',
     name: 'Discharge Follow-up Variation',
     internalName: 'discharge_followup_variation',
     internalCategory: 'Healthcare',
@@ -727,6 +792,10 @@ export const mockTemplates = [
     createdAt: '05 Aug 2026, 2:00 PM',
     submittedAt: '06 Aug 2026, 10:10 AM',
     source: TEMPLATE_SOURCE_TYPES.DUPLICATED,
+    metaTemplateName: 'discharge_followup_variation',
+    createdBy: 'Patient Success Desk',
+    version: 'v1.2',
+    sendContexts: ['patient_created', 'appointment_updated'],
     purpose: 'Follow-up message drafted from a previously approved structure.',
     healthcareUseCase: 'Post-discharge follow-up',
     body: 'Hello {{1}}, we are checking in after {{2}}\'s discharge. Planned next step: {{3}}.',
@@ -751,6 +820,7 @@ export const mockTemplates = [
 export const createEmptyTemplateDraft = () => {
   const draft = normalizeTemplate({
     id: 'draft-local',
+    templateCode: 'IC-WA-DRAFT-LOCAL',
     name: '',
     internalName: '',
     internalCategory: TEMPLATE_INTERNAL_CATEGORIES[0],
@@ -763,6 +833,10 @@ export const createEmptyTemplateDraft = () => {
     localStatus: TEMPLATE_STATUSES.DRAFT,
     metaStatus: META_TEMPLATE_STATUSES.NOT_SUBMITTED,
     source: TEMPLATE_SOURCE_TYPES.LOCAL,
+    metaTemplateName: '',
+    createdBy: DEFAULT_TEMPLATE_CREATOR,
+    version: 'v0.1',
+    sendContexts: ['manual'],
     componentOrder: [TEMPLATE_COMPONENT_KEYS.BODY, TEMPLATE_COMPONENT_KEYS.VARIABLES],
     header: { type: 'None', content: '' },
     body: '',
@@ -806,6 +880,7 @@ export const createDraftFromStarter = (template) => cloneTemplate(template, {
 
 export const duplicateTemplateDraft = (template) => cloneTemplate(template, {
   id: `duplicate-${template.id}`,
+  templateCode: `${template.templateCode}-COPY`,
   name: `${template.name} Copy`,
   internalName: `${template.internalName}_copy`,
   source: TEMPLATE_SOURCE_TYPES.DUPLICATED,
@@ -837,6 +912,7 @@ export const generateAiDraftOptions = (prompt) => {
       ],
       draft: cloneTemplate(sourceTemplate, {
         id: `ai-draft-${index + 1}`,
+        templateCode: `${sourceTemplate.templateCode}-AI-${index + 1}`,
         source: TEMPLATE_SOURCE_TYPES.AI,
         localStatus: TEMPLATE_STATUSES.DRAFT,
         metaStatus: META_TEMPLATE_STATUSES.NOT_SUBMITTED,
@@ -848,5 +924,29 @@ export const generateAiDraftOptions = (prompt) => {
         updatedAt: 'Now',
       }),
     };
+  });
+};
+
+export const filterTemplatesForFlowSelector = (templates, filters = {}) => {
+  const searchTerm = String(filters.search || '').trim().toLowerCase();
+
+  return (templates || []).filter((template) => {
+    const matchesSearch = !searchTerm || [
+      template.name,
+      template.templateCode,
+      template.metaTemplateName,
+      template.language,
+      template.internalCategory,
+      ...(template.tags || []),
+    ].some((value) => String(value || '').toLowerCase().includes(searchTerm));
+
+    const matchesCategory = !filters.category || filters.category === 'All' || template.internalCategory === filters.category;
+    const matchesLanguage = !filters.language || filters.language === 'All' || template.language === filters.language;
+    const matchesMetaStatus = !filters.metaStatus || filters.metaStatus === 'All' || template.metaStatus === filters.metaStatus;
+    const matchesTag = !filters.tag || filters.tag === 'All' || (template.tags || []).includes(filters.tag);
+    const matchesContext = !filters.sendContext || filters.sendContext === 'All' || (template.sendContexts || []).includes(filters.sendContext);
+    const isExecutable = template.metaStatus === META_TEMPLATE_STATUSES.APPROVED || template.localStatus === TEMPLATE_STATUSES.READY_TO_SUBMIT;
+
+    return matchesSearch && matchesCategory && matchesLanguage && matchesMetaStatus && matchesTag && matchesContext && isExecutable;
   });
 };
