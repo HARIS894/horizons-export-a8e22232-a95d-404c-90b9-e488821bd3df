@@ -1,0 +1,608 @@
+import {
+  AUTOMATION_HANDOFF_STATES,
+  CONDITION_LOGIC_OPTIONS,
+  CUSTOMER_SERVICE_WINDOW_STATES,
+  EXECUTION_STATUSES,
+  FLOW_BRANCH_KEYS,
+  FLOW_VALIDATION_SEVERITY,
+  FLOW_VARIABLE_CATALOG,
+  FLOW_NODE_TYPES,
+  FLOW_STATUSES,
+  META_TEMPLATE_READINESS,
+  POLICY_GATE_STATES,
+  TRIGGER_STATUSES,
+  WAIT_UNITS,
+} from '../types/automationTypes';
+
+const createNode = ({ id, kind, label, subtype, x, y, config = {} }) => ({
+  id,
+  type: kind,
+  label,
+  subtype,
+  position: { x, y },
+  config,
+});
+
+const createVariableRef = (path) => {
+  const match = FLOW_VARIABLE_CATALOG.find((variable) => variable.path === path);
+  return match ? { id: match.id, path: match.path, label: match.label } : { id: path, path, label: path };
+};
+
+const createExecutionNode = ({ id, label, status, input = {}, output = {}, error = '' }) => ({
+  id,
+  label,
+  status,
+  input,
+  output,
+  error,
+});
+
+export const flowCatalog = [
+  {
+    id: 'flow-appointment-confirmation',
+    flowCode: 'IC-FLOW-APT-001',
+    name: 'Appointment Confirmation Path',
+    description: 'Handle appointment creation, resolve approved template messaging, branch on patient responses, and hand off to staff when needed.',
+    status: FLOW_STATUSES.VALIDATED,
+    version: 'v1.3',
+    trigger: 'Appointment Created',
+    tags: ['Appointment', 'Reminder', 'Patient'],
+    updatedAt: '10 Aug 2026, 11:40 AM',
+    templatesUsed: ['IC-WA-APT-001', 'IC-WA-FOLLOWUP-004'],
+    triggers: ['IC-TRG-APT-001'],
+    validationState: FLOW_VALIDATION_SEVERITY.WARNING,
+  },
+  {
+    id: 'flow-payment-recovery',
+    flowCode: 'IC-FLOW-PAY-001',
+    name: 'Payment Recovery Journey',
+    description: 'Branch on payment status, add finance tags, and prepare backend-owned payment or escalation actions.',
+    status: FLOW_STATUSES.DRAFT,
+    version: 'v0.8',
+    trigger: 'Payment Captured',
+    tags: ['Payment', 'Urgent'],
+    updatedAt: '10 Aug 2026, 9:25 AM',
+    templatesUsed: ['IC-WA-PAY-006'],
+    triggers: ['IC-TRG-PAY-001'],
+    validationState: FLOW_VALIDATION_SEVERITY.ERROR,
+  },
+  {
+    id: 'flow-family-followup',
+    flowCode: 'IC-FLOW-FOLLOWUP-001',
+    name: 'Family Follow-up and Handoff',
+    description: 'Coordinate follow-up templates, tag checks, and transition to human care agents when replies need a callback.',
+    status: FLOW_STATUSES.PUBLISHED,
+    version: 'v2.0',
+    trigger: 'Tag Added',
+    tags: ['Follow-up', 'NRI', 'Doctor'],
+    updatedAt: '09 Aug 2026, 6:05 PM',
+    templatesUsed: ['IC-WA-FOLLOWUP-004', 'IC-WA-NRI-010'],
+    triggers: ['IC-TRG-NRI-003', 'IC-TRG-MSG-004'],
+    validationState: FLOW_VALIDATION_SEVERITY.PASS,
+  },
+];
+
+export const defaultFlowDefinition = {
+  id: 'flow-appointment-confirmation',
+  flowCode: 'IC-FLOW-APT-001',
+  name: 'Appointment Confirmation Path',
+  description: 'Appointment-created automation with approved template resolution, quick reply routing, condition branching, and human handoff metadata.',
+  status: FLOW_STATUSES.VALIDATED,
+  version: 'v1.3',
+  trigger: {
+    id: 'trigger-appointment-created',
+    triggerCode: 'IC-TRG-APT-001',
+    event: 'Appointment Created',
+  },
+  templatesUsed: ['IC-WA-APT-001', 'IC-WA-FOLLOWUP-004'],
+  triggers: ['IC-TRG-APT-001'],
+  variables: [
+    createVariableRef('patient.name'),
+    createVariableRef('patient.doctor'),
+    createVariableRef('appointment.date'),
+    createVariableRef('appointment.time'),
+    createVariableRef('payment.status'),
+  ],
+  tags: ['Appointment', 'Reminder'],
+  createdBy: 'Automation Admin',
+  updatedAt: '10 Aug 2026, 11:40 AM',
+  customerServiceWindow: CUSTOMER_SERVICE_WINDOW_STATES.OPEN,
+  executionPolicy: {
+    policyState: POLICY_GATE_STATES.REQUIRES_TEMPLATE,
+    requiresTemplate: true,
+    requiresHuman: false,
+    reason: 'Template approval is controlled by Meta.',
+  },
+  nodes: [
+    createNode({
+      id: 'node-trigger-appointment-created',
+      kind: FLOW_NODE_TYPES.TRIGGER,
+      subtype: 'Appointment Created',
+      label: 'Appointment Created',
+      x: 120,
+      y: 110,
+      config: {
+        eventKey: 'appointment_created',
+        triggerCode: 'IC-TRG-APT-001',
+        description: 'Starts when an appointment record is created in the backend.',
+      },
+    }),
+    createNode({
+      id: 'node-action-send-template',
+      kind: FLOW_NODE_TYPES.ACTION,
+      subtype: 'Send Template',
+      label: 'Send Template',
+      x: 420,
+      y: 110,
+      config: {
+        templateCode: 'IC-WA-APT-001',
+        templateName: 'Appointment Reminder',
+        language: 'English (India)',
+        category: 'Appointments',
+        metaStatus: META_TEMPLATE_READINESS.APPROVED,
+        customerServiceWindow: CUSTOMER_SERVICE_WINDOW_STATES.OPEN,
+        tags: ['Appointment', 'Reminder'],
+        preview: 'Hello {{patient_name}}, your appointment with {{doctor_name}} is on {{appointment_date}} at {{appointment_time}}.',
+        variableMappings: [
+          { token: '{{patient_name}}', variableRef: createVariableRef('patient.name') },
+          { token: '{{doctor_name}}', variableRef: createVariableRef('patient.doctor') },
+          { token: '{{appointment_date}}', variableRef: createVariableRef('appointment.date') },
+          { token: '{{appointment_time}}', variableRef: createVariableRef('appointment.time') },
+        ],
+      },
+    }),
+    createNode({
+      id: 'node-logic-wait',
+      kind: FLOW_NODE_TYPES.LOGIC,
+      subtype: 'Wait',
+      label: 'Wait 24 Hours',
+      x: 720,
+      y: 110,
+      config: {
+        duration: 24,
+        unit: WAIT_UNITS[3],
+        businessHoursPlaceholder: true,
+        schedulerContract: 'Backend execution required',
+      },
+    }),
+    createNode({
+      id: 'node-action-quick-reply',
+      kind: FLOW_NODE_TYPES.ACTION,
+      subtype: 'Quick Reply',
+      label: 'Quick Reply Menu',
+      x: 1020,
+      y: 110,
+      config: {
+        question: 'How can we help?',
+        buttons: [
+          { quickReplyId: 'qr-book-1', label: 'Book Appointment', value: 'book_appointment', nextNodeId: 'node-logic-condition' },
+          { quickReplyId: 'qr-payment-2', label: 'Payment', value: 'payment', nextNodeId: 'node-logic-condition' },
+          { quickReplyId: 'qr-nurse-3', label: 'Nurse Service', value: 'nurse_service', nextNodeId: 'node-action-handoff' },
+          { quickReplyId: 'qr-agent-4', label: 'Talk to Agent', value: 'talk_to_agent', nextNodeId: 'node-action-handoff' },
+        ],
+      },
+    }),
+    createNode({
+      id: 'node-logic-condition',
+      kind: FLOW_NODE_TYPES.LOGIC,
+      subtype: 'Condition',
+      label: 'Payment / NRI Condition',
+      x: 1320,
+      y: 110,
+      config: {
+        logicJoin: CONDITION_LOGIC_OPTIONS[0],
+        rules: [
+          { id: 'rule-1', fieldRef: createVariableRef('payment.status'), field: 'payment.status', operator: 'equals', value: 'captured' },
+          { id: 'rule-2', fieldRef: createVariableRef('tag.label'), field: 'tag.label', operator: 'equals', value: 'NRI' },
+        ],
+      },
+    }),
+    createNode({
+      id: 'node-action-add-tag',
+      kind: FLOW_NODE_TYPES.ACTION,
+      subtype: 'Add Tag',
+      label: 'Add VIP Tag',
+      x: 1640,
+      y: 10,
+      config: {
+        tagId: 'tag-vip',
+        tagLabel: 'VIP',
+      },
+    }),
+    createNode({
+      id: 'node-integration-sheet',
+      kind: FLOW_NODE_TYPES.INTEGRATION,
+      subtype: 'Google Sheets Append Row',
+      label: 'Log Row to Sheets',
+      x: 1640,
+      y: 140,
+      config: {
+        backendExecutionRequired: true,
+        connectionState: 'Integration not connected',
+        spreadsheetSelector: 'Appointments Master',
+        worksheetSelector: 'Reminder Log',
+        columnMappings: [
+          { column: 'patient_name', variableRef: createVariableRef('patient.name') },
+          { column: 'appointment_date', variableRef: createVariableRef('appointment.date') },
+        ],
+      },
+    }),
+    createNode({
+      id: 'node-action-handoff',
+      kind: FLOW_NODE_TYPES.OUTPUT,
+      subtype: 'Human Handoff',
+      label: 'Human Handoff',
+      x: 1940,
+      y: 110,
+      config: {
+        team: 'Care Coordination',
+        agent: 'Shift Supervisor',
+        priority: 'High',
+        reason: 'Conversation requires manual follow-up',
+        pauseAutomation: true,
+      },
+    }),
+  ],
+  edges: [
+    { id: 'edge-trigger-template', source: 'node-trigger-appointment-created', target: 'node-action-send-template', branchKey: FLOW_BRANCH_KEYS.DEFAULT, branchLabel: 'start' },
+    { id: 'edge-template-wait', source: 'node-action-send-template', target: 'node-logic-wait', branchKey: FLOW_BRANCH_KEYS.DEFAULT, branchLabel: 'sent' },
+    { id: 'edge-wait-menu', source: 'node-logic-wait', target: 'node-action-quick-reply', branchKey: FLOW_BRANCH_KEYS.DEFAULT, branchLabel: 'after wait' },
+    { id: 'edge-menu-condition', source: 'node-action-quick-reply', target: 'node-logic-condition', branchKey: FLOW_BRANCH_KEYS.DEFAULT, branchLabel: 'route reply' },
+    { id: 'edge-condition-yes', source: 'node-logic-condition', target: 'node-action-add-tag', branchKey: FLOW_BRANCH_KEYS.YES, branchLabel: 'YES' },
+    { id: 'edge-condition-maybe', source: 'node-logic-condition', target: 'node-integration-sheet', branchKey: FLOW_BRANCH_KEYS.MAYBE, branchLabel: 'MAYBE' },
+    { id: 'edge-condition-no', source: 'node-logic-condition', target: 'node-action-handoff', branchKey: FLOW_BRANCH_KEYS.NO, branchLabel: 'NO' },
+    { id: 'edge-tag-handoff', source: 'node-action-add-tag', target: 'node-action-handoff', branchKey: FLOW_BRANCH_KEYS.DEFAULT, branchLabel: 'review' },
+    { id: 'edge-sheet-handoff', source: 'node-integration-sheet', target: 'node-action-handoff', branchKey: FLOW_BRANCH_KEYS.DEFAULT, branchLabel: 'backend required' },
+  ],
+};
+
+export const flowValidationChecks = [
+  'No trigger',
+  'No end node',
+  'Disconnected node',
+  'Invalid connection',
+  'Missing template',
+  'Template not approved',
+  'Missing required variable',
+  'Duplicate node ID',
+  'Invalid branch',
+  'Missing condition',
+  'Missing integration contract',
+  'Invalid configuration',
+];
+
+export const flowPreviewScenarios = [
+  {
+    id: 'preview-1',
+    name: 'Appointment reminder preview',
+    triggerLabel: 'Appointment Created',
+    steps: ['Trigger matched', 'Template resolved by code', 'Wait scheduled', 'Quick reply shown', 'Condition evaluated', 'Human handoff prepared'],
+    result: 'Simulation only. No real WhatsApp message was sent.',
+  },
+  {
+    id: 'preview-2',
+    name: 'Payment routing preview',
+    triggerLabel: 'Payment Captured',
+    steps: ['Trigger matched', 'Condition checked against payment.status', 'Google Sheets action evaluated', 'Backend execution required shown'],
+    result: 'Integration not connected. Backend execution required.',
+  },
+];
+
+export const flowTestPayloads = {
+  'Incoming Message': {
+    triggerType: 'Incoming Message',
+    message: { id: 'msg-001', text: 'Need appointment details' },
+    contact: { id: 'CT-100', name: 'Asha Menon', phone: '+919999999999' },
+  },
+  Patient: {
+    triggerType: 'Patient Created',
+    patient: { id: 'PT-2081', name: 'Harish Kumar', doctor: 'Dr. Shalini' },
+  },
+  Appointment: {
+    triggerType: 'Appointment Created',
+    appointment: { id: 'APT-1101', date: '2026-08-12', time: '17:30' },
+    patient: { id: 'PT-2081', name: 'Harish Kumar', doctor: 'Dr. Shalini' },
+  },
+  Payment: {
+    triggerType: 'Payment Captured',
+    payment: { id: 'PAY-991', amount: 2500, status: 'captured' },
+  },
+  Contact: {
+    triggerType: 'Contact Created',
+    contact: { id: 'CT-440', name: 'Leela Thomas', email: 'leela@example.com' },
+  },
+};
+
+export const triggerWizardSteps = ['Choose Event', 'Configure Event', 'Select Flow', 'Conditions', 'Review', 'Save'];
+
+export const triggerEventCatalog = [
+  'Incoming WhatsApp Message',
+  'Template Reply',
+  'Button Click',
+  'List Selection',
+  'Contact Created',
+  'Patient Created',
+  'Appointment Created',
+  'Appointment Updated',
+  'Payment Captured',
+  'Payment Failed',
+  'Refund Processed',
+  'Google Sheet Row Added',
+  'Google Sheet Row Updated',
+  'Calendar Event Created',
+  'Webhook Received',
+  'Tag Added',
+  'Scheduled Trigger',
+  'Manual Trigger',
+];
+
+export const triggerWizardDraft = {
+  currentStep: 1,
+  triggerCode: 'IC-TRG-PAY-001',
+  name: 'Razorpay Payment Captured Trigger',
+  event: 'Payment Captured',
+  flowCode: 'IC-FLOW-PAY-001',
+  flowId: 'flow-payment-recovery',
+  conditions: [
+    { id: 'wizard-rule-1', fieldRef: createVariableRef('payment.amount'), field: 'payment.amount', operator: 'greater_than', value: '1000' },
+  ],
+  reviewSummary: 'When Razorpay Payment Captured occurs and amount > 1000, route to IC-FLOW-PAY-001.',
+};
+
+export const flowVariableCatalog = FLOW_VARIABLE_CATALOG;
+
+export const policyGatePreview = {
+  recipient: 'contact.phone',
+  messageType: 'template',
+  templateCode: 'IC-WA-APT-001',
+  customerServiceWindow: CUSTOMER_SERVICE_WINDOW_STATES.OPEN,
+  optIn: true,
+  metaStatus: META_TEMPLATE_READINESS.APPROVED,
+  result: {
+    allowed: true,
+    reason: 'Approved template with active service window.',
+    requiresTemplate: true,
+    requiresHuman: false,
+    policyState: POLICY_GATE_STATES.ALLOWED,
+  },
+};
+
+export const triggerRegistry = [
+  {
+    id: 'trigger-1',
+    triggerCode: 'IC-TRG-APT-001',
+    name: 'Appointment Created Trigger',
+    event: 'Appointment Created',
+    status: TRIGGER_STATUSES.ACTIVE,
+    flowId: 'flow-appointment-confirmation',
+    flowCode: 'IC-FLOW-APT-001',
+    flowName: 'Appointment Confirmation Path',
+    lastExecution: '10 Aug 2026, 11:08 AM',
+    executionCount: 142,
+    conditionSummary: 'appointment exists',
+  },
+  {
+    id: 'trigger-2',
+    triggerCode: 'IC-TRG-PAY-001',
+    name: 'Payment Recovery Trigger',
+    event: 'Payment Captured',
+    status: TRIGGER_STATUSES.DRAFT,
+    flowId: 'flow-payment-recovery',
+    flowCode: 'IC-FLOW-PAY-001',
+    flowName: 'Payment Recovery Journey',
+    lastExecution: 'Not executed',
+    executionCount: 0,
+    conditionSummary: 'amount > 1000',
+  },
+  {
+    id: 'trigger-3',
+    triggerCode: 'IC-TRG-NRI-003',
+    name: 'Tag Added NRI Follow-up',
+    event: 'Tag Added',
+    status: TRIGGER_STATUSES.PAUSED,
+    flowId: 'flow-family-followup',
+    flowCode: 'IC-FLOW-FOLLOWUP-001',
+    flowName: 'Family Follow-up and Handoff',
+    lastExecution: '09 Aug 2026, 7:40 PM',
+    executionCount: 28,
+    conditionSummary: 'tag == NRI',
+  },
+  {
+    id: 'trigger-4',
+    triggerCode: 'IC-TRG-MSG-004',
+    name: 'Incoming WhatsApp Message Router',
+    event: 'Incoming Message',
+    status: TRIGGER_STATUSES.ERROR,
+    flowId: 'flow-family-followup',
+    flowCode: 'IC-FLOW-FOLLOWUP-001',
+    flowName: 'Family Follow-up and Handoff',
+    lastExecution: '10 Aug 2026, 8:22 AM',
+    executionCount: 311,
+    conditionSummary: 'message.text exists',
+  },
+];
+
+export const executionLogEntries = [
+  {
+    id: 'exec-1',
+    executionId: 'exec-1',
+    flowId: 'flow-appointment-confirmation',
+    flowCode: 'IC-FLOW-APT-001',
+    flowName: 'Appointment Confirmation Path',
+    triggerId: 'trigger-1',
+    triggerCode: 'IC-TRG-APT-001',
+    contactId: 'CT-2081',
+    patientId: 'PT-2081',
+    entity: 'PT-2081 / Harish Kumar',
+    startedAt: '10 Aug 2026, 10:02 AM',
+    completedAt: '10 Aug 2026, 10:08 AM',
+    duration: '6m 18s',
+    status: EXECUTION_STATUSES.SUCCESS,
+    currentNodeId: 'node-action-handoff',
+    failedNode: '-',
+    failedNodeId: '',
+    error: '',
+    nodes: [
+      createExecutionNode({ id: 'node-trigger-appointment-created', label: 'Appointment Created', status: EXECUTION_STATUSES.SUCCESS, output: { triggerMatched: true } }),
+      createExecutionNode({ id: 'node-action-send-template', label: 'Send Template', status: EXECUTION_STATUSES.SUCCESS, output: { templateCode: 'IC-WA-APT-001' } }),
+      createExecutionNode({ id: 'node-logic-wait', label: 'Wait 24 Hours', status: EXECUTION_STATUSES.SKIPPED, output: { simulated: true } }),
+      createExecutionNode({ id: 'node-action-handoff', label: 'Human Handoff', status: EXECUTION_STATUSES.SUCCESS, output: { team: 'Care Coordination' } }),
+    ],
+    metadata: { mode: 'preview', source: 'local-simulation' },
+  },
+  {
+    id: 'exec-2',
+    executionId: 'exec-2',
+    flowId: 'flow-payment-recovery',
+    flowCode: 'IC-FLOW-PAY-001',
+    flowName: 'Payment Recovery Journey',
+    triggerId: 'trigger-2',
+    triggerCode: 'IC-TRG-PAY-001',
+    contactId: 'CT-991',
+    patientId: '',
+    entity: 'CT-991 / Finance Desk',
+    startedAt: '10 Aug 2026, 9:44 AM',
+    completedAt: '-',
+    duration: 'Waiting 1h 12m',
+    status: EXECUTION_STATUSES.WAITING,
+    currentNodeId: 'node-payment-wait',
+    failedNode: '-',
+    failedNodeId: '',
+    error: '',
+    nodes: [
+      createExecutionNode({ id: 'node-payment-trigger', label: 'Payment Captured', status: EXECUTION_STATUSES.SUCCESS }),
+      createExecutionNode({ id: 'node-payment-condition', label: 'Payment Condition', status: EXECUTION_STATUSES.SUCCESS }),
+      createExecutionNode({ id: 'node-payment-wait', label: 'Wait 24 Hours', status: EXECUTION_STATUSES.WAITING }),
+    ],
+    metadata: { mode: 'test', source: 'mock-runner' },
+  },
+  {
+    id: 'exec-3',
+    executionId: 'exec-3',
+    flowId: 'flow-family-followup',
+    flowCode: 'IC-FLOW-FOLLOWUP-001',
+    flowName: 'Family Follow-up and Handoff',
+    triggerId: 'trigger-4',
+    triggerCode: 'IC-TRG-MSG-004',
+    contactId: 'CT-104',
+    patientId: 'PT-104',
+    entity: 'PT-104 / NRI Family',
+    startedAt: '10 Aug 2026, 8:20 AM',
+    completedAt: '10 Aug 2026, 8:22 AM',
+    duration: '2m 04s',
+    status: EXECUTION_STATUSES.FAILED,
+    currentNodeId: 'node-human-handoff',
+    failedNode: 'Human Handoff',
+    failedNodeId: 'node-human-handoff',
+    error: 'Manual takeover policy placeholder blocked dual-send automation.',
+    nodes: [
+      createExecutionNode({ id: 'node-message-trigger', label: 'Incoming WhatsApp Message', status: EXECUTION_STATUSES.SUCCESS }),
+      createExecutionNode({ id: 'node-tag-check', label: 'Check Tag', status: EXECUTION_STATUSES.SUCCESS }),
+      createExecutionNode({ id: 'node-human-handoff', label: 'Human Handoff', status: EXECUTION_STATUSES.FAILED, error: 'Human takeover already active.' }),
+    ],
+    metadata: { mode: 'policy-simulation', source: 'mock-runner' },
+  },
+];
+
+export const conversationAutomationStates = [
+  {
+    id: 'state-1',
+    conversation: 'Harish Kumar / Appointment Desk',
+    state: AUTOMATION_HANDOFF_STATES.AUTOMATION_ACTIVE,
+    detail: 'Automation owns next reminder and reply waiting window.',
+  },
+  {
+    id: 'state-2',
+    conversation: 'NRI Family / Care Coordination',
+    state: AUTOMATION_HANDOFF_STATES.HUMAN_TAKEOVER,
+    detail: 'Automation paused because a human agent took over in the inbox.',
+  },
+  {
+    id: 'state-3',
+    conversation: 'Payment Recovery / Finance Desk',
+    state: AUTOMATION_HANDOFF_STATES.AUTOMATION_PAUSED,
+    detail: 'Paused after admin review to avoid conflicting payment reminders.',
+  },
+  {
+    id: 'state-4',
+    conversation: 'Doctor Follow-up / Callback Queue',
+    state: AUTOMATION_HANDOFF_STATES.FLOW_FAILED,
+    detail: 'Execution failed at Human Handoff and requires admin resolution.',
+  },
+];
+
+export const importPreviewPayloads = {
+  Patients: {
+    uploadedColumns: ['patient_code', 'patient_name', 'phone', 'whatsapp_number', 'email', 'dob', 'payment_status', 'notes', 'unexpected_field'],
+    rows: [
+      { patient_code: 'PT-1001', patient_name: 'Harish Kumar', phone: '+919900000001', whatsapp_number: '+919900000001', email: 'harish@example.com', dob: '1988-01-02', payment_status: 'Paid', notes: 'Priority family follow-up' },
+      { patient_code: 'PT-1002', patient_name: 'Leela Thomas', phone: 'invalid-phone', whatsapp_number: '+919900000002', email: 'leela@example.com', dob: '1982-03-11', payment_status: 'Pending', notes: 'Requires address review' },
+      { patient_code: 'PT-1001', patient_name: 'Duplicate Patient', phone: '+919900000003', whatsapp_number: '+919900000003', email: 'dup@example.com', dob: '1981-10-01', payment_status: 'Unknown', notes: 'Duplicate code' },
+    ],
+  },
+  Templates: {
+    uploadedColumns: ['template_code', 'template_name', 'category', 'language', 'meta_template_name', 'meta_status', 'tags', 'header_type', 'body', 'variables', 'buttons', 'version'],
+    rows: [
+      { template_code: 'IC-WA-APT-001', template_name: 'Appointment Reminder India', category: 'Appointments', language: 'English (India)', meta_template_name: 'appointment_reminder_india', meta_status: 'APPROVED', tags: 'Appointment|Reminder', header_type: 'Text', body: 'Hello {{1}}', variables: '[]', buttons: '[]', version: 'v2.1' },
+      { template_code: 'IC-WA-NEW-012', template_name: 'New Reminder', category: 'Healthcare', language: 'English (India)', meta_template_name: 'new_reminder', meta_status: 'PENDING', tags: 'Reminder', header_type: 'Text', body: 'Reminder body', variables: '[]', buttons: '[]', version: 'v1.0' },
+      { template_code: 'IC-WA-NEW-012', template_name: 'Duplicate New Reminder', category: 'Healthcare', language: 'English (India)', meta_template_name: 'duplicate_new_reminder', meta_status: 'APPROVED', tags: 'Reminder', header_type: 'Text', body: 'Duplicate', variables: '[]', buttons: '[]', version: 'v1.0' },
+    ],
+  },
+};
+
+export const exportJobMocks = [
+  {
+    id: 'export-1',
+    entity: 'Patients',
+    format: 'CSV',
+    email: 'ops@instantcare.in',
+    state: 'PREPARING',
+    deliveryMode: 'Secure expiring download link',
+    expiresAt: 'Pending generation',
+  },
+  {
+    id: 'export-2',
+    entity: 'Templates',
+    format: 'JSON',
+    email: 'automation@instantcare.in',
+    state: 'READY',
+    deliveryMode: 'Secure expiring download link',
+    expiresAt: '10 Aug 2026, 3:40 PM',
+  },
+  {
+    id: 'export-3',
+    entity: 'Payments',
+    format: 'Excel-compatible CSV',
+    email: 'finance@instantcare.in',
+    state: 'SENT',
+    deliveryMode: 'Secure expiring download link',
+    expiresAt: '10 Aug 2026, 1:10 PM',
+  },
+];
+
+export const providerAdapterSnapshots = [
+  {
+    id: 'provider-sheets',
+    provider: 'Google Sheets',
+    direction: 'Bidirectional sync',
+    selectors: ['Spreadsheet selector', 'Worksheet selector', 'Field mapping'],
+    duplicateHandling: 'Primary key upsert with conflict review placeholder',
+    lastSync: '10 Aug 2026, 8:20 AM',
+  },
+  {
+    id: 'provider-calendar',
+    provider: 'Google Calendar',
+    direction: 'Export',
+    selectors: ['Calendar selector', 'Reminder defaults', 'Doctor / nurse mapping'],
+    duplicateHandling: 'Event idempotency key placeholder',
+    lastSync: '09 Aug 2026, 6:15 PM',
+  },
+  {
+    id: 'provider-razorpay',
+    provider: 'Razorpay',
+    direction: 'Import',
+    selectors: ['Environment selector', 'Webhook route', 'Reconciliation mapping'],
+    duplicateHandling: 'Payment id merge with audit trail placeholder',
+    lastSync: '10 Aug 2026, 7:45 AM',
+  },
+];
