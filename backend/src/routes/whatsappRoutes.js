@@ -5,9 +5,12 @@ import { validateRequest } from '../middleware/validateRequest.js';
 import { idParamValidator, listQueryValidator } from '../validators/commonValidators.js';
 import {
   createWhatsappContactValidator,
+  manualWhatsappMediaValidator,
   manualWhatsappMessageValidator,
   retryFailedWhatsappValidator,
   sendWhatsappValidator,
+  updateWhatsappConversationModeValidator,
+  whatsappReactionValidator,
 } from '../validators/whatsappValidators.js';
 
 const router = Router();
@@ -34,6 +37,13 @@ router.get(
   whatsappController.getConversationMessages,
 );
 
+router.patch(
+  '/conversations/:id/mode',
+  [...idParamValidator, ...updateWhatsappConversationModeValidator],
+  validateRequest,
+  whatsappController.updateConversationMode,
+);
+
 router.post(
   '/contacts',
   createWhatsappContactValidator,
@@ -55,8 +65,17 @@ router.get(
   whatsappController.getLogById,
 );
 
+router.get(
+  '/logs/:id/media',
+  idParamValidator,
+  validateRequest,
+  whatsappController.getMedia,
+);
+
 // Manual WhatsApp message from InstantCare Inbox
 router.post('/messages', manualWhatsappMessageValidator, validateRequest, whatsappController.manualSend);
+
+router.post('/messages/media', manualWhatsappMediaValidator, validateRequest, whatsappController.manualSendMedia);
 
 router.post(
   '/send',
@@ -77,6 +96,13 @@ router.post(
   idParamValidator,
   validateRequest,
   whatsappController.retry,
+);
+
+router.post(
+  '/logs/:id/reaction',
+  [...idParamValidator, ...whatsappReactionValidator],
+  validateRequest,
+  whatsappController.react,
 );
 
 export default router;

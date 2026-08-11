@@ -38,3 +38,26 @@ export const manualWhatsappMessageValidator = [
   body('patientId').optional().isUUID().withMessage('patientId must be a UUID.'),
   body('appointmentId').optional().isUUID().withMessage('appointmentId must be a UUID.'),
 ];
+
+export const manualWhatsappMediaValidator = [
+  body('to').isString().trim().notEmpty().withMessage('WhatsApp recipient number is required.'),
+  body('fileName').isString().trim().notEmpty().withMessage('A file name is required.'),
+  body('mimeType').isString().trim().notEmpty().withMessage('A MIME type is required.'),
+  body('fileData').isString().trim().notEmpty().withMessage('Encoded file data is required.'),
+  body('caption').optional().isString().withMessage('caption must be a string.'),
+  body('recipientUserId').optional().isUUID().withMessage('recipientUserId must be a UUID.'),
+  body('patientId').optional().isUUID().withMessage('patientId must be a UUID.'),
+  body('appointmentId').optional().isUUID().withMessage('appointmentId must be a UUID.'),
+];
+
+export const whatsappReactionValidator = [
+  body('emoji').isString().trim().notEmpty().withMessage('A reaction emoji is required.'),
+];
+
+export const updateWhatsappConversationModeValidator = [
+  body('messagingMode')
+    .isString()
+    .trim()
+    .isIn(['manual', 'automation'])
+    .withMessage('messagingMode must be either manual or automation.'),
+];

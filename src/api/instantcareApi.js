@@ -35,6 +35,13 @@ const setStoredSession = (session) => {
 const getStoredAccessToken = () => localStorage.getItem(ACCESS_TOKEN_KEY);
 const getStoredRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
 
+const applyAuthHeader = (headers) => {
+  const token = getStoredAccessToken();
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+};
+
 const clearStoredSession = () => {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
@@ -76,10 +83,7 @@ const request = async (path, options = {}, retry = true) => {
     headers.set('Content-Type', 'application/json');
   }
 
-  const token = getStoredAccessToken();
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
-  }
+  applyAuthHeader(headers);
 
   const response = await fetch(buildUrl(path, options.query), {
     method: options.method || 'GET',
@@ -102,6 +106,36 @@ const request = async (path, options = {}, retry = true) => {
   }
 
   return payload?.data;
+};
+
+const requestBinary = async (path, options = {}, retry = true) => {
+  const headers = new Headers(options.headers || {});
+  applyAuthHeader(headers);
+
+  const response = await fetch(buildUrl(path, options.query), {
+    method: options.method || 'GET',
+    headers,
+  });
+
+  if (response.status === 401 && retry && getStoredRefreshToken()) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed?.accessToken) {
+      return requestBinary(path, options, false);
+    }
+  }
+
+  if (!response.ok) {
+    const payload = await parseJsonSafe(response);
+    const error = new Error(payload?.error?.message || `Request failed with status ${response.status}`);
+    error.details = payload?.error?.details || payload;
+    throw error;
+  }
+
+  return {
+    blob: await response.blob(),
+    contentType: response.headers.get('Content-Type') || 'application/octet-stream',
+    disposition: response.headers.get('Content-Disposition') || '',
+  };
 };
 
 const mapInquiryPayload = (values, integrationPayload) => ({
@@ -266,6 +300,13 @@ export const instantcareApi = {
     });
   },
 
+  async updateWhatsappConversationMode(conversationId, messagingMode) {
+    return request(`/whatsapp/conversations/${conversationId}/mode`, {
+      method: 'PATCH',
+      body: { messagingMode },
+    });
+  },
+
   async createWhatsappContact(payload) {
     return request('/whatsapp/contacts', {
       method: 'POST',
@@ -282,6 +323,24 @@ export const instantcareApi = {
       method: 'POST',
       body: payload,
     });
+  },
+
+  async sendWhatsappMediaMessage(payload) {
+    return request('/whatsapp/messages/media', {
+      method: 'POST',
+      body: payload,
+    });
+  },
+
+  async reactToWhatsappLog(id, emoji) {
+    return request(`/whatsapp/logs/${id}/reaction`, {
+      method: 'POST',
+      body: { emoji },
+    });
+  },
+
+  async downloadWhatsappLogMedia(id) {
+    return requestBinary(`/whatsapp/logs/${id}/media`);
   },
 
   async retryWhatsappLog(id) {

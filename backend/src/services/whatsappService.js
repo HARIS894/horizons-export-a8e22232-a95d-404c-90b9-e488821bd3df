@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { extname } from 'node:path';
 import { env } from '../config/env.js';
 import { logger } from '../config/logger.js';
 import { isSupabaseEnabled, supabaseAdmin } from '../config/supabase.js';
@@ -13,12 +14,30 @@ import { renderWhatsappTemplate, supportedWhatsappTemplateTypes } from '../templ
 const META_TIMEOUT_MS = 15000;
 const CUSTOMER_SERVICE_WINDOW_MS = 24 * 60 * 60 * 1000;
 const DEFAULT_AUTO_REPLY = 'Hello! Thank you for contacting InstantCare. How can we help you today?';
+const DEFAULT_MESSAGING_MODE = 'manual';
+const WHATSAPP_MESSAGING_MODES = new Set(['manual', 'automation']);
 const INBOUND_TEMPLATE_TYPE = 'inbound-message';
 const INBOUND_REPLY_TEMPLATE_TYPE = 'inbound-reply';
 const SUCCESSFUL_REPLY_STATUSES = new Set(['sent', 'delivered', 'read']);
 const RETRIABLE_LOG_STATUSES = new Set(['queued', 'failed']);
 const NON_RETRIABLE_META_ERROR_CODES = new Set(['131047']);
 const APPROVED_META_TEMPLATE_CONFIG = {};
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_DOCUMENT_BYTES = 8 * 1024 * 1024;
+const SUPPORTED_INBOUND_MESSAGE_TYPES = new Set(['text', 'image', 'document', 'reaction']);
+const SUPPORTED_IMAGE_MIME_TYPES = {
+  'image/jpeg': ['.jpg', '.jpeg'],
+  'image/png': ['.png'],
+  'image/webp': ['.webp'],
+};
+const SUPPORTED_DOCUMENT_MIME_TYPES = {
+  'application/pdf': ['.pdf'],
+  'text/plain': ['.txt'],
+  'application/msword': ['.doc'],
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  'application/vnd.ms-excel': ['.xls'],
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+};
 
 const nowIso = () => new Date().toISOString();
 
@@ -38,9 +57,177 @@ const getRetryTimestamp = (attemptCount) => {
   return new Date(Date.now() + minutes * 60 * 1000).toISOString();
 };
 
-const getMessageText = (message) => (message?.text?.body || '').trim();
+const getMessageText = (message) => {
+  if (message?.type === 'text') {
+    return (message?.text?.body || '').trim();
+  }
 
-const getStoredInboundBody = (message) => getMessageText(message) || `[${message?.type || 'unknown'}]`;
+  if (message?.type === 'image') {
+    return (message?.image?.caption || '').trim();
+  }
+
+  if (message?.type === 'document') {
+    return (message?.document?.caption || '').trim();
+  }
+
+  if (message?.type === 'reaction') {
+    return `[Reaction: ${message?.reaction?.emoji || ''}]`;
+  }
+
+  return '';
+};
+
+const buildMediaPlaceholder = ({ messageType, fileName = '', caption = '' }) => {
+  if (caption) {
+    return caption;
+  }
+
+  if (messageType === 'image') {
+    return '[Image]';
+  }
+
+  if (messageType === 'document') {
+    return fileName ? `[Document: ${fileName}]` : '[Document]';
+  }
+
+  if (messageType === 'reaction') {
+    return fileName || '[Reaction]';
+  }
+
+  return `[${messageType || 'unknown'}]`;
+};
+
+const getStoredInboundBody = (message) => {
+  const body = getMessageText(message);
+  if (body) {
+    return body;
+  }
+
+  if (message?.type === 'image') {
+    return buildMediaPlaceholder({ messageType: 'image' });
+  }
+
+  if (message?.type === 'document') {
+    return buildMediaPlaceholder({ messageType: 'document', fileName: message?.document?.filename || '' });
+  }
+
+  if (message?.type === 'reaction') {
+    return `[Reaction: ${message?.reaction?.emoji || ''}]`;
+  }
+
+  return `[${message?.type || 'unknown'}]`;
+};
+
+const normalizeMessageType = (value = 'text') => String(value || 'text').trim().toLowerCase();
+
+const normalizeMessagingMode = (value) => {
+  const normalized = String(value || '').trim().toLowerCase();
+  return WHATSAPP_MESSAGING_MODES.has(normalized) ? normalized : DEFAULT_MESSAGING_MODE;
+};
+
+const decodeBase64File = (fileData) => {
+  const normalized = String(fileData || '').trim();
+  if (!normalized) {
+    throw new ApiError(400, 'Encoded file data is required.');
+  }
+
+  const dataUrlMatch = normalized.match(/^data:[^;]+;base64,(.+)$/);
+  return Buffer.from(dataUrlMatch ? dataUrlMatch[1] : normalized, 'base64');
+};
+
+const validateMediaUpload = ({ messageType, mimeType, fileName, buffer }) => {
+  const normalizedType = normalizeMessageType(messageType);
+  const normalizedMimeType = String(mimeType || '').trim().toLowerCase();
+  const normalizedFileName = String(fileName || '').trim();
+  const extension = extname(normalizedFileName).toLowerCase();
+  const allowedTypes = normalizedType === 'image' ? SUPPORTED_IMAGE_MIME_TYPES : SUPPORTED_DOCUMENT_MIME_TYPES;
+  const allowedExtensions = allowedTypes[normalizedMimeType];
+  const sizeLimit = normalizedType === 'image' ? MAX_IMAGE_BYTES : MAX_DOCUMENT_BYTES;
+
+  if (!allowedExtensions) {
+    throw new ApiError(422, `Unsupported ${normalizedType} MIME type.`, {
+      code: 'WHATSAPP_UNSUPPORTED_MEDIA_TYPE',
+      mimeType: normalizedMimeType,
+    });
+  }
+
+  if (!extension || !allowedExtensions.includes(extension)) {
+    throw new ApiError(422, `Unsupported ${normalizedType} file extension for the provided MIME type.`, {
+      code: 'WHATSAPP_UNSUPPORTED_FILE_EXTENSION',
+      fileName: normalizedFileName,
+      mimeType: normalizedMimeType,
+    });
+  }
+
+  if (!buffer?.length || buffer.length > sizeLimit) {
+    throw new ApiError(422, `${normalizedType === 'image' ? 'Image' : 'Document'} exceeds the allowed upload size.`, {
+      code: 'WHATSAPP_MEDIA_SIZE_EXCEEDED',
+      maxBytes: sizeLimit,
+      receivedBytes: buffer?.length || 0,
+    });
+  }
+
+  return {
+    messageType: normalizedType,
+    mimeType: normalizedMimeType,
+    fileName: normalizedFileName,
+    sizeBytes: buffer.length,
+  };
+};
+
+const getMessageMediaDetails = (message) => {
+  const messageType = normalizeMessageType(message?.type);
+
+  if (messageType === 'image') {
+    return {
+      messageType,
+      mediaType: 'image',
+      mediaId: message?.image?.id || null,
+      mimeType: message?.image?.mime_type || null,
+      fileName: null,
+      caption: message?.image?.caption || null,
+      reactionEmoji: null,
+      reactionTargetMessageId: null,
+    };
+  }
+
+  if (messageType === 'document') {
+    return {
+      messageType,
+      mediaType: 'document',
+      mediaId: message?.document?.id || null,
+      mimeType: message?.document?.mime_type || null,
+      fileName: message?.document?.filename || null,
+      caption: message?.document?.caption || null,
+      reactionEmoji: null,
+      reactionTargetMessageId: null,
+    };
+  }
+
+  if (messageType === 'reaction') {
+    return {
+      messageType,
+      mediaType: null,
+      mediaId: null,
+      mimeType: null,
+      fileName: null,
+      caption: null,
+      reactionEmoji: message?.reaction?.emoji || null,
+      reactionTargetMessageId: message?.reaction?.message_id || null,
+    };
+  }
+
+  return {
+    messageType: 'text',
+    mediaType: null,
+    mediaId: null,
+    mimeType: null,
+    fileName: null,
+    caption: null,
+    reactionEmoji: null,
+    reactionTargetMessageId: null,
+  };
+};
 
 const getConversationStatus = (status) => status || 'open';
 
@@ -183,6 +370,15 @@ const buildWhatsAppLogPayload = ({
   lastError = null,
   providerMessageId = null,
   direction = 'outbound',
+  messageType = 'text',
+  mediaType = null,
+  mediaId = null,
+  mimeType = null,
+  fileName = null,
+  caption = null,
+  reactionEmoji = null,
+  reactionTargetMessageId = null,
+  mediaSizeBytes = null,
   webhookPayload = {},
   providerResponse = {},
 }) => ({
@@ -204,6 +400,15 @@ const buildWhatsAppLogPayload = ({
   next_retry_at: nextRetryAt,
   last_error: lastError,
   provider_message_id: providerMessageId,
+  message_type: messageType,
+  media_type: mediaType,
+  media_id: mediaId,
+  mime_type: mimeType,
+  file_name: fileName,
+  caption,
+  reaction_emoji: reactionEmoji,
+  reaction_target_message_id: reactionTargetMessageId,
+  media_size_bytes: mediaSizeBytes,
   idempotency_key: randomUUID(),
   direction,
   webhook_payload: webhookPayload,
@@ -251,21 +456,32 @@ const ensureWhatsappConversation = async ({ contactId = null, phoneNumber, unrea
 
   if (existing) {
     const nextUnreadCount = Math.max(0, Number(existing.unread_count || 0) + Number(unreadDelta || 0));
-    return whatsappConversationModel.update(existing.id, {
+    const updatedConversation = await whatsappConversationModel.update(existing.id, {
       contact_id: contactId || existing.contact_id || null,
       status: getConversationStatus(status),
       unread_count: nextUnreadCount,
       last_message_at: lastMessageAt,
     });
+
+    return {
+      ...updatedConversation,
+      messaging_mode: normalizeMessagingMode(updatedConversation.messaging_mode),
+    };
   }
 
-  return whatsappConversationModel.create({
+  const createdConversation = await whatsappConversationModel.create({
     contact_id: contactId || null,
     phone_number: normalizedPhoneNumber,
     status: getConversationStatus(status),
     unread_count: Math.max(0, Number(unreadDelta || 0)),
     last_message_at: lastMessageAt,
+    messaging_mode: DEFAULT_MESSAGING_MODE,
   });
+
+  return {
+    ...createdConversation,
+    messaging_mode: normalizeMessagingMode(createdConversation.messaging_mode),
+  };
 };
 
 const ensureWhatsappThread = async ({ phoneNumber, name = '', notes, unreadDelta = 0, autoCreateName = true, lastMessageAt = nowIso() }) => {
@@ -362,15 +578,35 @@ const annotateLog = (log, { activeConversationWindow }) => {
   };
 };
 
+const withConversationMessagingMode = (conversation) => {
+  if (!conversation) {
+    return conversation;
+  }
+
+  return {
+    ...conversation,
+    messaging_mode: normalizeMessagingMode(conversation.messaging_mode),
+  };
+};
+
+const getConversationMessagingMode = async (conversationId, conversation = null) => {
+  const resolvedConversation = withConversationMessagingMode(
+    conversation || await whatsappConversationModel.findById(conversationId),
+  );
+
+  return resolvedConversation?.messaging_mode || DEFAULT_MESSAGING_MODE;
+};
+
 const buildConversationSummary = async (conversation, contactsById) => {
   const latestLog = await getLatestLogForPhoneNumber(conversation.phone_number);
   const contact = conversation.contact_id ? contactsById.get(conversation.contact_id) || null : null;
   const customerServiceWindow = await getConversationWindowState(conversation.phone_number);
+  const normalizedConversation = withConversationMessagingMode(conversation);
 
   return {
-    ...conversation,
+    ...normalizedConversation,
     contact,
-    display_name: getContactDisplayName(contact, conversation.phone_number),
+    display_name: getContactDisplayName(contact, normalizedConversation.phone_number),
     last_message_preview: latestLog ? latestLog.message_body : '',
     latest_log: latestLog ? annotateLog(latestLog, { activeConversationWindow: customerServiceWindow.active }) : null,
     customer_service_window: customerServiceWindow,
@@ -556,9 +792,9 @@ const buildStatusTimestamps = (status) => {
   return {};
 };
 
-const sendViaWhatsappCloud = async ({ to, body, context = {} }) => {
+const sendViaWhatsappCloud = async ({ requestBody, context = {} }) => {
   const logContext = {
-    recipientPhone: to,
+    recipientPhone: requestBody?.to || null,
     phoneNumberId: env.whatsappPhoneNumberId || null,
     ...context,
   };
@@ -579,14 +815,6 @@ const sendViaWhatsappCloud = async ({ to, body, context = {} }) => {
   }
 
   const endpoint = `https://graph.facebook.com/${env.whatsappApiVersion}/${env.whatsappPhoneNumberId}/messages`;
-  const requestBody = {
-    messaging_product: 'whatsapp',
-    to,
-    type: 'text',
-    text: {
-      body,
-    },
-  };
 
   logWhatsapp('info', 'BEFORE META SEND', {
     ...logContext,
@@ -647,6 +875,124 @@ const sendViaWhatsappCloud = async ({ to, body, context = {} }) => {
   }
 };
 
+const uploadWhatsappMedia = async ({ fileBuffer, fileName, mimeType, context = {} }) => {
+  if (!isWhatsappConfigured()) {
+    throw new ApiError(503, 'WhatsApp Cloud API credentials are not configured for media upload.');
+  }
+
+  const endpoint = `https://graph.facebook.com/${env.whatsappApiVersion}/${env.whatsappPhoneNumberId}/media`;
+  const formData = new FormData();
+  formData.set('messaging_product', 'whatsapp');
+  formData.set('type', mimeType);
+  formData.set('file', new Blob([fileBuffer], { type: mimeType }), fileName);
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.whatsappAccessToken}`,
+    },
+    body: formData,
+  });
+  const responseBody = await safeReadJson(response);
+
+  logWhatsapp('info', 'META MEDIA UPLOAD RESPONSE', {
+    endpoint,
+    ok: response.ok,
+    statusCode: response.status,
+    responseBody,
+    fileName,
+    mimeType,
+    sizeBytes: fileBuffer.length,
+    ...context,
+  });
+
+  if (!response.ok) {
+    throw new ApiError(502, 'WhatsApp Cloud media upload failed.', responseBody);
+  }
+
+  return responseBody;
+};
+
+const getWhatsappMediaMetadata = async ({ mediaId, context = {} }) => {
+  if (!isWhatsappConfigured()) {
+    throw new ApiError(503, 'WhatsApp Cloud API credentials are not configured for media retrieval.');
+  }
+
+  const endpoint = `https://graph.facebook.com/${env.whatsappApiVersion}/${mediaId}`;
+  const response = await fetch(endpoint, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${env.whatsappAccessToken}`,
+    },
+  });
+  const responseBody = await safeReadJson(response);
+
+  logWhatsapp('info', 'META MEDIA LOOKUP RESPONSE', {
+    endpoint,
+    ok: response.ok,
+    statusCode: response.status,
+    responseBody,
+    mediaId,
+    ...context,
+  });
+
+  if (!response.ok) {
+    throw new ApiError(502, 'WhatsApp media lookup failed.', responseBody);
+  }
+
+  return responseBody;
+};
+
+const downloadWhatsappMedia = async ({ mediaId, context = {} }) => {
+  const metadata = await getWhatsappMediaMetadata({ mediaId, context });
+  const response = await fetch(metadata.url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${env.whatsappAccessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new ApiError(502, 'WhatsApp media download failed.', { mediaId, statusCode: response.status });
+  }
+
+  return {
+    buffer: Buffer.from(await response.arrayBuffer()),
+    contentType: metadata.mime_type || response.headers.get('content-type') || 'application/octet-stream',
+    fileSize: metadata.file_size || null,
+  };
+};
+
+const buildTextMessageRequestBody = ({ to, body }) => ({
+  messaging_product: 'whatsapp',
+  to,
+  type: 'text',
+  text: {
+    body,
+  },
+});
+
+const buildMediaMessageRequestBody = ({ to, messageType, mediaId, caption, fileName }) => ({
+  messaging_product: 'whatsapp',
+  to,
+  type: messageType,
+  [messageType]: {
+    id: mediaId,
+    ...(caption ? { caption } : {}),
+    ...(messageType === 'document' && fileName ? { filename: fileName } : {}),
+  },
+});
+
+const buildReactionMessageRequestBody = ({ to, emoji, targetMessageId }) => ({
+  messaging_product: 'whatsapp',
+  to,
+  type: 'reaction',
+  reaction: {
+    message_id: targetMessageId,
+    emoji,
+  },
+});
+
 const createOutboundNotification = async ({ recipientUserId, patientId, appointmentId, subject, message, metadata, templateType, recipientPhone }) => {
   if (!recipientUserId) {
     logWhatsapp('warn', 'NOTIFICATION SAVE SKIPPED', {
@@ -699,6 +1045,15 @@ const createOutboundLogFromDelivery = async ({
   templateType,
   recipientPhone,
   messageBody,
+  messageType = 'text',
+  mediaType = null,
+  mediaId = null,
+  mimeType = null,
+  fileName = null,
+  caption = null,
+  reactionEmoji = null,
+  reactionTargetMessageId = null,
+  mediaSizeBytes = null,
   delivery,
   error,
   webhookPayload,
@@ -727,6 +1082,15 @@ const createOutboundLogFromDelivery = async ({
     lastError: error ? formatFailureMessage(failure) || error.message : null,
     providerMessageId,
     direction: 'outbound',
+    messageType,
+    mediaType,
+    mediaId,
+    mimeType,
+    fileName,
+    caption,
+    reactionEmoji,
+    reactionTargetMessageId,
+    mediaSizeBytes,
     webhookPayload,
     providerResponse: error ? toErrorDetails(error) : delivery.sent ? delivery.response : {
       provider: delivery.provider,
@@ -794,6 +1158,15 @@ const deliverOutboundMessage = async ({
   subject,
   messageBody,
   templateType,
+  messageType = 'text',
+  mediaType = null,
+  mediaId = null,
+  mimeType = null,
+  fileName = null,
+  caption = null,
+  reactionEmoji = null,
+  reactionTargetMessageId = null,
+  mediaSizeBytes = null,
   recipientUserId = null,
   patientId = null,
   appointmentId = null,
@@ -836,14 +1209,48 @@ const deliverOutboundMessage = async ({
   let sendError = null;
 
   try {
-    delivery = await sendViaWhatsappCloud({
-      to: thread.phoneNumber,
-      body: messageBody,
-      context: {
-        templateType,
-        notificationId: notification?.id || null,
-      },
-    });
+    if (messageType === 'image' || messageType === 'document') {
+      delivery = await sendViaWhatsappCloud({
+        requestBody: buildMediaMessageRequestBody({
+          to: thread.phoneNumber,
+          messageType,
+          mediaId,
+          caption,
+          fileName,
+        }),
+        context: {
+          templateType,
+          notificationId: notification?.id || null,
+          messageType,
+          mediaId,
+        },
+      });
+    } else if (messageType === 'reaction') {
+      delivery = await sendViaWhatsappCloud({
+        requestBody: buildReactionMessageRequestBody({
+          to: thread.phoneNumber,
+          emoji: reactionEmoji,
+          targetMessageId: reactionTargetMessageId,
+        }),
+        context: {
+          templateType,
+          notificationId: notification?.id || null,
+          messageType,
+          reactionTargetMessageId,
+        },
+      });
+    } else {
+      delivery = await sendViaWhatsappCloud({
+        requestBody: buildTextMessageRequestBody({
+          to: thread.phoneNumber,
+          body: messageBody,
+        }),
+        context: {
+          templateType,
+          notificationId: notification?.id || null,
+        },
+      });
+    }
   } catch (error) {
     sendError = error;
   }
@@ -859,6 +1266,15 @@ const deliverOutboundMessage = async ({
     templateType,
     recipientPhone: thread.phoneNumber,
     messageBody,
+    messageType,
+    mediaType,
+    mediaId,
+    mimeType,
+    fileName,
+    caption,
+    reactionEmoji,
+    reactionTargetMessageId,
+    mediaSizeBytes,
     delivery,
     error: sendError,
     webhookPayload,
@@ -894,6 +1310,7 @@ const ensureInboundLog = async ({ message, value, phoneNumber, contactId, conver
   }
 
   const messageBody = getStoredInboundBody(message);
+  const messageMedia = getMessageMediaDetails(message);
   const log = await whatsappLogModel.create(
     buildWhatsAppLogPayload({
       contactId,
@@ -905,6 +1322,14 @@ const ensureInboundLog = async ({ message, value, phoneNumber, contactId, conver
       attemptCount: 1,
       providerMessageId: inboundMessageId,
       direction: 'inbound',
+      messageType: messageMedia.messageType,
+      mediaType: messageMedia.mediaType,
+      mediaId: messageMedia.mediaId,
+      mimeType: messageMedia.mimeType,
+      fileName: messageMedia.fileName,
+      caption: messageMedia.caption,
+      reactionEmoji: messageMedia.reactionEmoji,
+      reactionTargetMessageId: messageMedia.reactionTargetMessageId,
       webhookPayload: {
         inboundMessageId,
         inboundMessageBody: messageBody,
@@ -1084,7 +1509,7 @@ const processInboundMessage = async (messageEnvelope, summary) => {
     return;
   }
 
-  if (messageType !== 'text' || !messageBody) {
+  if (!SUPPORTED_INBOUND_MESSAGE_TYPES.has(messageType)) {
     summary.skipped.unsupportedMessage += 1;
     logWhatsapp('info', 'DONE', {
       inboundMessageId,
@@ -1092,6 +1517,36 @@ const processInboundMessage = async (messageEnvelope, summary) => {
       outcome: 'skipped',
       reason: 'unsupported-message',
       messageType,
+    });
+    return;
+  }
+
+  if (messageType !== 'text' || !messageBody) {
+    logWhatsapp('info', 'DONE', {
+      inboundMessageId,
+      recipientPhone: normalizedContactNumber,
+      outcome: 'saved',
+      messageType,
+    });
+    return;
+  }
+
+  const messagingMode = await getConversationMessagingMode(thread.conversation.id, thread.conversation);
+
+  if (messagingMode === 'manual') {
+    logWhatsapp('info', 'AUTO_REPLY_SKIPPED_MANUAL_MODE', {
+      inboundMessageId,
+      recipientPhone: normalizedContactNumber,
+      conversationId: thread.conversation.id,
+      messagingMode,
+    });
+
+    logWhatsapp('info', 'DONE', {
+      inboundMessageId,
+      recipientPhone: normalizedContactNumber,
+      outcome: 'saved',
+      messagingMode,
+      reason: 'manual-mode',
     });
     return;
   }
@@ -1250,6 +1705,93 @@ async sendManualMessage({
     log: annotateLog(outcome.log, { activeConversationWindow: true }),
   };
 },
+async sendManualMediaMessage({
+  to,
+  fileName,
+  mimeType,
+  fileData,
+  caption = '',
+  recipientUserId = null,
+  patientId = null,
+  appointmentId = null,
+}) {
+  const recipientPhone = normalizeWhatsappPhoneNumber(to);
+
+  if (!recipientPhone) {
+    throw new ApiError(400, 'WhatsApp recipient number is required.');
+  }
+
+  const fileBuffer = decodeBase64File(fileData);
+  const normalizedMessageType = String(mimeType || '').toLowerCase().startsWith('image/') ? 'image' : 'document';
+  const validatedMedia = validateMediaUpload({ messageType: normalizedMessageType, mimeType, fileName, buffer: fileBuffer });
+  const customerServiceWindow = await getConversationWindowState(recipientPhone);
+
+  if (!customerServiceWindow.active) {
+    throw buildTemplateRequiredError();
+  }
+
+  const upload = await uploadWhatsappMedia({
+    fileBuffer,
+    fileName: validatedMedia.fileName,
+    mimeType: validatedMedia.mimeType,
+    context: {
+      recipientPhone,
+      messageType: validatedMedia.messageType,
+    },
+  });
+
+  const thread = await ensureWhatsappThread({
+    phoneNumber: recipientPhone,
+    unreadDelta: 0,
+    autoCreateName: true,
+    lastMessageAt: nowIso(),
+  });
+
+  const normalizedCaption = String(caption || '').trim();
+  const outcome = await deliverOutboundMessage({
+    recipientPhone: thread.phoneNumber,
+    subject: `InstantCare Manual WhatsApp ${validatedMedia.messageType}`,
+    messageBody: buildMediaPlaceholder({ messageType: validatedMedia.messageType, fileName: validatedMedia.fileName, caption: normalizedCaption }),
+    templateType: 'manual',
+    messageType: validatedMedia.messageType,
+    mediaType: validatedMedia.messageType,
+    mediaId: upload.id,
+    mimeType: validatedMedia.mimeType,
+    fileName: validatedMedia.fileName,
+    caption: normalizedCaption || null,
+    mediaSizeBytes: validatedMedia.sizeBytes,
+    recipientUserId,
+    patientId,
+    appointmentId,
+    contactId: thread.contact.id,
+    conversationId: thread.conversation.id,
+    notificationMetadata: {
+      source: 'manual-inbox-media',
+      mimeType: validatedMedia.mimeType,
+      fileName: validatedMedia.fileName,
+    },
+    webhookPayload: {
+      source: 'manual-inbox-media',
+      mimeType: validatedMedia.mimeType,
+      fileName: validatedMedia.fileName,
+      mediaId: upload.id,
+    },
+  });
+
+  if (outcome.error) {
+    throw outcome.error;
+  }
+
+  return {
+    recipientPhone: thread.phoneNumber,
+    delivery: outcome.delivery,
+    mediaId: upload.id,
+    messageType: validatedMedia.messageType,
+    mimeType: validatedMedia.mimeType,
+    fileName: validatedMedia.fileName,
+    log: annotateLog(outcome.log, { activeConversationWindow: true }),
+  };
+},
   async listConversations(query = {}) {
     const page = Number(query.page || 1);
     const limit = Number(query.limit || 25);
@@ -1291,7 +1833,7 @@ async sendManualMessage({
   },
 
   async getConversationMessages(conversationId, query = {}) {
-    const conversation = await whatsappConversationModel.findById(conversationId);
+    const conversation = withConversationMessagingMode(await whatsappConversationModel.findById(conversationId));
     const contact = conversation.contact_id
       ? await whatsappContactModel.findById(conversation.contact_id).catch(() => null)
       : null;
@@ -1327,6 +1869,19 @@ async sendManualMessage({
     };
   },
 
+  async updateConversationMessagingMode(conversationId, messagingMode) {
+    const conversation = await whatsappConversationModel.findById(conversationId);
+    const nextMessagingMode = normalizeMessagingMode(messagingMode);
+
+    const updatedConversation = withConversationMessagingMode(await whatsappConversationModel.update(conversation.id, {
+      messaging_mode: nextMessagingMode,
+    }));
+
+    return {
+      conversation: updatedConversation,
+    };
+  },
+
   async createOrUpdateContact({ name, phoneNumber, notes }) {
     const thread = await ensureWhatsappThread({
       phoneNumber,
@@ -1352,6 +1907,28 @@ async sendManualMessage({
 
   async getLogById(id) {
     return whatsappLogModel.findById(id);
+  },
+
+  async getMediaContent(logId) {
+    const log = await whatsappLogModel.findById(logId);
+
+    if (!log.media_id) {
+      throw new ApiError(404, 'No media is associated with this WhatsApp message.');
+    }
+
+    const media = await downloadWhatsappMedia({
+      mediaId: log.media_id,
+      context: {
+        whatsappLogId: log.id,
+      },
+    });
+
+    return {
+      buffer: media.buffer,
+      contentType: log.mime_type || media.contentType,
+      fileName: log.file_name || `${log.message_type || 'file'}-${log.id}`,
+      disposition: log.message_type === 'image' ? 'inline' : 'attachment',
+    };
   },
 
   async sendTemplateMessage(payload) {
@@ -1431,15 +2008,49 @@ async sendManualMessage({
     let sendError = null;
 
     try {
-      delivery = await sendViaWhatsappCloud({
-        to: log.recipient_phone,
-        body: log.message_body,
-        context: {
-          templateType: log.template_name,
-          retry: true,
-          whatsappLogId: log.id,
-        },
-      });
+      if (log.message_type === 'image' || log.message_type === 'document') {
+        delivery = await sendViaWhatsappCloud({
+          requestBody: buildMediaMessageRequestBody({
+            to: log.recipient_phone,
+            messageType: log.message_type,
+            mediaId: log.media_id,
+            caption: log.caption,
+            fileName: log.file_name,
+          }),
+          context: {
+            templateType: log.template_name,
+            retry: true,
+            whatsappLogId: log.id,
+            messageType: log.message_type,
+          },
+        });
+      } else if (log.message_type === 'reaction') {
+        delivery = await sendViaWhatsappCloud({
+          requestBody: buildReactionMessageRequestBody({
+            to: log.recipient_phone,
+            emoji: log.reaction_emoji,
+            targetMessageId: log.reaction_target_message_id,
+          }),
+          context: {
+            templateType: log.template_name,
+            retry: true,
+            whatsappLogId: log.id,
+            messageType: log.message_type,
+          },
+        });
+      } else {
+        delivery = await sendViaWhatsappCloud({
+          requestBody: buildTextMessageRequestBody({
+            to: log.recipient_phone,
+            body: log.message_body,
+          }),
+          context: {
+            templateType: log.template_name,
+            retry: true,
+            whatsappLogId: log.id,
+          },
+        });
+      }
     } catch (error) {
       sendError = error;
     }
@@ -1457,6 +2068,46 @@ async sendManualMessage({
     }
 
     return updated;
+  },
+
+  async sendReactionToMessage(logId, { emoji }) {
+    const targetLog = await whatsappLogModel.findById(logId);
+
+    if (targetLog.direction !== 'inbound' || !targetLog.provider_message_id) {
+      throw new ApiError(400, 'Reactions can only be sent for inbound WhatsApp messages with a provider message id.');
+    }
+
+    const customerServiceWindow = await getConversationWindowState(targetLog.recipient_phone);
+    if (!customerServiceWindow.active) {
+      throw buildTemplateRequiredError();
+    }
+
+    const normalizedEmoji = String(emoji || '').trim();
+    const outcome = await deliverOutboundMessage({
+      recipientPhone: targetLog.recipient_phone,
+      subject: 'InstantCare WhatsApp Reaction',
+      messageBody: `[Reaction: ${normalizedEmoji}]`,
+      templateType: 'manual',
+      messageType: 'reaction',
+      reactionEmoji: normalizedEmoji,
+      reactionTargetMessageId: targetLog.provider_message_id,
+      recipientUserId: targetLog.recipient_user_id,
+      patientId: targetLog.patient_id,
+      appointmentId: targetLog.appointment_id,
+      contactId: targetLog.contact_id,
+      conversationId: targetLog.conversation_id,
+      webhookPayload: {
+        source: 'manual-inbox-reaction',
+        targetLogId: targetLog.id,
+        targetProviderMessageId: targetLog.provider_message_id,
+      },
+    });
+
+    if (outcome.error) {
+      throw outcome.error;
+    }
+
+    return annotateLog(outcome.log, { activeConversationWindow: true });
   },
 
   async retryFailedMessages(limit = 25) {

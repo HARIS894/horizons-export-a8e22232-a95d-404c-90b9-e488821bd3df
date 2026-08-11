@@ -16,12 +16,21 @@ export const whatsappController = {
     sendSuccess(res, await whatsappService.getConversationMessages(req.params.id, req.query));
   }),
 
+  updateConversationMode: asyncHandler(async (req, res) => {
+    sendSuccess(res, await whatsappService.updateConversationMessagingMode(req.params.id, req.body.messagingMode));
+  }),
+
   upsertContact: asyncHandler(async (req, res) => {
     sendSuccess(res, await whatsappService.createOrUpdateContact(req.body), 201);
   }),
 
   manualSend: asyncHandler(async (req, res) => {
     const result = await whatsappService.sendManualMessage(req.body);
+    sendSuccess(res, result, 201);
+  }),
+
+  manualSendMedia: asyncHandler(async (req, res) => {
+    const result = await whatsappService.sendManualMediaMessage(req.body);
     sendSuccess(res, result, 201);
   }),
 
@@ -41,8 +50,19 @@ export const whatsappController = {
     sendSuccess(res, await whatsappService.getLogById(req.params.id));
   }),
 
+  getMedia: asyncHandler(async (req, res) => {
+    const media = await whatsappService.getMediaContent(req.params.id);
+    res.setHeader('Content-Type', media.contentType);
+    res.setHeader('Content-Disposition', `${media.disposition}; filename="${media.fileName}"`);
+    res.status(200).send(media.buffer);
+  }),
+
   retry: asyncHandler(async (req, res) => {
     sendSuccess(res, await whatsappService.retryMessage(req.params.id));
+  }),
+
+  react: asyncHandler(async (req, res) => {
+    sendSuccess(res, await whatsappService.sendReactionToMessage(req.params.id, req.body), 201);
   }),
 
   retryFailed: asyncHandler(async (req, res) => {
