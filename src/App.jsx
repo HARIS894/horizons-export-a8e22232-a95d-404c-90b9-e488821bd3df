@@ -10,16 +10,15 @@ import HealthAIChatBot from '@/components/HealthAIChatBot';
 import BreadcrumbNavigation from '@/components/BreadcrumbNavigation';
 import GlobalInquiryLauncher from '@/components/inquiry/GlobalInquiryLauncher';
 
-// New Pages Structure
 import HomePage from '@/pages/HomePage';
 import ServicesPage from '@/pages/ServicesPage';
+import PricingPage from '@/pages/PricingPage';
 import BookNursePage from '@/pages/BookNursePage';
 import ContactUsPage from '@/pages/ContactUsPage';
 import HealthcareLibraryPage from '@/pages/HealthcareLibraryPage';
 import ContentLibraryPage from '@/pages/ContentLibraryPage';
 import ServiceDetailPage from '@/pages/ServiceDetailPage';
 
-// Admin & Dashboard
 import AdminLoginPage from '@/pages/AdminLoginPage';
 import AdminDashboard from '@/pages/AdminDashboard';
 import CustomerDashboard from '@/pages/CustomerDashboard';
@@ -37,9 +36,9 @@ function App() {
           <HealthAIChatBot />
           <BreadcrumbNavigation />
           <Routes>
-            {/* Main Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/services" element={<ServicesPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
             <Route path="/services/:slug" element={<ServiceDetailPage />} />
             <Route path="/book" element={<BookNursePage />} />
             <Route path="/contact" element={<ContactUsPage />} />
@@ -67,31 +66,25 @@ function App() {
             <Route path="/palliative-care" element={<ServiceDetailPage />} />
             <Route path="/cancer-care-at-home" element={<ServiceDetailPage />} />
             <Route path="/stroke-care-at-home" element={<ServiceDetailPage />} />
-            
-            {/* Kept for backward compatibility or direct links if needed */}
-            <Route path="/scheduled-booking" element={<BookNursePage />} /> 
+            <Route path="/scheduled-booking" element={<BookNursePage />} />
             <Route path="/emergency-booking" element={<BookNursePage />} />
-
-            {/* Protected / Admin Routes */}
-            <Route 
-              path="/dashboard" 
+            <Route
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <CustomerDashboard />
                 </ProtectedRoute>
-              } 
+              }
             />
-            
             <Route path="/admin/login" element={<AdminLoginPage />} />
-            <Route 
-              path="/admin/dashboard" 
+            <Route
+              path="/admin/dashboard"
               element={
                 <ProtectedRoute adminOnly>
                   <AdminDashboard />
                 </ProtectedRoute>
-              } 
+              }
             />
-
             <Route
               path="/admin/healthcare-crm"
               element={
@@ -100,7 +93,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="/family-portal"
               element={
