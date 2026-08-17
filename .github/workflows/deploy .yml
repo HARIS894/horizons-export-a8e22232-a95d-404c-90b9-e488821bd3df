@@ -32,6 +32,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "dist/*"
           target: "/var/www/instantcare"
+          strip_components: 1
+          overwrite: true
 
       - name: Reload Nginx
         uses: appleboy/ssh-action@v1.0.3
