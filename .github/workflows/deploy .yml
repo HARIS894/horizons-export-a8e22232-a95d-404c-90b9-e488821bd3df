@@ -25,7 +25,7 @@ jobs:
         run: npm run build
 
       - name: Upload dist to VPS
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.HOST }}
           username: root
@@ -36,7 +36,7 @@ jobs:
           overwrite: true
 
       - name: Reload Nginx
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.HOST }}
           username: root
