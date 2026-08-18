@@ -1,37 +1,6 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
 
-const PricingFaq = ({ items }) => {
-  return (
-    <section className="px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-      <div className="mx-auto max-w-5xl">
-        <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#7C3AED]">FAQ</p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-            Pricing questions, answered clearly
-          </h2>
-          <p className="mt-4 text-sm leading-7 text-slate-600">
-            Clear answers for common billing, coverage, and plan-switching questions.
-          </p>
-        </div>
-
-        <div className="mt-10 grid gap-4">
-          {items.map((item) => (
-            <details
-              key={item.question}
-              className="group rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_14px_35px_rgba(15,23,42,0.05)] open:border-purple-200"
-            >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left">
-                <span className="text-lg font-semibold text-slate-950">{item.question}</span>
-                <ChevronDown className="h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180" />
-              </summary>
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">{item.answer}</p>
-            </details>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
+const PricingFaq = ({ items }) => <section className="px-4 py-16 sm:px-6 lg:px-8 lg:py-20"><div className="mx-auto max-w-5xl"><div className="text-center"><p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#7C3AED]">FAQ</p><h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Pricing questions, answered clearly</h2><p className="mt-4 text-sm leading-7 text-slate-600">Useful answers about home healthcare, starting prices, NRI family support, care coordination and what happens after you contact us.</p></div><div className="mt-10 grid gap-4">{items.map((item) => <details key={item.question} className="group rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_14px_35px_rgba(15,23,42,0.05)] open:border-purple-200"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left"><span className="text-lg font-semibold text-slate-950">{item.question}</span><ChevronDown className="h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180" /></summary><p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600">{item.answer}</p></details>)}</div></div></section>;
 
 export default PricingFaq;
