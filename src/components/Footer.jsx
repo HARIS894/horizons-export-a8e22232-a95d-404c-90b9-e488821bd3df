@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, Heart, Shield } from 'lucide-react';
 import Logo from './Logo';
@@ -121,15 +121,13 @@ const Footer = () => {
                <a href="#" className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition-all hover:bg-[#7C3AED] hover:text-white">
                  <Facebook className="w-4 h-4" />
                </a>
-               <a href="#" className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition-all hover:bg-[#7C3AED] hover:text-white">
-                 <Twitter className="w-4 h-4" />
-               </a>
+               <a href="https://x.com/instantcareNRI" target="_blank" rel="noreferrer" aria-label="InstantCare on X" className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition-all hover:bg-[#7C3AED] hover:text-white"><Twitter className="w-4 h-4" /></a>
              </div>
           </div>
         </div>
 
         <div className="flex flex-col gap-4 border-t border-slate-100 pt-8 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
-          <p>© {currentYear} InstantCare. All rights reserved.</p>
+          <p>Â© {currentYear} InstantCare. All rights reserved.</p>
           <div className="flex gap-6">
             <Link to="#" className="transition-colors hover:text-[#7C3AED]">Privacy Policy</Link>
             <Link to="#" className="transition-colors hover:text-[#7C3AED]">Terms of Service</Link>
