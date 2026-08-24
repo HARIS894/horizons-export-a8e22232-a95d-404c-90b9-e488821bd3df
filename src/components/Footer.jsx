@@ -115,7 +115,7 @@ const Footer = () => {
                <a href="https://www.instagram.com/instantcare24_7/" target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition-all hover:bg-[#7C3AED] hover:text-white">
                  <Instagram className="w-4 h-4" />
                </a>
-               <a href="https://www.linkedin.com/in/instantcare-health-wealth-3516173a1/" target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition-all hover:bg-[#7C3AED] hover:text-white">
+               <a href="https://www.linkedin.com/in/instant-care-3516173a1/" target="_blank" rel="noreferrer" className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition-all hover:bg-[#7C3AED] hover:text-white">
                  <Linkedin className="w-4 h-4" />
                </a>
                <a href="#" className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition-all hover:bg-[#7C3AED] hover:text-white">
@@ -140,3 +140,4 @@ const Footer = () => {
 };
 
 export default Footer;
+
