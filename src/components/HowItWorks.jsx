@@ -43,7 +43,7 @@ const HowItWorks = () => {
               <motion.div
                 key={step.id}
                 initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.2, duration: 0.6 }}
                 className="flex flex-col items-center text-center bg-white"
