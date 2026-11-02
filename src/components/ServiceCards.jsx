@@ -89,7 +89,7 @@ const ServiceCards = () => {
             <motion.div
               key={service.title}
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.08, duration: 0.45 }}
               whileHover={{ y: -6, scale: 1.01 }}
