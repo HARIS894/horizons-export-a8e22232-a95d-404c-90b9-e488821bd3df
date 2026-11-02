@@ -51,7 +51,7 @@ const WhyChooseUs = () => {
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1, duration: 0.5 }}
               className="bg-white rounded-2xl p-8 border border-gray-100 shadow-soft hover:shadow-hover hover:-translate-y-1 transition-all duration-300 group"
