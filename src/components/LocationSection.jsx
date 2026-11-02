@@ -17,7 +17,7 @@ const LocationSection = () => {
           {/* Map Placeholder Side */}
           <motion.div 
             initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
             className="w-full lg:w-1/2"
@@ -49,7 +49,7 @@ const LocationSection = () => {
           {/* Text Content Side */}
           <motion.div 
             initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            animate={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
             className="w-full lg:w-1/2"
