@@ -7,7 +7,7 @@ import { buildWhatsAppUrl, siteContact } from '@/config/siteConfig';
 
 const fadeUp = {
   initial: { opacity: 0, y: 24 },
-  whileInView: { opacity: 1, y: 0 },
+  animate: { opacity: 1, y: 0 },
   viewport: { once: true, amount: 0.2 },
   transition: { duration: 0.5 },
 };
@@ -76,7 +76,7 @@ const AudienceGrid = ({ items }) => (
         <motion.article
           key={item.title}
           initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.45, delay: index * 0.04 }}
           className="rounded-[1.5rem] border border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),rgba(255,255,255,0.08))] p-5 backdrop-blur"
@@ -126,7 +126,7 @@ const HighlightGrid = ({ items, linkPrefix }) => (
         <motion.div
           key={item.title}
           initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.45, delay: index * 0.04 }}
         >
@@ -138,7 +138,7 @@ const HighlightGrid = ({ items, linkPrefix }) => (
         <motion.article
           key={item.title}
           initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.45, delay: index * 0.04 }}
           className="rounded-[1.6rem] border border-white/12 bg-white/8 p-6 shadow-[0_16px_45px_rgba(15,23,42,0.12)] backdrop-blur"
@@ -156,7 +156,7 @@ const JourneyTimeline = ({ items }) => (
       <motion.div
         key={item.title}
         initial={{ opacity: 0, x: index % 2 === 0 ? -18 : 18 }}
-        whileInView={{ opacity: 1, x: 0 }}
+        animate={{ opacity: 1, x: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.45 }}
         className="rounded-[1.5rem] border border-white/12 bg-white/10 p-5 backdrop-blur"
