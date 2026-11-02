@@ -45,7 +45,7 @@ const TestimonialsSection = () => {
             <motion.div
               key={testimonial.id}
               initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.2, duration: 0.6 }}
               className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 relative group hover:-translate-y-2 transition-transform duration-300"
